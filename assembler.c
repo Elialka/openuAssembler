@@ -40,7 +40,7 @@ int main(int argc, char *argv[]){
     generalError = FALSE;
 
     /* test zone*/
-    testGetNumbersFromLine();
+    testExtractOperands();
     /* end of test zone */
 
 
@@ -177,7 +177,7 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr){
                         generalError = TRUE;
                     }
                     else{/* string read successfully */
-                        if(!addString(&DC, string)){/* cant add to database */
+                        if(!addString(&DC, string)){/* can't add to database */
                             /* todo print error quit program */
                             generalError = TRUE;
                         }

@@ -289,7 +289,7 @@ boolean idRegister(char *token, int *regPtr, errorCodes *lineErrorPtr) {
         current++;
 
         if (isdigit(*current)) {
-            extractToken(current, regBuffer);
+            extractToken(current, regBuffer);/* todo remove redundant extract token */
 
             for (i = 0 ; regBuffer[i] != '\0' ; i++) /*checks if regBuffer does not include illegal chars*/
             {
@@ -316,135 +316,98 @@ boolean idRegister(char *token, int *regPtr, errorCodes *lineErrorPtr) {
 
 
 
-boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpType, int IC, boolean *jumpIsRegPtr,
+boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpType, int IC, boolean *jIsRegPtr,
                         int *reg1Ptr, int *reg2Ptr, int *reg3Ptr, long *immedPtr, errorCodes *lineErrorPtr) {
     char *current;/* current character */
     char buffer[TOKEN_ARRAY_SIZE];/* next token */
     int bufferLength;/* token length */
-    char *endPtr;/* may be deleted */
+    int *lastRegPtr;/* when analysing third operand, point to first unused register buffer */
+    boolean generalError;/* flag turns on when error occurred*/
+    boolean finished;/* flag turns on when we have enough operands for current operation type \ error occurred */
+
+    /* reset line operand buffers */
+    *reg1Ptr = 0;
+    *reg2Ptr = 0;
+    *reg3Ptr = 0;
+
+    /* reset flags */
+    generalError = FALSE;
+    finished = FALSE;
 
     /* next unread character */
     current = line + *lineIndexPtr;
-
     SKIP_WHITES(current);
 
-    /* expecting a register */
+    /* get next token */
     bufferLength = extractToken(current, buffer);
     current += bufferLength;
-    if (!(idRegister(buffer, reg1Ptr, lineErrorPtr)))/*if first token is not a register*/
-    {
-        if (commandOpType == J_JUMP){/* JUMP - only operation with label as possible first parameter */
-            if(tokenIsLabel(buffer, bufferLength, lineErrorPtr)){/* is possible label name */
-                *jumpIsRegPtr = FALSE;
-                if(!addLabelCall(IC, buffer, commandOpType, lineErrorPtr)){
-                    *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
-                    return FALSE;
-                }
-                else{
-                    return TRUE;/* only expected one operand */
-                }
-            }
-            else{
-                *lineErrorPtr = EXPECTED_LABEL_OR_REGISTER;
-                return FALSE;
-            }
-        }
-        else{/* operation is not jump - first parameter has to be register */
-            *lineErrorPtr = EXPECTED_REGISTER;
-            return FALSE;
+
+    /* analyse first operator */
+    if(!getFirstOperand(buffer, bufferLength, commandOpType, IC, jIsRegPtr, reg1Ptr, lineErrorPtr)){/* error */
+        generalError =  TRUE;
+        finished = TRUE;
+    }
+    else{/* legal first operator */
+        /* check if only one operator needed */
+        if(commandOpType == J_JUMP || commandOpType == J_CALL_OR_LA || commandOpType == J_STOP){
+            finished = TRUE;
         }
     }
-    else{ /*if first token is register*/
 
-        /* one single register needed */
-        if (commandOpType == J_CALL_OR_LA) {
-            return TRUE;
+    if(!finished){ /* need second operator */
+        /* read comma */
+        if(!readComma(&current, lineErrorPtr)){/* missing */
+            *lineErrorPtr = MISSING_COMMA;
+            generalError = TRUE;
+            finished = TRUE;
         }
+        else{/* comma as expected */
+            /* get next token */
+            bufferLength = extractToken(current, buffer);
+            current += bufferLength;
 
-        /* read comma and proceed */
-        if(!validateComma(&current, lineErrorPtr)){/* missing comma */
-            return FALSE;
-        }
-
-        bufferLength = extractToken(current, buffer);
-        current += bufferLength;
-
-
-        if (!(idRegister(buffer, reg2Ptr, lineErrorPtr))) /* if second token is not a register*/
-        {
-            if (!(stringToLong(buffer, immedPtr, &endPtr, HALF_WORD_MAX_VALUE))) /* check if not number*/
-                {
-                    *lineErrorPtr = EXPECTED_NUMBER;/* todo number\register*/
-                    return FALSE;
-                }
-            else /*if number*/
-            {
-                /* read comma and proceed */
-                if(!validateComma(&current, lineErrorPtr)){/* missing comma */
-                    return FALSE;
-                }
-                else{/* third parameter must be register */
-                    /* get next token */
-                    bufferLength = extractToken(current, buffer);
-                    current += bufferLength;
-
-                    if (!(idRegister(buffer, reg2Ptr, lineErrorPtr)))/* check if third token is not register*/
-                    {
-                        *lineErrorPtr = EXPECTED_REGISTER;
-                        return FALSE;
-                    }
-                    else if (commandOpType == I_ARITHMETIC || commandOpType == I_MEMORY_LOAD)
-                    {
-                        return TRUE;
-                    }
-                }
+            /* analyse second operator */
+            if(!getSecondOperand(buffer, commandOpType, reg2Ptr, immedPtr, lineErrorPtr)){/* error */
+                generalError =  TRUE;
+                finished = TRUE;
             }
-        }
-        else if (commandOpType == R_COPY) { /*if both tokens are registers and R_COPY*/
-            return TRUE;
-        }
-        else{/* after two registers, check the third token*/
-
-            /* read comma and proceed */
-            if(!validateComma(&current, lineErrorPtr)){/* missing comma */
-                return FALSE;
-            }
-            else{
-                /* get next token */
-                bufferLength = extractToken(current, buffer);
-                current += bufferLength;
-
-                if (!(idRegister(buffer, reg3Ptr, lineErrorPtr)))/*third is not register*/
-                {
-                    if (commandOpType == I_BRANCHING) /* I_BRANCHING or FALSE */
-                    {
-                        if(tokenIsLabel(buffer, bufferLength, lineErrorPtr)){/* third parameter is label */
-                            /* write label call position */
-                            if(!addLabelCall(IC, buffer, commandOpType, lineErrorPtr)){
-                                *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
-                                return FALSE;
-                            }
-                            else{
-                                return TRUE;/* finished */
-                            }
-                        }
-                        else{
-                            *lineErrorPtr = EXPECTED_LABEL;
-                            return FALSE;
-                        }
-                    }
-                    else{
-                        *lineErrorPtr = EXPECTED_REGISTER;
-                        return FALSE;
-                    }
-                }
-                else if (commandOpType == R_ARITHMETIC) {/* three tokens are registers and R_ARITHMETICS */
-                    return TRUE;
+            else{/* legal second operator */
+                /* check if only two operators needed */
+                if(commandOpType == R_COPY){
+                    finished = TRUE;
                 }
             }
         }
     }
-    return FALSE;
+
+    if(!finished){/* need third operator */
+        /* read comma */
+        if(!readComma(&current, lineErrorPtr)){/* missing */
+            *lineErrorPtr = MISSING_COMMA;
+            generalError = TRUE;
+        }
+        else{/* comma as expected */
+            /* get next token */
+            bufferLength = extractToken(current, buffer);
+            current += bufferLength;
+
+            /* determine which register buffer is next unused */
+            if(commandOpType == R_ARITHMETIC){/* two registers already read */
+                lastRegPtr = reg3Ptr;
+            }
+            else{/* one register already read */
+                lastRegPtr = reg2Ptr;
+            }
+
+            /* analyse third operand */
+            if(!getThirdOperand(buffer, bufferLength, IC, commandOpType, lastRegPtr, immedPtr, lineErrorPtr)){/* error */
+                generalError = TRUE;
+            }
+
+        }
+    }
+
+    return !generalError;
 }
 
 
@@ -475,7 +438,8 @@ boolean tokenIsLabel(char *token, int tokenLength, errorCodes *lineErrorPtr){
     return result;
 }
 
-boolean validateComma(char **currentPtr, errorCodes *lineErrorPtr) {
+
+boolean readComma(char **currentPtr, errorCodes *lineErrorPtr) {
     boolean result;
 
     SKIP_WHITES((*currentPtr));
@@ -492,3 +456,123 @@ boolean validateComma(char **currentPtr, errorCodes *lineErrorPtr) {
 
     return result;
 }
+
+
+boolean getFirstOperand(char *token, int tokenLength, operationClass commandOpType, int IC, boolean *jIsRegPtr,
+                        int *regPtr, errorCodes *lineErrorPtr) {
+    boolean result;
+
+    if(idRegister(token, regPtr, lineErrorPtr)){/* token is register */
+        *jIsRegPtr = TRUE;
+        result = TRUE;
+    }
+    else if(commandOpType == J_JUMP){
+        *jIsRegPtr = FALSE;
+
+        if(tokenIsLabel(token, tokenLength, lineErrorPtr)){/* token is label call */
+            /* add label call to database */
+            if(!addLabelCall(IC, token, commandOpType, lineErrorPtr)){
+                *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
+                result = FALSE;
+            }
+            else{
+                result = TRUE;
+            }
+        }
+        else{/* token is not a possible label name */
+            *lineErrorPtr = EXPECTED_LABEL_OR_REGISTER;
+            result = FALSE;
+        }
+    }
+    else{
+        *lineErrorPtr = EXPECTED_REGISTER;
+        result = FALSE;
+    }
+
+    return result;
+}
+
+
+boolean getSecondOperand(char *token, operationClass commandOpType, int *regPtr, long *immedPtr,
+                         errorCodes *lineErrorPtr) {
+    boolean result;
+    char *endPtr;
+
+    if(idRegister(token, regPtr, lineErrorPtr)){/* token is register */
+        if(commandOpType == I_ARITHMETIC || commandOpType == I_MEMORY_LOAD){/* should be number */
+            *lineErrorPtr = EXPECTED_NUMBER;
+            result = FALSE;
+        }
+        else{/* is register as expected */
+            result = TRUE;
+        }
+    }
+    else{/* token is not register */
+        if(commandOpType != I_ARITHMETIC && commandOpType != I_MEMORY_LOAD){/* should be register */
+            *lineErrorPtr = EXPECTED_REGISTER;
+            result = FALSE;
+        }
+        else if (stringToLong(token, immedPtr, &endPtr, HALF_WORD_MAX_VALUE)){ /* can be legal immediate value */
+            if(*endPtr == '.'){/* decimal point */
+                *lineErrorPtr = NOT_INTEGER;
+                result = FALSE;
+            }
+            else if(*endPtr){/* mixed number and other characters */
+                *lineErrorPtr = NOT_NUMBER;
+                result = FALSE;
+            }
+            else{/* legal immediate value */
+                result = TRUE;
+            }
+        }
+        else{/* should be immediate value - number */
+            *lineErrorPtr = EXPECTED_NUMBER;
+            result = FALSE;
+        }
+    }
+
+    return result;
+}
+
+
+boolean getThirdOperand(char *token, int tokenLength, int IC, operationClass commandOpType,
+                        int *regPtr, long *immedPtr, errorCodes *lineErrorPtr){
+    boolean result;
+
+    if(idRegister(token, regPtr, lineErrorPtr)){/* token is register */
+        if(commandOpType != I_BRANCHING){/* viable operator */
+            result = TRUE;
+        }
+        else{/* operator should be a label */
+            *lineErrorPtr = EXPECTED_LABEL;
+            result = FALSE;
+        }
+    }
+    else{/* token is not register*/
+        if(commandOpType != I_BRANCHING){/* should be register */
+            *lineErrorPtr = EXPECTED_REGISTER;
+            result = FALSE;
+        }
+        else{/* can be label call */
+            if(tokenIsLabel(token, tokenLength, lineErrorPtr)){/* possible label name */
+                *immedPtr = -IC;/* label address will be added at second pass */
+
+                /* add label call to database */
+                if(!addLabelCall(IC, token, commandOpType, lineErrorPtr)){/* memory failure */
+                    *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
+                    result = FALSE;
+                }
+                else{
+                    result = TRUE;
+                }
+            }
+            else{/* impossible label name */
+                *lineErrorPtr = EXPECTED_LABEL;
+                result = FALSE;
+            }
+        }
+    }
+
+    return result;
+}
+

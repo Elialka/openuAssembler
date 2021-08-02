@@ -102,28 +102,7 @@ boolean addNewLabel(char *name, int value, labelType type, errorCodes *lineError
     return TRUE;
 }
 
-/* refactor to use boolean return value */
-long int getLabelValue(char *name, errorCodes *lineErrorPtr){
-    labelPtr curr;
-    int value;
 
-    curr = head;
-    while(curr){
-        if(!strcmp(name, curr->name)){/* found match */
-            value = curr->value;
-            break;
-        }
-        else{
-            curr = curr->next;
-        }
-    }
-    if(!curr) {/* label name not found */
-        value = FALSE;
-        *lineErrorPtr = LABEL_NOT_FOUND;
-    }
-
-    return value;
-}
 
 
 void clearLabels(){

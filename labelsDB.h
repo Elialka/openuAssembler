@@ -17,7 +17,5 @@ boolean legalLabelDeclaration(char *currentLabel, errorCodes *lineErrorPtr);
 
 boolean addNewLabel(char *name, int value, labelType type, errorCodes *lineErrorPtr);
 
-long int getLabelValue(char *name, errorCodes *lineErrorPtr);
-
 void clearLabels();
 
