@@ -52,8 +52,10 @@ int extractToken(char *current, char *buffer){
  * return TRUE if line starts with label definition
  */
 boolean isLabelDefinition(char *line, int *lineIndexPtr, char *currentLabel){
-    char *current;
-    int i, progress;
+    char *current;/* tracks progress in checks */
+    char buffer[TOKEN_ARRAY_SIZE];/* store token to examine it */
+    int i;
+    int progress;/* counts how many characters read from line */
 
     /* set current to next unread character and reset progress counter*/
     current = line;
@@ -64,17 +66,21 @@ boolean isLabelDefinition(char *line, int *lineIndexPtr, char *currentLabel){
     progress += (int)(current - line);
 
     /* extract first token */
-    progress += extractToken(current, currentLabel);
+    progress += extractToken(current, buffer);
+
+    current = buffer;
 
     /* validate characters */
-    if(isalpha(*currentLabel)){
-        for (i = 0; (isalpha(*currentLabel) || isdigit(*currentLabel)) && i < MAX_LABEL_LENGTH;
-                  currentLabel++)/* legal char */
+    if(isalpha(*current)){
+        for (i = 0; (isalpha(*current) || isdigit(*current)) && i < MAX_LABEL_LENGTH;
+                  current++)/* legal char */
            ;
 
-        if ((*currentLabel)==':'){/* end of label definition */
-            *currentLabel = '\0';/* remove ':' from label name */
+        if ((*current)==':'){/* end of label definition */
+            *current = '\0';/* remove ':' from label name */
             *lineIndexPtr += progress;
+            /* copy to current label */
+            extractToken(current, currentLabel);
             return TRUE;
         }
     }
@@ -194,6 +200,7 @@ boolean getStringFromLine(char *line, int *indexPtr, char *buffer, errorCodes *l
     return TRUE;
 }
 
+
 int getNumbersFromLine(char *line, int *indexPtr, long *buffer, dataOps dataOpType, errorCodes *lineErrorPtr) {
     int i;
     long value;
@@ -298,22 +305,20 @@ boolean idRegister(char *token, int *regPtr, errorCodes *lineErrorPtr) {
                     break;
                 }
             }
+
             if (isInt) {
                 reg = atoi(regBuffer); /*make int out of regBuffer string*/
                 if (reg >= REGISTER_MIN_INDEX && reg <= REGISTER_MAX_INDEX) { /*in range*/
                     *regPtr = reg;
                     return TRUE;
                 }
-
             }
-
         }
     }
 
     *lineErrorPtr = NOT_REG;
     return FALSE;
 }
-
 
 
 boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpType, int IC, boolean *jIsRegPtr,
@@ -329,6 +334,7 @@ boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpT
     *reg1Ptr = 0;
     *reg2Ptr = 0;
     *reg3Ptr = 0;
+    *immedPtr = 0;
 
     /* reset flags */
     generalError = FALSE;
@@ -403,7 +409,6 @@ boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpT
             if(!getThirdOperand(buffer, bufferLength, IC, commandOpType, lastRegPtr, immedPtr, lineErrorPtr)){/* error */
                 generalError = TRUE;
             }
-
         }
     }
 

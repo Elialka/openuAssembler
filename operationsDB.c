@@ -23,9 +23,6 @@ typedef struct{
 
 typedef operation *operationPtr;
 
-/* todo remove global variable */
-static operationPtr head;
-
 
 /*
  * This function is used to set a database, containing operation names, types and OpCodes
@@ -33,6 +30,7 @@ static operationPtr head;
  */
 void *setOperations(){
     int i;
+    operationPtr head;
     char *names[] = {"add", "sub", "and", "or", "nor", "move", "mvhi", "mvlo",
                     "addi", "subi", "andi", "ori", "nori", "bne", "beq",
                     "blt", "bgt", "lb", "sb", "lw", "sw", "lh", "sh",
@@ -89,7 +87,7 @@ void *setOperations(){
  * return it's position in the database (non zero) if found
  * return zero if not found
  */
-int seekOp (char *str) {
+int seekOp(void *head, char *str) {
     int i;
     operationPtr current = head;
     for (i = 0; i <= NUM_OF_OPERATIONS; i++, current++){
@@ -106,13 +104,13 @@ int seekOp (char *str) {
  * find an operation with a name matching str
  * return opcode if found, zero otherwise
  */
-boolean getOpcode(char *str, commandOps *opCodePtr, functValues *functPtr, operationClass *opTypePtr) {
+boolean getOpcode(void *head, char *str, commandOps *opCodePtr, functValues *functPtr, operationClass *opTypePtr) {
     int operationIndex;
     operationPtr current;
 
     current = head;
 
-    if((operationIndex = seekOp(str)))
+    if((operationIndex = seekOp(head, str)))
     {
         /* go to correct operation node */
         current += operationIndex;

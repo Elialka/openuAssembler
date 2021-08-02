@@ -22,20 +22,22 @@ void testExtractOperands();
 
 /* labelsDB tests */
 
-void testAddNewLabel();
+void testAddNewLabel(void *head);
 
 /* ----------------------------------------------------------------------------------------------- */
 
 
 /* dataImageDB tests */
 
-void testAddNumber();
+void testAddNumber(void *head);
 
-void testAddByte(); /* in dataImageDB */
+void testAddByte(void *head); /* in dataImageDB */
 
-void printData(int DC);/* in dataImageDB */
+void printNumbers(int DC, char *head);/* in dataImageDB */
 
-void testAddString();
+void printData(int DC, char *head);/* in dataImageDB */
+
+void testAddString(void *head);
 
 /* ----------------------------------------------------------------------------------------------- */
 

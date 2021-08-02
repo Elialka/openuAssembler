@@ -18,7 +18,7 @@
 
 boolean legitFileName(char *name);
 
-boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr);
+boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr, void **databasePointers);
 
 
 int main(int argc, char *argv[]){
@@ -32,15 +32,13 @@ int main(int argc, char *argv[]){
     }
 
     /* initialize databases */
-    databasePointers[LABELS_POINTER] = NULL;
+    databasePointers[LABELS_POINTER] = initLabelsDB();
     databasePointers[OPERATIONS_POINTER] = setOperations();
     databasePointers[DATA_IMAGE_POINTER] = initDataImageDB();
     databasePointers[CODE_IMAGE_POINTER] = initCodeImage();
 
-    generalError = FALSE;
 
     /* test zone*/
-    testExtractOperands();
     /* end of test zone */
 
 
@@ -58,7 +56,7 @@ int main(int argc, char *argv[]){
             continue;
         }
         else{
-            generalError = firstPass(sourceFile, &ICF, &DCF);
+            generalError = firstPass(sourceFile, &ICF, &DCF, databasePointers);
 
             if(generalError){/* error happened during first pass  */
                 /* TODO print error - maybe continue*/
@@ -97,7 +95,7 @@ boolean legitFileName(char *name){
 }
 
 
-boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr){
+boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr, void **databasePointers) {
     /* buffers */
     char line[LINE_ARRAY_SIZE];/* used to load one line from file */
     char command[TOKEN_ARRAY_SIZE];/* extracted command name for each line */
@@ -114,7 +112,7 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr){
     int amountOfNumbers;/* when reading numbers array from input, count how many read */
     int reg1, reg2, reg3;/* for commands with register type operands, stores number of register */
     long immed;/* for commands with immed encoding, store immed value */
-    boolean jumpIsReg;/* for jump command, track if parameter used is register or not (if FALSE - parameter was label) */
+    boolean jIsReg;/* for J type commands, track if parameter used is register or not(if FALSE - parameter was label) */
     commandOps opCode;/* if relevant, stores opcode */
     functValues funct;/* if relevant, stores funct */
     operationClass commandOpType;/* if relevant, stores type of operation by parameters */
@@ -122,7 +120,6 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr){
     errorCodes lineError;/* type of error in current line, if present */
     boolean generalError;/* flag if error found in current file */
     boolean labelDefinition;/* flag if current line defines a label */
-    labelType currLineType;/* stores if current line is code type or data type */
 
 
     /* reset file wide counters and flags */
@@ -139,20 +136,18 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr){
             continue;
         }
 
-
         /* reset 'per line' counters and flags */
         lineIndex = 0;
         lineError = NO_ERROR;
         labelDefinition = FALSE;
-        /* todo reset parameters */
 
         /* check if current line includes label definition */
         if(isLabelDefinition(line, &lineIndex, definedLabel)){
-            if(!legalLabelDeclaration(definedLabel, &lineError)){/* cannot define label with given name */
-                /* todo print error */
+            if(seekOp(databasePointers[OPERATIONS_POINTER], definedLabel)){/* label name is operation name */
+                /* todo print error LABEL_IS_OPERATION */
                 generalError = TRUE;
             }
-            else{/* new legal label */
+            else{/* possibly legal label declaration */
                 labelDefinition = TRUE;
             }
         }
@@ -170,62 +165,94 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr){
                 generalError = TRUE;
             }
             else{/* legal data command name */
-                currLineType = DATA_LINE;
-                if(dataOpType == ASCIZ){
-                    if(!getStringFromLine(line, &lineIndex, string, &lineError)){
-                        /* todo print error */
-                        generalError = TRUE;
-                    }
-                    else{/* string read successfully */
-                        if(!addString(&DC, string)){/* can't add to database */
-                            /* todo print error quit program */
-                            generalError = TRUE;
-                        }
-                    }
-                }
-                else if(dataOpType == ENTRY || dataOpType == EXTERN){
+                if(dataOpType == ENTRY || dataOpType == EXTERN){
                     labelDefinition = FALSE;
                     /* todo maybe light flag for second pass */
                 }
-                else if(dataOpType == DB || dataOpType == DH || dataOpType == DW){
-                    amountOfNumbers = getNumbersFromLine(line, &lineIndex, numbers, dataOpType, &lineError);
-                    if(!amountOfNumbers){/* no numbers read - error occurred */
-                        /* todo print error */
-                        generalError = TRUE;
+                else{
+                    /* add new label if label definition is present */
+                    if(labelDefinition){
+                        addNewLabel(databasePointers[LABELS_POINTER], definedLabel, DC, DATA_LINE, &lineError);
                     }
-                    else{/* numbers read successfully */
-                        if(!addNumberArray(&DC, numbers, amountOfNumbers, dataOpType)){/* cannot add to data image */
+                    if(dataOpType == ASCIZ){
+                        if(!getStringFromLine(line, &lineIndex, string, &lineError)){
                             /* todo print error */
                             generalError = TRUE;
                         }
+                        else{/* string read successfully */
+                            if(!addString(databasePointers[DATA_IMAGE_POINTER],
+                                          &DC, string)){/* can't add to database */
+                                /* todo print error quit program */
+                                generalError = TRUE;
+                            }
+                        }
                     }
-                }
-                else{
-                    /* todo print error impossible scenario */
+                    else if(dataOpType == DB || dataOpType == DH || dataOpType == DW){
+                        amountOfNumbers = getNumbersFromLine(line, &lineIndex, numbers, dataOpType, &lineError);
+                        if(!amountOfNumbers){/* no numbers read - error occurred */
+                            /* todo print error */
+                            generalError = TRUE;
+                        }
+                        else{/* numbers read successfully */
+                            if(!addNumberArray(databasePointers[DATA_IMAGE_POINTER],
+                                               &DC, numbers, amountOfNumbers, dataOpType)){/* cannot add to data image */
+                                /* todo print error */
+                                generalError = TRUE;
+                            }
+                        }
+                    }
+                    else{
+                        /* todo print error impossible scenario */
+                    }
                 }
             }
         }
         else{/* line is operation command */
-            if(!getOpcode(command, &opCode, &funct, &commandOpType)){/* operation command not found */
+            if(!getOpcode(databasePointers[OPERATIONS_POINTER],
+                          command, &opCode, &funct, &commandOpType)){/* operation command not found */
                 /* todo print error continue */
                 generalError = TRUE;
             }
             else{/* legal operation command name */
-                currLineType = CODE_LINE;/* todo add label to DB */
+                /* add new label if label definition is present */
+                if(labelDefinition){
+                    addNewLabel(databasePointers[LABELS_POINTER], definedLabel, IC, CODE_LINE, &lineError);
+                }
+                /* get operation operands */
                 if(extractOperands(line, &lineIndex, commandOpType, IC,
-                                   &jumpIsReg, &reg1, &reg2, &reg3, &immed, &lineError)){
-                    /* todo add by type */
+                                   &jIsReg, &reg1, &reg2, &reg3, &immed, &lineError)){
+                    /* add command to code image */
+                    if(commandOpType == R_ARITHMETIC || commandOpType == R_COPY){
+                        if(!addRCommand(databasePointers[CODE_IMAGE_POINTER],
+                                    &IC, reg1, reg2, reg3, opCode, funct)){
+                            /* todo print error memory alloc */
+                        }
+                    }
+                    else if(commandOpType == I_BRANCHING || commandOpType == I_MEMORY_LOAD || commandOpType == I_ARITHMETIC){
+                        if(!addICommand(databasePointers[CODE_IMAGE_POINTER],
+                                       &IC, reg1, reg2, immed, opCode)){
+                            /* todo print error memory alloc */
+                        }
+                    }
+                    else{/* is J command */
+                        if(!addJCommand(databasePointers[CODE_IMAGE_POINTER],
+                                        &IC, jIsReg, immed, opCode)){
+                            /* todo print error memory alloc */
+                        }
+                    }
+                }
+                else{/* operator input error */
+                    /* todo print error */
                 }
             }
         }
-
-        /* todo add label */
 
         /* todo check extra characters */
         /* todo check line too big */
     }
 
     *ICFPtr = IC;
-    *DCFPtr = DC;
+    *DCFPtr = DC + IC;
+
     return generalError;
 }/* end firstPass */

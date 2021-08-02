@@ -11,11 +11,11 @@ typedef enum{
 }attribs;
 
 
-boolean seekLabel(char *name);
+void *initLabelsDB();
 
-boolean legalLabelDeclaration(char *currentLabel, errorCodes *lineErrorPtr);
+boolean seekLabel(void *head, char *name);
 
-boolean addNewLabel(char *name, int value, labelType type, errorCodes *lineErrorPtr);
+boolean addNewLabel(void *head, char *labelName, int value, labelType type, errorCodes *lineErrorPtr);
 
-void clearLabels();
+void clearLabels(void *head);
 

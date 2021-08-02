@@ -12,17 +12,29 @@ typedef struct node *labelPtr;
 typedef struct node{
     char name[LABEL_ARRAY_SIZE];
     long value;
-    labelPtr next;
     labelType type;
+    labelPtr next;
 }label;
 
-/* todo remove global variable */
-static labelPtr head;
+
+void *initLabelsDB(){
+    void *head;
+
+    head = calloc(1, sizeof(label));
+
+    if(!head){
+        /* todo print error quit*/
+    }
+
+    return head;
+}
+
+
 
 /*
  * return if label with matching name already exists in database
  */
-boolean seekLabel(char *name){
+boolean seekLabel(void *head, char *name) {
     labelPtr curr;
 
     curr = head;
@@ -35,81 +47,54 @@ boolean seekLabel(char *name){
     return FALSE;
 }
 
-/*
- * return true if legal name - not a saved keyword
- */
-/* todo check if necessary */
-boolean legalLabelDeclaration(char *currentLabel, errorCodes *lineErrorPtr){
-    boolean result;
 
-    if(seekOp(currentLabel)){/* label name is operation name */
-        *lineErrorPtr = LABEL_IS_OPERATION;
-        result = FALSE;
-    }
-    else if(seekLabel(currentLabel)){/* label already exists */
-        *lineErrorPtr = DOUBLE_LABEL_DEFINITION;
-        result = FALSE;
-    }
-    else{
-        result = TRUE;
-    }
+boolean addNewLabel(void *head, char *labelName, int value, labelType type, errorCodes *lineErrorPtr){
+    static int labelsCounter = 0;/* how many labels currently in database */
+    labelPtr current;
+    labelPtr prev;
 
-    return result;
-}
+    current = head;
 
-
-boolean addNewLabel(char *name, int value, labelType type, errorCodes *lineErrorPtr) {
-    labelPtr curr, prev;
-    char *c;
-
-    if(!head) {/* first label */
-        head = calloc(1, sizeof(label));
-        if(!head){
-            *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
-            return FALSE;
-        }
-        curr = head;
-    }
-    else{
-        curr = head;
-        /* lookup name in DB, until reached tail */
-        while(curr){
-            if(!strcmp(name, curr->name)){/* label already defined */
-                *lineErrorPtr = DOUBLE_LABEL_DEFINITION;/* todo remove - redundant */
+    if(labelsCounter){/* not first label */
+        /* find last defined label, in the process look for new name in defined labels */
+        while(current){
+            if(!strcmp(labelName, current->name)){/* label already defined */
+                *lineErrorPtr = DOUBLE_LABEL_DEFINITION;
                 return FALSE;
             }
-            else{
-                prev = curr;
-                curr = curr->next;
+            else{/* new label name is not used so far */
+                prev = current;
+                current = current->next;
             }
         }
 
-        /* end of DB */
-        curr = calloc(1, sizeof(label));
-        if(!curr){
+        /* allocate memory for new label - memory for first label is allocated when database was initialized */
+        current = calloc(1, sizeof(label));
+        if(!current){
             *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
             return FALSE;
         }
-        prev->next = curr;
+
+        prev->next = current;
     }
 
-    /* set label */
-    strcpy(curr->name, name);
-    curr->value = value;
-    curr->type = type;
+    /* count label addition */
+    labelsCounter++;
 
+    /* update fields */
+    strcpy(current->name, labelName);
+    current->value = value;
+    current->type = type;
 
     return TRUE;
 }
 
 
-
-
-void clearLabels(){
+void clearLabels(void *head) {
     labelPtr temp;
     while(head){
         temp = head;
-        head = head->next;
+        head = temp->next;
         free(temp);
     }
 }

@@ -572,10 +572,12 @@ void testExtractOperands() {
 
 /* labelsDB tests */
 /* todo remake tests */
-void testAddNewLabel(){
+void testAddNewLabel(void *head) {
 
-    /* test 5 */
-    clearLabels();
+    printf("You didnt write the test yet you idiot!\n");
+    printf("-----------------------------------------------------------------------------------------------");
+
+    clearLabels(head);
 }
 
 
@@ -584,31 +586,31 @@ void testAddNewLabel(){
 
 /* dataImageDB tests */
 
-void testAddNumber(){
+void testAddNumber(void *head) {
     int DC;
 
     DC = 0;
 
-    addNumber(&DC, 10, DB);
+    addNumber(head, &DC, 10, DB);
 
-    addNumber(&DC, 150, DH);
+    addNumber(head, &DC, 150, DH);
 
-    addNumber(&DC, -3500, DW);
+    addNumber(head, &DC, -3500, DW);
 
-    addNumber(&DC, 500, DH);
+    addNumber(head, &DC, 500, DH);
 
-    printData(DC);
+    printNumbers(DC, head);
 
 }
 
 
-void testAddString(){
+void testAddString(void *head) {
     int DC = 0;
-    addString(&DC, "asd");
-    addString(&DC, "  wS$  #a");
-    addString(&DC, "asd");
-    addString(&DC, "");
-    printData(19);
+    addString(head, &DC, "asd");
+    addString(head, &DC, "  wS$  #a");
+    addString(head, &DC, "asd");
+    addString(head, &DC, "");
+    printData(19, head);
 }
 
 

@@ -7,10 +7,9 @@
 #define BITS_IN_BYTE (8)
 
 
-/* todo remove global variable */
-char *head;/* start of database */
 
-static boolean addByte(unsigned char byte, int DC);
+static boolean addByte(char *head, unsigned char byte, int DC);
+
 
 /*
  * initialize database - allocate first block
@@ -20,12 +19,11 @@ void * initDataImageDB(){
     if(!database){
         /* todo print error quit */
     }
-    head = database;
     return database;
 }
 
 
-static boolean addByte(unsigned char byte, int DC){
+static boolean addByte(char *head, unsigned char byte, int DC) {
     static int size = IMAGE_BLOCK_SIZE;/* current size of database */
     void *temp;
 
@@ -47,7 +45,7 @@ static boolean addByte(unsigned char byte, int DC){
  * this function adds number to database
  */
 /* todo add error pointer, check overall + negative numbers */
-boolean addNumber(int *DCPtr, long value, int numOfBytes){
+boolean addNumber(void *head, int *DCPtr, long value, int numOfBytes) {
     int i, offset;
     unsigned long mask;
     unsigned long formattedNumber;
@@ -65,7 +63,7 @@ boolean addNumber(int *DCPtr, long value, int numOfBytes){
 
     for(i = 0; i < numOfBytes; i++, (*DCPtr)++){
         offset = i * BITS_IN_BYTE;
-        if(!addByte((formattedNumber & (mask << offset)) >> offset, *DCPtr)){
+        if(!addByte(head, (formattedNumber & (mask << offset)) >> offset, *DCPtr)){
             return FALSE;
         }
     }
@@ -73,7 +71,7 @@ boolean addNumber(int *DCPtr, long value, int numOfBytes){
     return TRUE;
 }
 
-boolean addNumberArray(int *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType){
+boolean addNumberArray(void *head, int *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType) {
     int i;
     int numOfBytes;
 
@@ -94,7 +92,7 @@ boolean addNumberArray(int *DCPtr, long *array, int amountOfNumbers, dataOps dat
     }
 
     for(i = 0; i < amountOfNumbers; i++){
-        if(!addNumber(DCPtr, array[i], numOfBytes)){
+        if(!addNumber(head, DCPtr, array[i], numOfBytes)){
             return FALSE;
         }
     }
@@ -106,14 +104,14 @@ boolean addNumberArray(int *DCPtr, long *array, int amountOfNumbers, dataOps dat
 /*
  * this function adds a string to database
  */
-boolean addString(int *DCPtr, char *str){
+boolean addString(void *head, int *DCPtr, char *str) {
     char *current;
     char *prev;
 
     /* add each character to database */
     for(current = str, prev = current; *prev; current++, (*DCPtr)++){
         prev = current;
-        if(!addByte(*prev, *DCPtr)){
+        if(!addByte(head, *prev, *DCPtr)){
             return FALSE;
         }
     }
@@ -133,7 +131,21 @@ boolean addString(int *DCPtr, char *str){
 
 
 /* delete - test */
-void printData(int DC){
+
+
+void printNumbers(int DC, char *head) {
+    int i;
+    char c;
+
+    for(i = 0; i < DC; i++){
+        c = (unsigned char)head[i];
+        printf("%u | ", c ? c : '/');
+    }
+    printf("\n-----------------------------------\n");
+}
+
+
+void printData(int DC, char *head) {
     int i;
     char c;
 
@@ -145,17 +157,17 @@ void printData(int DC){
 }
 
 
-void testAddByte(){
+void testAddByte(void *head) {
     unsigned char byte;
 
     byte = 3;
-    addByte(byte, 0);
+    addByte(head, byte, 0);
     byte = ~byte + 1;
-    addByte(byte, 1);
+    addByte(head, byte, 1);
     byte = 100;
-    addByte(byte, 2);
+    addByte(head, byte, 2);
     byte = ~byte + 1;
-    addByte(byte, 3);
-    printData(4);
+    addByte(head, byte, 3);
+    printNumbers(4, head);
 }
 
