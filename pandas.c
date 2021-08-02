@@ -10,7 +10,7 @@
 #include "dataImageDB.h"
 #include "labelCallsDB.h"
 
-#define SKIP_WHITES(x) for(; isspace(*x); x++)
+#define SKIP_WHITES(x) for(; isspace(*(x)); (x)++)
 
 
 /*
@@ -322,7 +322,8 @@ boolean idRegister(char *token, int *regPtr, errorCodes *lineErrorPtr) {
 
 
 boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpType, int IC, boolean *jIsRegPtr,
-                        int *reg1Ptr, int *reg2Ptr, int *reg3Ptr, long *immedPtr, errorCodes *lineErrorPtr) {
+                        int *reg1Ptr, int *reg2Ptr, int *reg3Ptr, long *immedPtr,
+                        errorCodes *lineErrorPtr, void *labelCallsHead) {
     char *current;/* current character */
     char buffer[TOKEN_ARRAY_SIZE];/* next token */
     int bufferLength;/* token length */
@@ -349,7 +350,8 @@ boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpT
     current += bufferLength;
 
     /* analyse first operator */
-    if(!getFirstOperand(buffer, bufferLength, commandOpType, IC, jIsRegPtr, reg1Ptr, lineErrorPtr)){/* error */
+    if(!getFirstOperand(buffer, bufferLength, commandOpType, IC, jIsRegPtr,
+                        reg1Ptr, lineErrorPtr, labelCallsHead)){/* error */
         generalError =  TRUE;
         finished = TRUE;
     }
@@ -406,11 +408,14 @@ boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpT
             }
 
             /* analyse third operand */
-            if(!getThirdOperand(buffer, bufferLength, IC, commandOpType, lastRegPtr, immedPtr, lineErrorPtr)){/* error */
+            if(!getThirdOperand(buffer, bufferLength, IC, commandOpType, lastRegPtr,
+                                immedPtr, lineErrorPtr, labelCallsHead)){/* error */
                 generalError = TRUE;
             }
         }
     }
+
+    *lineIndexPtr = (int)(current - line);
 
     return !generalError;
 }
@@ -447,7 +452,7 @@ boolean tokenIsLabel(char *token, int tokenLength, errorCodes *lineErrorPtr){
 boolean readComma(char **currentPtr, errorCodes *lineErrorPtr) {
     boolean result;
 
-    SKIP_WHITES((*currentPtr));
+    SKIP_WHITES(*currentPtr);
 
     if(**currentPtr != ','){
         *lineErrorPtr = MISSING_COMMA;
@@ -455,7 +460,7 @@ boolean readComma(char **currentPtr, errorCodes *lineErrorPtr) {
     }
     else{/* is a comma */
         (*currentPtr)++;
-        SKIP_WHITES((*currentPtr));
+        SKIP_WHITES(*currentPtr);
         result = TRUE;
     }
 
@@ -464,7 +469,7 @@ boolean readComma(char **currentPtr, errorCodes *lineErrorPtr) {
 
 
 boolean getFirstOperand(char *token, int tokenLength, operationClass commandOpType, int IC, boolean *jIsRegPtr,
-                        int *regPtr, errorCodes *lineErrorPtr) {
+                        int *regPtr, errorCodes *lineErrorPtr, void *labelCallsHead) {
     boolean result;
 
     if(idRegister(token, regPtr, lineErrorPtr)){/* token is register */
@@ -476,7 +481,7 @@ boolean getFirstOperand(char *token, int tokenLength, operationClass commandOpTy
 
         if(tokenIsLabel(token, tokenLength, lineErrorPtr)){/* token is label call */
             /* add label call to database */
-            if(!addLabelCall(IC, token, commandOpType, lineErrorPtr)){
+            if(!addLabelCall(labelCallsHead, IC, token, commandOpType, lineErrorPtr)){
                 *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
                 result = FALSE;
             }
@@ -540,8 +545,8 @@ boolean getSecondOperand(char *token, operationClass commandOpType, int *regPtr,
 }
 
 
-boolean getThirdOperand(char *token, int tokenLength, int IC, operationClass commandOpType,
-                        int *regPtr, long *immedPtr, errorCodes *lineErrorPtr){
+boolean getThirdOperand(char *token, int tokenLength, int IC, operationClass commandOpType, int *regPtr, long *immedPtr,
+                        errorCodes *lineErrorPtr, void *labelCallsHead) {
     boolean result;
 
     if(idRegister(token, regPtr, lineErrorPtr)){/* token is register */
@@ -563,7 +568,7 @@ boolean getThirdOperand(char *token, int tokenLength, int IC, operationClass com
                 *immedPtr = -IC;/* label address will be added at second pass */
 
                 /* add label call to database */
-                if(!addLabelCall(IC, token, commandOpType, lineErrorPtr)){/* memory failure */
+                if(!addLabelCall(labelCallsHead, IC, token, commandOpType, lineErrorPtr)){/* memory failure */
                     *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
                     result = FALSE;
                 }

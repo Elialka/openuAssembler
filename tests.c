@@ -461,7 +461,7 @@ void testExtractOperands() {
     /*test 1*/
     tmpPtr = 0;
     if (!(extractOperands("$10, $20, $30", &tmpPtr, R_ARITHMETIC, IC, &jumpIsReg,
-                          &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp))) {
+                          &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL))) {
         printf("pandas - testExtractOperands test 1 failed - returned VALUE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -470,7 +470,7 @@ void testExtractOperands() {
     /*test 2*/
     tmpPtr = 0;
     extractOperands("$10, $20, $30", &tmpPtr, R_ARITHMETIC, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp);
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL);
 
     if (tmpReg1 != 10 || tmpReg2 != 20 || tmpReg3 != 30) {
         printf("pandas - testExtractOperands test 2 failed - extracted values\n");
@@ -480,7 +480,7 @@ void testExtractOperands() {
     /*test 3*/
     tmpPtr = 0;
     extractOperands("$10   , $20", &tmpPtr, R_COPY, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp);
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL);
 
     if (tmpReg1 != 10 || tmpReg2 != 20) {
         printf("pandas - testExtractOperands test 3 failed - returned FALSE\n");
@@ -491,7 +491,7 @@ void testExtractOperands() {
     /*test 4*/
     tmpPtr = 0;
     if (extractOperands("$10", &tmpPtr, R_COPY, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp)) {
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL)) {
         printf("pandas - testExtractOperands test 4 failed - returned FALSE\n");
         printf("%d", errorTemp);
         printf("--------------------------------------\n");
@@ -503,7 +503,7 @@ void testExtractOperands() {
     tmpReg2 = -1;
     tmpReg3 = -1;
     extractOperands("$10, -32, $30", &tmpPtr, I_ARITHMETIC, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp);
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL);
 
     if (tmpReg1 != 10 || tmpReg2 != 30 || tmpImmed != -32) {
         printf("pandas - testExtractOperands test 5 failed - returned FALSE\n");
@@ -514,7 +514,7 @@ void testExtractOperands() {
     /*test 6*/
     tmpPtr = 0;
     extractOperands("$10, -21, $22", &tmpPtr, I_MEMORY_LOAD, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp);
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL);
     if (tmpReg1 != 10 || tmpReg2 != 22 || tmpImmed != -21) {
         printf("pandas - testExtractOperands test 6 failed - returned FALSE\n");
         printf("--------------------------------------\n");
@@ -523,7 +523,7 @@ void testExtractOperands() {
     /*test 7*/
     tmpPtr = 0;
     extractOperands("$10, -21 $22", &tmpPtr, I_MEMORY_LOAD, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp);
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL);
     if (errorTemp != MISSING_COMMA) {
         printf("pandas - testExtractOperands test 7 failed - returned FALSE\n");
         printf("--------------------------------------\n");
@@ -533,7 +533,7 @@ void testExtractOperands() {
     /*test 8*/
     tmpPtr = 0;
     if (extractOperands("$10 -21 $22", &tmpPtr, I_MEMORY_LOAD, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp))
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL))
     {
         printf("pandas - testExtractOperands test 8 failed - returned FALSE\n");
         printf("--------------------------------------\n");
@@ -543,7 +543,7 @@ void testExtractOperands() {
     /*test 9*/
     tmpPtr = 0;
     if (extractOperands("$10# $22", &tmpPtr, I_MEMORY_LOAD, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp))
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL))
 
     {
         printf("pandas - testExtractOperands test 9 failed - returned FALSE\n");
@@ -553,7 +553,7 @@ void testExtractOperands() {
     /*test 10*/
     tmpPtr = 0;
     if (extractOperands("$10, -2, $22", &tmpPtr, R_ARITHMETIC, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp))
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL))
 
     {
         printf("pandas - testExtractOperands test 10 failed - returned FALSE\n");

@@ -4,6 +4,7 @@
 #include "pandas.h"
 #include "dataImageDB.h"
 #include "codeImageDB.h"
+#include "labelCallsDB.h"
 #ifndef MAX_LINE
 #include "data.h"
 #endif
@@ -36,6 +37,7 @@ int main(int argc, char *argv[]){
     databasePointers[OPERATIONS_POINTER] = setOperations();
     databasePointers[DATA_IMAGE_POINTER] = initDataImageDB();
     databasePointers[CODE_IMAGE_POINTER] = initCodeImage();
+    databasePointers[LABEL_CALLS_POINTER] = initLabelCallsDB();
 
 
     /* test zone*/
@@ -220,7 +222,9 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr, void **databasePoi
                 }
                 /* get operation operands */
                 if(extractOperands(line, &lineIndex, commandOpType, IC,
-                                   &jIsReg, &reg1, &reg2, &reg3, &immed, &lineError)){
+                                   &jIsReg, &reg1, &reg2, &reg3, &immed,
+                                   &lineError, databasePointers[LABEL_CALLS_POINTER]))
+                {
                     /* add command to code image */
                     if(commandOpType == R_ARITHMETIC || commandOpType == R_COPY){
                         if(!addRCommand(databasePointers[CODE_IMAGE_POINTER],
@@ -228,7 +232,10 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr, void **databasePoi
                             /* todo print error memory alloc */
                         }
                     }
-                    else if(commandOpType == I_BRANCHING || commandOpType == I_MEMORY_LOAD || commandOpType == I_ARITHMETIC){
+                    else if(commandOpType == I_BRANCHING ||
+                            commandOpType == I_MEMORY_LOAD ||
+                            commandOpType == I_ARITHMETIC)
+                    {
                         if(!addICommand(databasePointers[CODE_IMAGE_POINTER],
                                        &IC, reg1, reg2, immed, opCode)){
                             /* todo print error memory alloc */
