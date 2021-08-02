@@ -13,48 +13,75 @@
 void testIsLabelDefinition()
 {
     char currentLabel[TOKEN_ARRAY_SIZE];
-    int temp;
-    boolean error;
+    char *currentPos;
+    char *temp;
+    boolean generalError;
 
-    error = FALSE;
+    generalError = FALSE;
 
     /* test 1*/
-    temp = 0;
-    if (!isLabelDefinition("  	hELLO: ", &temp, currentLabel) || temp != 9)
+    currentPos = "  	hELLO: ";
+    if (!isLabelDefinition(&currentPos, currentLabel))
     {
-        error = TRUE;
-        printf("isLabelDefinition test 1 failed\n");
-        printf("label:temp should be hELLO:9 instead of %s:%d\n\n", currentLabel, temp);
+        printf("isLabelDefinition test 1 failed - return value\n");
+        generalError = TRUE;
+    }
+    else if(strcmp(currentLabel, "hELLO")){
+        printf("isLabelDefinition test 1 failed - currentLabel string\n");
+        generalError = TRUE;
+    }
+    else if(*(currentPos-1) != ':'){
+        printf("isLabelDefinition test 1 failed - currentPos\n");
+        generalError = TRUE;
     }
 
     /* test 2*/
-    temp = 0;
-    if (!isLabelDefinition("asdf: ", &temp, currentLabel) || temp != 5)
+    currentPos = "asdf: ";
+    if (!isLabelDefinition(&currentPos, currentLabel))
     {
-        error = TRUE;
-        printf("isLabelDefinition test 2 failed\n");
-        printf("label:temp should be asdf:5 instead of %s:%d\n\n", currentLabel, temp);
+        printf("isLabelDefinition test 2 failed - return value\n");
+        generalError = TRUE;
+    }
+    else if(strcmp(currentLabel, "asdf")){
+        printf("isLabelDefinition test 2 failed - currentLabel string\n");
+        generalError = TRUE;
+    }
+    else if(*(currentPos-1) != ':'){
+        printf("isLabelDefinition test 2 failed - currentPos\n");
+        generalError = TRUE;
     }
 
+
     /* test 3*/
-    temp = 0;
-    if (isLabelDefinition("  2asd2: ", &temp, currentLabel) || temp != 0)
+    currentPos = "asdd2:";
+    if (!isLabelDefinition(&currentPos, currentLabel))
     {
-        error = TRUE;
-        printf("isLabelDefinition test 3 failed\n");
-        printf("label:temp should be ***:0 instead of %s:%d\n\n", currentLabel, temp);
+        printf("isLabelDefinition test 3 failed - return value\n");
+        generalError = TRUE;
+    }
+    else if(strcmp(currentLabel, "asdd2")){
+        printf("isLabelDefinition test 3 failed - currentLabel string\n");
+        generalError = TRUE;
+    }
+    else if(*(currentPos-1) != ':'){
+        printf("isLabelDefinition test 3 failed - currentPos\n");
+        generalError = TRUE;
     }
 
     /* test 4*/
-    temp = 0;
-    if (!isLabelDefinition("asdd2:", &temp, currentLabel) || temp != 6)
-    {
-        error = TRUE;
-        printf("isLabelDefinition test 3 failed\n");
-        printf("label:temp should be asdd2:6 instead of %s:%d\n\n", currentLabel, temp);
+    currentPos = "  2asd2: ";
+    temp = currentPos;
+    if(isLabelDefinition(&currentPos, currentLabel)){
+        generalError = TRUE;
+        printf("isLabelDefinition test 4 failed - return value\n");
+    }
+    else if(currentPos != temp){
+        printf("isLabelDefinition test 4 failed - currentPos\n");
+        generalError = TRUE;
     }
 
-    if(!error){
+
+    if(!generalError){
         printf("-------------------------\n");
         printf("isLabelDefinition test good\n");
         printf("-------------------------\n");

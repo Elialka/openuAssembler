@@ -41,6 +41,9 @@ int main(int argc, char *argv[]){
 
 
     /* test zone*/
+    testGetStringFromLine();
+    testGetNumbersFromLine();
+    testExtractOperands();
     /* end of test zone */
 
 
@@ -111,6 +114,7 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr, void **databasePoi
     int lineCounter;/* number of current line */
 
     /* current line identifiers */
+    char *currentPos;/* keep track of current position in line buffer */
     int amountOfNumbers;/* when reading numbers array from input, count how many read */
     int reg1, reg2, reg3;/* for commands with register type operands, stores number of register */
     long immed;/* for commands with immed encoding, store immed value */
@@ -138,13 +142,14 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr, void **databasePoi
             continue;
         }
 
-        /* reset 'per line' counters and flags */
+        /* reset 'per line' pointers, counters and flags */
+        currentPos = line;
         lineIndex = 0;
         lineError = NO_ERROR;
         labelDefinition = FALSE;
 
         /* check if current line includes label definition */
-        if(isLabelDefinition(line, &lineIndex, definedLabel)){
+        if(isLabelDefinition(&currentPos, definedLabel)){
             if(seekOp(databasePointers[OPERATIONS_POINTER], definedLabel)){/* label name is operation name */
                 /* todo print error LABEL_IS_OPERATION */
                 generalError = TRUE;

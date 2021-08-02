@@ -7,7 +7,7 @@ boolean ignoreLine(char *line);
 
 int extractToken(char *current, char *buffer);
 
-boolean isLabelDefinition(char *line, int *lineIndexPtr, char *currentLabel);
+boolean isLabelDefinition(char **currentPosPtr, char *currentLabel);
 
 boolean extractCommandName(char *line, int *lineIndexPtr, char *commandName,
                            boolean labelDefinition, errorCodes *lineError);

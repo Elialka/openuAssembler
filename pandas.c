@@ -51,19 +51,19 @@ int extractToken(char *current, char *buffer){
 /*
  * return TRUE if line starts with label definition
  */
-boolean isLabelDefinition(char *line, int *lineIndexPtr, char *currentLabel){
+boolean isLabelDefinition(char **currentPosPtr, char *currentLabel) {
     char *current;/* tracks progress in checks */
     char buffer[TOKEN_ARRAY_SIZE];/* store token to examine it */
     int i;
-    int progress;/* counts how many characters read from line */
+    int progress;/* counts how many characters read from currentPos */
 
     /* set current to next unread character and reset progress counter*/
-    current = line;
+    current = *currentPosPtr;
     progress = 0;
 
     /* skip white characters and count progress */
     SKIP_WHITES(current);
-    progress += (int)(current - line);
+    progress += (int)(current - *currentPosPtr);
 
     /* extract first token */
     progress += extractToken(current, buffer);
@@ -78,9 +78,9 @@ boolean isLabelDefinition(char *line, int *lineIndexPtr, char *currentLabel){
 
         if ((*current)==':'){/* end of label definition */
             *current = '\0';/* remove ':' from label name */
-            *lineIndexPtr += progress;
+            *currentPosPtr += progress;
             /* copy to current label */
-            extractToken(current, currentLabel);
+            extractToken(buffer, currentLabel);
             return TRUE;
         }
     }
