@@ -5,6 +5,7 @@
 #include "dataImageDB.h"
 #include "codeImageDB.h"
 #include "labelCallsDB.h"
+#include "entryCallsDB.h"
 #ifndef MAX_LINE
 #include "data.h"
 #endif
@@ -38,6 +39,7 @@ int main(int argc, char *argv[]){
     databasePointers[DATA_IMAGE_POINTER] = initDataImageDB();
     databasePointers[CODE_IMAGE_POINTER] = initCodeImage();
     databasePointers[LABEL_CALLS_POINTER] = initLabelCallsDB();
+    databasePointers[ENTRY_CALLS_POINTER] = initEntryCallsDB();
 
 
     /* test zone*/
@@ -106,7 +108,7 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr, void **databasePoi
     char command[TOKEN_ARRAY_SIZE];/* extracted command name for each line */
     char string[TOKEN_ARRAY_SIZE];/* extracted string */
     long numbers[NUMBERS_ARRAY_SIZE];/* list of numbers */
-    char definedLabel[TOKEN_ARRAY_SIZE];/* if new label is defined, store new label name */
+    char label[TOKEN_ARRAY_SIZE];/* store label name if a label is declared or used in entry\extern */
 
     /* counters */
     int IC, DC;/* code and data image counters */
@@ -149,8 +151,8 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr, void **databasePoi
         labelDefinition = FALSE;
 
         /* check if current line includes label definition */
-        if(isLabelDefinition(&currentPos, definedLabel)){
-            if(seekOp(databasePointers[OPERATIONS_POINTER], definedLabel)){/* label name is operation name */
+        if(isLabelDefinition(&currentPos, label)){
+            if(seekOp(databasePointers[OPERATIONS_POINTER], label)){/* label name is operation name */
                 /* todo print error LABEL_IS_OPERATION */
                 generalError = TRUE;
             }
@@ -173,13 +175,24 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr, void **databasePoi
             }
             else{/* legal data command name */
                 if(dataOpType == ENTRY || dataOpType == EXTERN){
-                    labelDefinition = FALSE;
-                    /* todo maybe light flag for second pass */
+                    /* read label operand */
+                    if(getLabel(&currentPos, label, &lineError)){
+                        if(dataOpType == ENTRY){
+                            addEntryCall(databasePointers[ENTRY_CALLS_POINTER], label, &lineError);
+                        }
+                        else{/* extern declaration */
+                            addNewLabel(databasePointers[LABELS_POINTER],
+                                        label, EXTEN_LABEL_VALUE, EXTERN_LABEL, &lineError);
+                        }
+                    }
+                    else{
+                        /* todo print error */
+                    }
                 }
                 else{
                     /* add new label if label definition is present */
                     if(labelDefinition){
-                        addNewLabel(databasePointers[LABELS_POINTER], definedLabel, DC, DATA_LINE, &lineError);
+                        addNewLabel(databasePointers[LABELS_POINTER], label, DC, DATA_LABEL, &lineError);
                     }
                     if(dataOpType == ASCIZ){
                         if(!getStringFromLine(line, &lineIndex, string, &lineError)){
@@ -223,7 +236,7 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr, void **databasePoi
             else{/* legal operation command name */
                 /* add new label if label definition is present */
                 if(labelDefinition){
-                    addNewLabel(databasePointers[LABELS_POINTER], definedLabel, IC, CODE_LINE, &lineError);
+                    addNewLabel(databasePointers[LABELS_POINTER], label, IC, CODE_LABEL, &lineError);
                 }
                 /* get operation operands */
                 if(extractOperands(line, &lineIndex, commandOpType, IC,

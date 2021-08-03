@@ -18,10 +18,11 @@
 #define TOKEN_ARRAY_SIZE (MAX_LINE)
 #define NUMBERS_ARRAY_SIZE (MAX_LINE / 2)
 #define IMAGE_BLOCK_SIZE (50)
-#define DATABASE_POINTER_ARRAY_SIZE (5)
+#define DATABASE_POINTER_ARRAY_SIZE (6)
 
 /* default values */
 #define STARTING_ADDRESS (100)
+#define EXTEN_LABEL_VALUE (0)
 
 
 /* formats */
@@ -31,12 +32,13 @@
 
 typedef enum {
     FALSE = 0,
-    TRUE
+    TRUE = 1
 }boolean;
 
 typedef enum{
     /* labels */
     DOUBLE_LABEL_DEFINITION,
+    LABEL_LOCAL_AND_EXTERN,
     LABEL_NOT_FOUND,
     NO_SPACE_AFTER_LABEL,
     LABEL_IS_OPERATION,
@@ -134,8 +136,9 @@ typedef enum{
 }functValues;
 
 typedef enum{
-    DATA_LINE,
-    CODE_LINE
+    DATA_LABEL,
+    CODE_LABEL,
+    EXTERN_LABEL
 }labelType;
 
 typedef enum{
@@ -143,7 +146,8 @@ typedef enum{
     OPERATIONS_POINTER,
     DATA_IMAGE_POINTER,
     CODE_IMAGE_POINTER,
-    LABEL_CALLS_POINTER
+    LABEL_CALLS_POINTER,
+    ENTRY_CALLS_POINTER
 }pointerArrayIndex;
 
 

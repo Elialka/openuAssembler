@@ -76,13 +76,13 @@ boolean isLabelDefinition(char **currentPosPtr, char *currentLabel) {
         current++)/* legal char */
             ;
 
-            if ((*current)==':'){/* end of label definition */
-                *current = '\0';/* remove ':' from label name */
-                *currentPosPtr += progress;
-                /* copy to current label */
-                extractToken(buffer, currentLabel);
-                return TRUE;
-            }
+        if ((*current)==':'){/* end of label definition */
+            *current = '\0';/* remove ':' from label name */
+            *currentPosPtr += progress;
+            /* copy to current label */
+            extractToken(buffer, currentLabel);
+            return TRUE;
+        }
     }
 
     return FALSE;
@@ -127,10 +127,10 @@ boolean extractCommandName(char *line, int *lineIndexPtr, char *commandName,
     *lineIndexPtr += (int)(current - start);
 
     return TRUE;
-                           }
+}
 
 
-                           boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValue) {
+boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValue) {
     long value;
     long minValue;
 
@@ -285,7 +285,7 @@ int getNumbersFromLine(char *line, int *indexPtr, long *buffer, dataOps dataOpTy
 boolean idRegister(char *token, int *regPtr, errorCodes *lineErrorPtr) {
 
 
-    char *current; /*this token */
+    char *current; /* this token current position*/
     int i; /*index for loop*/
     boolean isInt = TRUE; /*flag to integer number*/
     int reg; /*register value*/
@@ -299,20 +299,20 @@ boolean idRegister(char *token, int *regPtr, errorCodes *lineErrorPtr) {
         if (isdigit(*current)) {
 
             for (i = 0 ; current[i]!='\0' ; i++) /*checks if current does not include illegal chars, only digits*/
-                {
+            {
                 if (!(isdigit(current[i]))) {
                     isInt = FALSE;
                     break;
                 }
-                }
-                if (isInt) {
-                    reg = atoi(current); /*make int out of current token string*/
-                    if (reg >= REGISTER_MIN_INDEX && reg <= REGISTER_MAX_INDEX) { /*in registers range*/
-                        *regPtr = reg;
-                        return TRUE;
-                    }
+            }
 
+            if (isInt) {
+                reg = atoi(current); /*make int out of current token string*/
+                if (reg >= REGISTER_MIN_INDEX && reg <= REGISTER_MAX_INDEX) { /*in registers range*/
+                    *regPtr = reg;
+                    return TRUE;
                 }
+            }
 
         }
     }
@@ -587,3 +587,27 @@ boolean getThirdOperand(char *token, int tokenLength, int IC, operationClass com
     return result;
 }
 
+
+boolean getLabel(char **currentPtr, char *labelName, errorCodes *lineErrorPtr){
+    char buffer[TOKEN_ARRAY_SIZE];
+    char *current;
+    int tokenLength;
+
+    current = *currentPtr;
+    tokenLength = 0;
+
+    SKIP_WHITES(current);
+
+    tokenLength += extractToken(current, buffer);
+    current += tokenLength;
+
+    if(!tokenLength){/* missing token */
+        *lineErrorPtr = MISSING_PARAMETER;
+    }
+    else if(tokenIsLabel(buffer, tokenLength, lineErrorPtr)){/* legal label name */
+        extractToken(buffer, labelName);
+        return TRUE;
+    }
+
+    return FALSE;
+}

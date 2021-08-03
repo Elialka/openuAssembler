@@ -11,9 +11,11 @@ typedef struct node *labelPtr;
 
 typedef struct node{
     char name[LABEL_ARRAY_SIZE];
-    long value;
+    int value;
     labelType type;
     labelPtr next;
+    unsigned char isEntry:1;
+    unsigned char isExtern:1;
 }label;
 
 
@@ -59,7 +61,17 @@ boolean addNewLabel(void *head, char *labelName, int value, labelType type, erro
         /* find last defined label, in the process look for new name in defined labels */
         while(current){
             if(!strcmp(labelName, current->name)){/* label already defined */
-                *lineErrorPtr = DOUBLE_LABEL_DEFINITION;
+                if(current->type == EXTERN_LABEL || type == EXTERN_LABEL){/* if the old or the new label is external */
+                    if(current->type == EXTERN_LABEL && type == EXTERN_LABEL){/* both labels are external */
+                        return TRUE;/* multiple extern declarations are allowed */
+                    }
+                    else{/* only one of them is external */
+                        *lineErrorPtr = LABEL_LOCAL_AND_EXTERN;
+                    }
+                }
+                else{/* two local label definitions */
+                    *lineErrorPtr = DOUBLE_LABEL_DEFINITION;
+                }
                 return FALSE;
             }
             else{/* new label name is not used so far */
@@ -75,6 +87,7 @@ boolean addNewLabel(void *head, char *labelName, int value, labelType type, erro
             return FALSE;
         }
 
+        /* link new node to database */
         prev->next = current;
     }
 
@@ -85,6 +98,7 @@ boolean addNewLabel(void *head, char *labelName, int value, labelType type, erro
     strcpy(current->name, labelName);
     current->value = value;
     current->type = type;
+    current->isExtern = type == EXTERN_LABEL ? TRUE : FALSE;
 
     return TRUE;
 }

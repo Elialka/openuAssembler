@@ -36,3 +36,5 @@ boolean getSecondOperand(char *token, operationClass commandOpType, int *regPtr,
 
 boolean getThirdOperand(char *token, int tokenLength, int IC, operationClass commandOpType, int *regPtr, long *immedPtr,
                         errorCodes *lineErrorPtr, void *labelCallsHead);
+
+boolean getLabel(char **currentPtr, char *labelName, errorCodes *lineErrorPtr);

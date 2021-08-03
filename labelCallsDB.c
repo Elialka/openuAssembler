@@ -49,6 +49,7 @@ boolean addLabelCall(void *head, int IC, char *labelName, operationClass command
             return FALSE;
         }
 
+        /* link new node to database */
         prev->next = current;
     }
 
