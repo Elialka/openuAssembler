@@ -14,8 +14,8 @@ typedef struct node{
     int value;
     labelType type;
     labelPtr next;
-    unsigned char isEntry:1;
-    unsigned char isExtern:1;
+    boolean isEntry;
+    boolean isExtern;
 }label;
 
 
