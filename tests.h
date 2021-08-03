@@ -15,7 +15,7 @@ void testGetNumbersFromLine();
 
 void testIdRegister();
 
-void testExtractOperands();
+void testExtractOperands(void *head);
 
 /* ----------------------------------------------------------------------------------------------- */
 

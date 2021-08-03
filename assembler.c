@@ -41,9 +41,9 @@ int main(int argc, char *argv[]){
 
 
     /* test zone*/
-    testGetStringFromLine();
-    testGetNumbersFromLine();
-    testExtractOperands();
+    /*testGetStringFromLine();
+    testGetNumbersFromLine();*/
+    testExtractOperands(databasePointers[LABEL_CALLS_POINTER]);
     /* end of test zone */
 
 

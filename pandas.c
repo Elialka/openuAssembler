@@ -73,16 +73,16 @@ boolean isLabelDefinition(char **currentPosPtr, char *currentLabel) {
     /* validate characters */
     if(isalpha(*current)){
         for (i = 0; (isalpha(*current) || isdigit(*current)) && i < MAX_LABEL_LENGTH;
-                  current++)/* legal char */
-           ;
+        current++)/* legal char */
+            ;
 
-        if ((*current)==':'){/* end of label definition */
-            *current = '\0';/* remove ':' from label name */
-            *currentPosPtr += progress;
-            /* copy to current label */
-            extractToken(buffer, currentLabel);
-            return TRUE;
-        }
+            if ((*current)==':'){/* end of label definition */
+                *current = '\0';/* remove ':' from label name */
+                *currentPosPtr += progress;
+                /* copy to current label */
+                extractToken(buffer, currentLabel);
+                return TRUE;
+            }
     }
 
     return FALSE;
@@ -95,7 +95,7 @@ boolean isLabelDefinition(char **currentPosPtr, char *currentLabel) {
  */
 boolean extractCommandName(char *line, int *lineIndexPtr, char *commandName,
                            boolean labelDefinition, errorCodes *lineErrorPtr)
-{
+                           {
     char *current;/* current character */
     char *start;/* first character to track progress in line array */
     int tokenLength;
@@ -127,10 +127,10 @@ boolean extractCommandName(char *line, int *lineIndexPtr, char *commandName,
     *lineIndexPtr += (int)(current - start);
 
     return TRUE;
-}
+                           }
 
 
-boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValue) {
+                           boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValue) {
     long value;
     long minValue;
 
@@ -236,15 +236,15 @@ int getNumbersFromLine(char *line, int *indexPtr, long *buffer, dataOps dataOpTy
         if (i % 2) {/* expecting a comma */
 
             if (!*current) /*end of line*/
-            {break;}
-            if (*current != ',') {
-                *lineErrorPtr = ILLEGAL_EXPRESSION;
-                return FALSE;
-            }
-            else
-            {
-                current++;
-            }
+                {break;}
+                if (*current != ',') {
+                    *lineErrorPtr = ILLEGAL_EXPRESSION;
+                    return FALSE;
+                }
+                else
+                {
+                    current++;
+                }
 
         }
         else {/* expecting a number */
@@ -284,38 +284,39 @@ int getNumbersFromLine(char *line, int *indexPtr, long *buffer, dataOps dataOpTy
 
 boolean idRegister(char *token, int *regPtr, errorCodes *lineErrorPtr) {
 
-    char *current;
-    char regBuffer[MAX_LINE];
-    int i;
-    boolean isInt = TRUE;
-    int reg;
+
+    char *current; /*this token */
+    int i; /*index for loop*/
+    boolean isInt = TRUE; /*flag to integer number*/
+    int reg; /*register value*/
 
     current = token;
 
+    /*check if the first char is $ */
     if (*current == '$') {
         current++;
 
         if (isdigit(*current)) {
-            extractToken(current, regBuffer);/* todo remove redundant extract token */
 
-            for (i = 0 ; regBuffer[i] != '\0' ; i++) /*checks if regBuffer does not include illegal chars*/
-            {
-                if (!(isdigit(regBuffer[i]))) {
+            for (i = 0 ; current[i]!='\0' ; i++) /*checks if current does not include illegal chars, only digits*/
+                {
+                if (!(isdigit(current[i]))) {
                     isInt = FALSE;
                     break;
                 }
-            }
-
-            if (isInt) {
-                reg = atoi(regBuffer); /*make int out of regBuffer string*/
-                if (reg >= REGISTER_MIN_INDEX && reg <= REGISTER_MAX_INDEX) { /*in range*/
-                    *regPtr = reg;
-                    return TRUE;
                 }
-            }
+                if (isInt) {
+                    reg = atoi(current); /*make int out of current token string*/
+                    if (reg >= REGISTER_MIN_INDEX && reg <= REGISTER_MAX_INDEX) { /*in registers range*/
+                        *regPtr = reg;
+                        return TRUE;
+                    }
+
+                }
+
         }
     }
-
+    /*if token is not following the conditions this is not a register*/
     *lineErrorPtr = NOT_REG;
     return FALSE;
 }

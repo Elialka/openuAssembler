@@ -356,11 +356,11 @@ void testGetNumbersFromLine(){
     indexTemp = 0;
     if ((getNumbersFromLine("12    ,    34,  56  ", &indexTemp, numbers, DW, &errorTemp)) != 3){
         printf("pandas - testGetNumberFromLine test 2 failed - returned FALSE\n" )
-/*printf("pandas - testGetNumberFromLine test 2 failed - returned FALSE\n")*/;
+        /*printf("pandas - testGetNumberFromLine test 2 failed - returned FALSE\n")*/;
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
-/* test 3 */
+    /* test 3 */
     indexTemp = 0;
     if (getNumbersFromLine("   12     34,  56 ", &indexTemp, numbers, DW, &errorTemp)){
         printf("pandas - testGetNumberFromLine test 3 failed - returned FALSE\n");
@@ -472,7 +472,7 @@ void testIdRegister()
 
 }
 
-void testExtractOperands() {
+void testExtractOperands(void *head) {
     boolean generalError;
     int tmpPtr;
     errorCodes errorTemp;
@@ -488,8 +488,8 @@ void testExtractOperands() {
     /*test 1*/
     tmpPtr = 0;
     if (!(extractOperands("$10, $20, $30", &tmpPtr, R_ARITHMETIC, IC, &jumpIsReg,
-                          &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL))) {
-        printf("pandas - testExtractOperands test 1 failed - returned VALUE\n");
+                          &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))) {
+        printf("pandas - testExtractOperands test 1 failed - returned FALSE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
@@ -497,20 +497,20 @@ void testExtractOperands() {
     /*test 2*/
     tmpPtr = 0;
     extractOperands("$10, $20, $30", &tmpPtr, R_ARITHMETIC, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL);
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
 
     if (tmpReg1 != 10 || tmpReg2 != 20 || tmpReg3 != 30) {
-        printf("pandas - testExtractOperands test 2 failed - extracted values\n");
+        printf("pandas - testExtractOperands test 2 failed - saved incorrect values\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
     /*test 3*/
     tmpPtr = 0;
     extractOperands("$10   , $20", &tmpPtr, R_COPY, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL);
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
 
     if (tmpReg1 != 10 || tmpReg2 != 20) {
-        printf("pandas - testExtractOperands test 3 failed - returned FALSE\n");
+        printf("pandas - testExtractOperands test 3 failed - saved incorrect values\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
@@ -518,8 +518,8 @@ void testExtractOperands() {
     /*test 4*/
     tmpPtr = 0;
     if (extractOperands("$10", &tmpPtr, R_COPY, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL)) {
-        printf("pandas - testExtractOperands test 4 failed - returned FALSE\n");
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head)) {
+        printf("pandas - testExtractOperands test 4 failed - expected register\n");
         printf("%d", errorTemp);
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -530,10 +530,10 @@ void testExtractOperands() {
     tmpReg2 = -1;
     tmpReg3 = -1;
     extractOperands("$10, -32, $30", &tmpPtr, I_ARITHMETIC, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL);
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
 
     if (tmpReg1 != 10 || tmpReg2 != 30 || tmpImmed != -32) {
-        printf("pandas - testExtractOperands test 5 failed - returned FALSE\n");
+        printf("pandas - testExtractOperands test 5 failed - saved incorrect values \n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
@@ -541,18 +541,18 @@ void testExtractOperands() {
     /*test 6*/
     tmpPtr = 0;
     extractOperands("$10, -21, $22", &tmpPtr, I_MEMORY_LOAD, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL);
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
     if (tmpReg1 != 10 || tmpReg2 != 22 || tmpImmed != -21) {
-        printf("pandas - testExtractOperands test 6 failed - returned FALSE\n");
+        printf("pandas - testExtractOperands test 6 failed - saved incorrect values\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
     /*test 7*/
     tmpPtr = 0;
     extractOperands("$10, -21 $22", &tmpPtr, I_MEMORY_LOAD, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL);
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
     if (errorTemp != MISSING_COMMA) {
-        printf("pandas - testExtractOperands test 7 failed - returned FALSE\n");
+        printf("pandas - testExtractOperands test 7 failed - expected another error code a\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
@@ -560,9 +560,9 @@ void testExtractOperands() {
     /*test 8*/
     tmpPtr = 0;
     if (extractOperands("$10 -21 $22", &tmpPtr, I_MEMORY_LOAD, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL))
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
     {
-        printf("pandas - testExtractOperands test 8 failed - returned FALSE\n");
+        printf("pandas - testExtractOperands test 8 failed - missing comma\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
@@ -570,23 +570,151 @@ void testExtractOperands() {
     /*test 9*/
     tmpPtr = 0;
     if (extractOperands("$10# $22", &tmpPtr, I_MEMORY_LOAD, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL))
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
 
     {
-        printf("pandas - testExtractOperands test 9 failed - returned FALSE\n");
+        printf("pandas - testExtractOperands test 9 failed - not a register - illegal sign\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
     /*test 10*/
     tmpPtr = 0;
     if (extractOperands("$10, -2, $22", &tmpPtr, R_ARITHMETIC, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, NULL))
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
 
     {
-        printf("pandas - testExtractOperands test 10 failed - returned FALSE\n");
+        printf("pandas - testExtractOperands test 10 failed - expected register\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
+    /*test 11*/
+    tmpPtr = 0;
+    if (extractOperands("$10, $3,, $22", &tmpPtr, R_ARITHMETIC, IC, &jumpIsReg,
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+
+    {
+        printf("pandas - testExtractOperands test 11 failed - should not run\n");
+        printf("--------------------------------------\n");
+        generalError = TRUE;
+    }
+    /*test 12*/
+    tmpPtr = 0;
+    extractOperands("$10, $2,", &tmpPtr, R_ARITHMETIC, IC, &jumpIsReg,
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
+    if (errorTemp != EXPECTED_REGISTER)
+    {
+        printf("pandas - testExtractOperands test 12 failed - missing register\n");
+        printf("--------------------------------------\n");
+        generalError = TRUE;
+    }
+    /*test 13*/
+    tmpPtr = 0;
+    extractOperands("$10, $30, $2", &tmpPtr, I_ARITHMETIC, IC, &jumpIsReg,
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp,head);
+    if (errorTemp != EXPECTED_NUMBER)
+    {
+        printf("pandas - testExtractOperands test 13 failed - missing register\n");
+        printf("--------------------------------------\n");
+        generalError = TRUE;
+    }
+    /*test 14*/
+    tmpPtr = 0;
+    if (extractOperands("10, $15, $20", &tmpPtr, R_ARITHMETIC, IC, &jumpIsReg,
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head)) {
+        if (errorTemp != EXPECTED_REGISTER) {
+            printf("pandas - testExtractOperands test 14 failed - missing register\n");
+            printf("--------------------------------------\n");
+            generalError = TRUE;
+        }
+    }
+    /*test 15*/
+    tmpPtr = 0;
+    if (!extractOperands("New, $22", &tmpPtr, J_JUMP, IC, &jumpIsReg,
+                         &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    {
+        printf("pandas - testExtractOperands test 15 failed - label should be enough\n");
+        printf("--------------------------------------\n");
+        generalError = TRUE;
+    }
+
+    /*test 16*/
+    tmpPtr = 0;
+    if (!extractOperands("New, $22", &tmpPtr, J_JUMP, IC, &jumpIsReg,
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    {
+        printf("pandas - testExtractOperands test 16 failed - missing register\n");
+        printf("--------------------------------------\n");
+        generalError = TRUE;
+    }
+
+    /*test 17*/
+    tmpPtr = 0;
+    if (extractOperands("New, $22", &tmpPtr, R_COPY, IC, &jumpIsReg,
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    {
+        printf("pandas - testExtractOperands test 17 failed - expected register\n");
+        printf("--------------------------------------\n");
+        generalError = TRUE;
+    }
+    /*test 18*/
+    tmpPtr = 0;
+    extractOperands("ajhasdijbhisdnflhdfusdvnsfnhsbefsesndjcjhvfhskb, $22", &tmpPtr, R_COPY, IC, &jumpIsReg,
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
+    if (errorTemp != EXPECTED_REGISTER)
+    {
+        printf("pandas - testExtractOperands test 18 failed - expected register\n");
+        printf("--------------------------------------\n");
+        generalError = TRUE;
+    }
+    /*test 19*/
+    tmpPtr = 0;
+    if (extractOperands("ajhflqnelnadvhsfvlskmfjsdhfndnjsnchvjdejdnw32ncndjnd, $22", &tmpPtr, J_JUMP, IC, &jumpIsReg,
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    {
+        printf("pandas - testExtractOperands test 19 failed - label is too long\n");
+        printf("--------------------------------------\n");
+        generalError = TRUE;
+    }
+    /*test 20*/
+    tmpPtr = 0;
+    if (extractOperands("$22       ,     22", &tmpPtr, R_COPY, IC, &jumpIsReg,
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    {
+        printf("pandas - testExtractOperands test 20 failed - expected register\n");
+        printf("--------------------------------------\n");
+        generalError = TRUE;
+    }
+    /*test 21*/
+    tmpPtr = 0;
+    extractOperands("$21, -321,        $0", &tmpPtr, I_MEMORY_LOAD, IC, &jumpIsReg,
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
+    if (tmpReg1 != 21 || tmpReg2 != 0 || tmpImmed != -321 )
+    {
+        printf("pandas - testExtractOperands test 21 failed - saved incorrect values \n");
+        printf("--------------------------------------\n");
+        generalError = TRUE;
+    }
+    /*test 22*/
+    tmpPtr = 0;
+    extractOperands("New,", &tmpPtr, J_CALL_OR_LA, IC, &jumpIsReg,
+                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
+    if (errorTemp != EXPECTED_REGISTER)
+    {
+        printf("pandas - testExtractOperands test 22 failed - expected register error\n");
+        printf("--------------------------------------\n");
+        generalError = TRUE;
+    }
+
+    /*test 23*/
+    tmpPtr = 0;
+    if (extractOperands("$12, $22, $30", &tmpPtr, I_BRANCHING, IC, &jumpIsReg,
+                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    {
+        printf("pandas - testExtractOperands test 23 failed - missing label\n");
+        printf("--------------------------------------\n");
+        generalError = TRUE;
+    }
+
     if (!generalError) {
         printf("pandas - extractOperands - good!\n");
         printf("--------------------------------------\n");
