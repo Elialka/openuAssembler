@@ -5,8 +5,10 @@
 
 void * initDataImageDB();
 
-boolean addNumber(void *head, int *DCPtr, long value, int numOfBytes);
+boolean addNumber(void *head, long *DCPtr, long value, int numOfBytes);
 
-boolean addNumberArray(void *head, int *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType);
+boolean addNumberArray(void *head, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType);
 
-boolean addString(void *head, int *DCPtr, char *str);
+boolean addString(void *head, long *DCPtr, char *str);
+
+void clearDataImageDB(void *head);

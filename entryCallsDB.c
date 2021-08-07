@@ -63,5 +63,16 @@ boolean addEntryCall(void *head, char *labelName, errorCodes *lineErrorPtr){
     return TRUE;
 }
 
+void clearEntryCallsDB(void *head){
+    entryCallPtr current = head;
+    entryCallPtr prev;
+
+    while(current){
+        prev = current;
+        current = current->next;
+        free(prev);
+    }
+}
+
 
 

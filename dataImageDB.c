@@ -8,7 +8,7 @@
 
 
 
-static boolean addByte(char *head, unsigned char byte, int DC);
+static boolean addByte(char *head, unsigned char byte, long DC);
 
 
 /*
@@ -22,8 +22,8 @@ void * initDataImageDB(){
     return database;
 }
 
-
-static boolean addByte(char *head, unsigned char byte, int DC) {
+/* todo change head to char ** - head is not updated when reallocating memory */
+static boolean addByte(char *head, unsigned char byte, long DC) {
     static int size = IMAGE_BLOCK_SIZE;/* current size of database */
     void *temp;
 
@@ -45,7 +45,7 @@ static boolean addByte(char *head, unsigned char byte, int DC) {
  * this function adds number to database
  */
 /* todo add error pointer, check overall + negative numbers */
-boolean addNumber(void *head, int *DCPtr, long value, int numOfBytes) {
+boolean addNumber(void *head, long *DCPtr, long value, int numOfBytes) {
     int i, offset;
     unsigned long mask;
     unsigned long formattedNumber;
@@ -71,7 +71,7 @@ boolean addNumber(void *head, int *DCPtr, long value, int numOfBytes) {
     return TRUE;
 }
 
-boolean addNumberArray(void *head, int *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType) {
+boolean addNumberArray(void *head, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType) {
     int i;
     int numOfBytes;
 
@@ -104,7 +104,7 @@ boolean addNumberArray(void *head, int *DCPtr, long *array, int amountOfNumbers,
 /*
  * this function adds a string to database
  */
-boolean addString(void *head, int *DCPtr, char *str) {
+boolean addString(void *head, long *DCPtr, char *str) {
     char *current;
     char *prev;
 
@@ -117,6 +117,10 @@ boolean addString(void *head, int *DCPtr, char *str) {
     }
 
     return TRUE;
+}
+
+void clearDataImageDB(void *head){
+    free(head);
 }
 
 
@@ -133,41 +137,39 @@ boolean addString(void *head, int *DCPtr, char *str) {
 /* delete - test */
 
 
-void printNumbers(int DC, char *head) {
+boolean checkDataImage(long DC, unsigned char *head, unsigned char *buffer) {
     int i;
-    char c;
 
     for(i = 0; i < DC; i++){
-        c = (unsigned char)head[i];
-        printf("%u | ", c ? c : '/');
+        if(buffer[i] != head[i]){
+            return FALSE;
+        }
     }
-    printf("\n-----------------------------------\n");
-}
-
-
-void printData(int DC, char *head) {
-    int i;
-    char c;
-
-    for(i = 0; i < DC; i++){
-        c = (unsigned char)head[i];
-        printf("%c | ", c ? c : '/');
-    }
-    printf("\n-----------------------------------\n");
+    return TRUE;
 }
 
 
 void testAddByte(void *head) {
     unsigned char byte;
+    long DC = 0;
+    unsigned char buffer[] = {3, 253, 100, 156};
 
     byte = 3;
-    addByte(head, byte, 0);
+    addByte(head, byte, DC);
+    DC++;
+
     byte = ~byte + 1;
-    addByte(head, byte, 1);
+    addByte(head, byte, DC);
+    DC++;
+
     byte = 100;
-    addByte(head, byte, 2);
+    addByte(head, byte, DC);
+    DC++;
+
     byte = ~byte + 1;
-    addByte(head, byte, 3);
-    printNumbers(4, head);
+    addByte(head, byte, DC);
+    DC++;
+
+    checkDataImage(4, head, buffer);
 }
 

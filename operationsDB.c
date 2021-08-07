@@ -155,3 +155,7 @@ boolean seekDataOp(char *str, dataOps *dataOpTypePtr){
 
     return TRUE;
 }
+
+void clearOperationDB(void *head){
+    free(head);
+}

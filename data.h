@@ -4,8 +4,10 @@
 #define SIZE_OF_BYTE (1)
 #define SIZE_OF_HALF_WORD (2)
 #define SIZE_OF_WORD (4)
+#define I_TYPE_IMMED_MAX_VALUE (32767)
+#define I_TYPE_IMMED_MIN_VALUE (-32768)
 #define BYTE_MAX_VALUE (127)
-#define HALF_WORD_MAX_VALUE (32767)
+#define HALF_WORD_MAX_VALUE (I_TYPE_IMMED_MAX_VALUE)
 #define WORD_MAX_VALUE (2147483647)
 #define ADDRESS_MAX_VALUE (33554432)
 #define REGISTER_MIN_INDEX (0)
@@ -29,13 +31,13 @@
 #define DECIMAL_BASE (10)
 
 
-
 typedef enum {
     FALSE = 0,
     TRUE = 1
 }boolean;
 
 typedef enum{
+    NO_ERROR,
     /* labels */
     DOUBLE_LABEL_DEFINITION,
     LABEL_LOCAL_AND_EXTERN,
@@ -44,6 +46,7 @@ typedef enum{
     LABEL_IS_OPERATION,
     LABEL_TOO_LONG,
     ILLEGAL_LABEL_NAME,
+    ADDRESS_DESTANCE_OVER_LIMITS,
     /* memory */
     MEMORY_ALLOCATION_FAILURE,
     /* operation names */
@@ -68,8 +71,9 @@ typedef enum{
     MISSING_COMMA,
     ILLEGAL_COMMA,
     /* other */
-    LINE_TOO_BIG,
-    NO_ERROR,
+    EXTRANEOUS_TEXT,
+    /* warnings */
+    LINE_TOO_LONG,
     /* internal crisis */
     IMPOSSIBLE
 }errorCodes;
@@ -139,7 +143,7 @@ typedef enum{
     DATA_LABEL,
     CODE_LABEL,
     EXTERN_LABEL
-}labelType;
+}labelClass;
 
 typedef enum{
     LABELS_POINTER,
@@ -150,4 +154,10 @@ typedef enum{
     ENTRY_CALLS_POINTER
 }pointerArrayIndex;
 
+
+typedef struct{
+    long IC;
+    char name[MAX_LABEL_LENGTH];
+    operationClass type;
+}labelCall;
 

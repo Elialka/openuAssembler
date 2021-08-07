@@ -15,7 +15,11 @@ void *initLabelsDB();
 
 boolean seekLabel(void *head, char *name);
 
-boolean addNewLabel(void *head, char *labelName, int value, labelType type, errorCodes *lineErrorPtr);
+boolean addNewLabel(void *head, char *labelName, long address, labelClass type, errorCodes *lineErrorPtr);
+
+boolean getLabelAttributes(void *head, char *name, long *addressPtr, labelClass *typePtr);
+
+void updateDataLabels(void *head, long ICF);
 
 void clearLabels(void *head);
 

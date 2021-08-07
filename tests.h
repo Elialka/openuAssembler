@@ -2,6 +2,7 @@
 #include "data.h"
 #endif
 
+void testFunctions(void **databasePointers);
 
 /* pandas tests */
 
@@ -33,9 +34,7 @@ void testAddNumber(void *head);
 
 void testAddByte(void *head); /* in dataImageDB */
 
-void printNumbers(int DC, char *head);/* in dataImageDB */
-
-void printData(int DC, char *head);/* in dataImageDB */
+boolean checkDataImage(long DC, unsigned char *head, unsigned char *buffer);/* in dataImageDB */
 
 void testAddString(void *head);
 
@@ -44,6 +43,6 @@ void testAddString(void *head);
 
 /* codeImageDB tests */
 
-void printCode(void *head, int IC);
+void printCode(void *head, long IC);
 
 void testAddingCommands(void *head);

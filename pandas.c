@@ -321,7 +321,7 @@ boolean idRegister(char *token, int *regPtr, errorCodes *lineErrorPtr) {
 }
 
 
-boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpType, int IC, boolean *jIsRegPtr,
+boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpType, long IC, boolean *jIsRegPtr,
                         int *reg1Ptr, int *reg2Ptr, int *reg3Ptr, long *immedPtr,
                         errorCodes *lineErrorPtr, void *labelCallsHead) {
     char *current;/* current character */
@@ -468,7 +468,7 @@ boolean readComma(char **currentPtr, errorCodes *lineErrorPtr) {
 }
 
 
-boolean getFirstOperand(char *token, int tokenLength, operationClass commandOpType, int IC, boolean *jIsRegPtr,
+boolean getFirstOperand(char *token, int tokenLength, operationClass commandOpType, long IC, boolean *jIsRegPtr,
                         int *regPtr, errorCodes *lineErrorPtr, void *labelCallsHead) {
     boolean result;
 
@@ -481,7 +481,7 @@ boolean getFirstOperand(char *token, int tokenLength, operationClass commandOpTy
 
         if(tokenIsLabel(token, tokenLength, lineErrorPtr)){/* token is label call */
             /* add label call to database */
-            if(!addLabelCall(labelCallsHead, IC, token, commandOpType, lineErrorPtr)){
+            if(!setLabelCall(labelCallsHead, IC, token, commandOpType, lineErrorPtr)){
                 *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
                 result = FALSE;
             }
@@ -545,7 +545,7 @@ boolean getSecondOperand(char *token, operationClass commandOpType, int *regPtr,
 }
 
 
-boolean getThirdOperand(char *token, int tokenLength, int IC, operationClass commandOpType, int *regPtr, long *immedPtr,
+boolean getThirdOperand(char *token, int tokenLength, long IC, operationClass commandOpType, int *regPtr, long *immedPtr,
                         errorCodes *lineErrorPtr, void *labelCallsHead) {
     boolean result;
 
@@ -568,7 +568,7 @@ boolean getThirdOperand(char *token, int tokenLength, int IC, operationClass com
                 *immedPtr = -IC;/* label address will be added at second pass */
 
                 /* add label call to database */
-                if(!addLabelCall(labelCallsHead, IC, token, commandOpType, lineErrorPtr)){/* memory failure */
+                if(!setLabelCall(labelCallsHead, IC, token, commandOpType, lineErrorPtr)){/* memory failure */
                     *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
                     result = FALSE;
                 }
@@ -609,4 +609,24 @@ boolean getLabel(char **currentPtr, char *labelName, errorCodes *lineErrorPtr){
     }
 
     return FALSE;
+}
+
+
+boolean checkLineTermination(char **currentPtr, errorCodes *lineErrorPtr){
+    char *current = *currentPtr;
+    boolean extraneousText = FALSE;
+
+    for(; *current; current++){
+        if(!isspace(*current)){
+            extraneousText = TRUE;
+        }
+    }
+
+    if(extraneousText){
+        *lineErrorPtr = EXTRANEOUS_TEXT;
+    }
+
+    *currentPtr = current - 1;/* mark last character */
+
+    return !extraneousText;
 }

@@ -11,8 +11,8 @@ typedef struct node *labelPtr;
 
 typedef struct node{
     char name[LABEL_ARRAY_SIZE];
-    int value;
-    labelType type;
+    long address;
+    labelClass type;
     labelPtr next;
 }label;
 
@@ -30,8 +30,8 @@ void *initLabelsDB(){
 }
 
 
-
 /*
+ * todo may be redundant
  * return if label with matching name already exists in database
  */
 boolean seekLabel(void *head, char *name) {
@@ -48,7 +48,7 @@ boolean seekLabel(void *head, char *name) {
 }
 
 
-boolean addNewLabel(void *head, char *labelName, int value, labelType type, errorCodes *lineErrorPtr){
+boolean addNewLabel(void *head, char *labelName, long address, labelClass type, errorCodes *lineErrorPtr){
     static int labelsCounter = 0;/* how many labels currently in database */
     labelPtr current;
     labelPtr prev;
@@ -94,10 +94,43 @@ boolean addNewLabel(void *head, char *labelName, int value, labelType type, erro
 
     /* update fields */
     strcpy(current->name, labelName);
-    current->value = value;
+    current->address = address;
     current->type = type;
 
     return TRUE;
+}
+
+
+boolean getLabelAttributes(void *head, char *name, long *addressPtr, labelClass *typePtr) {
+    labelPtr current = head;
+    boolean result = FALSE;
+
+    while(current){
+        if(!strcmp(current->name, name)){/* found match */
+            *addressPtr = current->address;
+            *typePtr = current->type;
+            current = NULL;
+            result = TRUE;
+        }
+        else{/* keep searching */
+            current = current->next;
+        }
+    }
+    return result;
+}
+
+
+void updateDataLabels(void *head, long ICF){
+    labelPtr currentLabelPtr = head;
+
+    while(currentLabelPtr){/* there is another label in the database */
+        if(currentLabelPtr->type == DATA_LABEL){
+            currentLabelPtr->address += ICF;
+        }
+
+        /* get next label */
+        currentLabelPtr = currentLabelPtr->next;
+    }
 }
 
 

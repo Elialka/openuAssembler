@@ -6,7 +6,30 @@
 #include "labelsDB.h"
 #include "codeImageDB.h"
 
+/* run all tests */
 
+void testFunctions(void **databasePointers){
+    /* pandas */
+    testIsLabelDefinition();
+    testGetStringFromLine();
+    testStringToLong();
+    testGetNumbersFromLine();
+    testIdRegister();
+    testExtractOperands(databasePointers[LABEL_CALLS_POINTER]);
+
+    /* labelsDB */
+    testAddNewLabel(databasePointers[LABELS_POINTER]);
+
+    /* dataImageDB tests */
+    testAddNumber(databasePointers[DATA_IMAGE_POINTER]);
+    testAddByte(databasePointers[DATA_IMAGE_POINTER]);
+    testAddString(databasePointers[DATA_IMAGE_POINTER]);
+
+    /* codeImageDB tests */
+    testAddingCommands(databasePointers[CODE_IMAGE_POINTER]);
+
+
+}
 
 /* pandas tests */
 
@@ -24,14 +47,17 @@ void testIsLabelDefinition()
     if (!isLabelDefinition(&currentPos, currentLabel))
     {
         printf("isLabelDefinition test 1 failed - return value\n");
+        printf("-------------------------\n");
         generalError = TRUE;
     }
-    else if(strcmp(currentLabel, "hELLO")){
+    else if(strcmp(currentLabel, "hELLO") != 0){
         printf("isLabelDefinition test 1 failed - currentLabel string\n");
+        printf("-------------------------\n");
         generalError = TRUE;
     }
     else if(*(currentPos-1) != ':'){
         printf("isLabelDefinition test 1 failed - currentPos\n");
+        printf("-------------------------\n");
         generalError = TRUE;
     }
 
@@ -40,14 +66,17 @@ void testIsLabelDefinition()
     if (!isLabelDefinition(&currentPos, currentLabel))
     {
         printf("isLabelDefinition test 2 failed - return value\n");
+        printf("-------------------------\n");
         generalError = TRUE;
     }
-    else if(strcmp(currentLabel, "asdf")){
+    else if(strcmp(currentLabel, "asdf") != 0){
         printf("isLabelDefinition test 2 failed - currentLabel string\n");
+        printf("-------------------------\n");
         generalError = TRUE;
     }
     else if(*(currentPos-1) != ':'){
         printf("isLabelDefinition test 2 failed - currentPos\n");
+        printf("-------------------------\n");
         generalError = TRUE;
     }
 
@@ -57,14 +86,17 @@ void testIsLabelDefinition()
     if (!isLabelDefinition(&currentPos, currentLabel))
     {
         printf("isLabelDefinition test 3 failed - return value\n");
+        printf("-------------------------\n");
         generalError = TRUE;
     }
-    else if(strcmp(currentLabel, "asdd2")){
+    else if(strcmp(currentLabel, "asdd2") != 0){
         printf("isLabelDefinition test 3 failed - currentLabel string\n");
+        printf("-------------------------\n");
         generalError = TRUE;
     }
     else if(*(currentPos-1) != ':'){
         printf("isLabelDefinition test 3 failed - currentPos\n");
+        printf("-------------------------\n");
         generalError = TRUE;
     }
 
@@ -74,18 +106,19 @@ void testIsLabelDefinition()
     if(isLabelDefinition(&currentPos, currentLabel)){
         generalError = TRUE;
         printf("isLabelDefinition test 4 failed - return value\n");
+        printf("-------------------------\n");
     }
     else if(currentPos != temp){
         printf("isLabelDefinition test 4 failed - currentPos\n");
+        printf("-------------------------\n");
         generalError = TRUE;
     }
 
 
     if(!generalError){
-        printf("-------------------------\n");
         printf("isLabelDefinition test good\n");
-        printf("-------------------------\n");
     }
+    printf("-----------------------------------------------------------------------------------------------\n");
 
 }
 
@@ -105,7 +138,7 @@ void testGetStringFromLine(){
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
-    else if(strcmp(string, "asdfg  asd")){
+    else if(strcmp(string, "asdfg  asd") != 0){
         printf("pandas - testGetStringFromLine test 1 failed:\n");
         printf("should be  \"asdfg asd\"  instead of %s\n", string);
         printf("--------------------------------------\n");
@@ -119,7 +152,7 @@ void testGetStringFromLine(){
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
-    else if(strcmp(string, "  &^     hjagfsdy5")){
+    else if(strcmp(string, "  &^     hjagfsdy5") != 0){
         printf("pandas - testGetStringFromLine test 2 failed:\n");
         printf("should be  \"  &^     hjagfsdy5\"  instead of %s\n", string);
         printf("--------------------------------------\n");
@@ -145,8 +178,8 @@ void testGetStringFromLine(){
 
     if(!generalError){
         printf("pandas - getStringFromLine - good!\n");
-        printf("--------------------------------------\n");
     }
+    printf("-----------------------------------------------------------------------------------------------\n");
 
 }
 
@@ -330,7 +363,7 @@ void testStringToLong(){
         printf("pandas - stringToLong - good!\n");
     }
 
-    printf("---------------------------------------------------------------------\n");
+    printf("-----------------------------------------------------------------------------------------------\n");
 
 
 }
@@ -398,8 +431,8 @@ void testGetNumbersFromLine(){
     }
     if(!generalError){
         printf("pandas - getNumbersFromLine - good!\n");
-        printf("--------------------------------------\n");
     }
+    printf("-----------------------------------------------------------------------------------------------\n");
 }
 
 void testIdRegister()
@@ -467,8 +500,9 @@ void testIdRegister()
 
     if(!generalError){
         printf("pandas - isRegister - good!\n");
-        printf("--------------------------------------\n");
     }
+
+    printf("-----------------------------------------------------------------------------------------------\n");
 
 }
 
@@ -477,7 +511,7 @@ void testExtractOperands(void *head) {
     int tmpPtr;
     errorCodes errorTemp;
     boolean jumpIsReg = FALSE;
-    int IC = 100;
+    long IC = 100;
     int tmpReg1;
     int tmpReg2;
     int tmpReg3;
@@ -717,8 +751,8 @@ void testExtractOperands(void *head) {
 
     if (!generalError) {
         printf("pandas - extractOperands - good!\n");
-        printf("--------------------------------------\n");
     }
+    printf("-----------------------------------------------------------------------------------------------\n");
 }
 
 
@@ -730,7 +764,7 @@ void testExtractOperands(void *head) {
 void testAddNewLabel(void *head) {
 
     printf("You didnt write the test yet you idiot!\n");
-    printf("-----------------------------------------------------------------------------------------------");
+    printf("-----------------------------------------------------------------------------------------------\n");
 
     clearLabels(head);
 }
@@ -742,30 +776,45 @@ void testAddNewLabel(void *head) {
 /* dataImageDB tests */
 
 void testAddNumber(void *head) {
-    int DC;
+    long DC;
+    unsigned char buffer[] = {10, 150, 0, 84, 242, 255, 255, 244, 1};
 
     DC = 0;
 
-    addNumber(head, &DC, 10, DB);
+    addNumber(head, &DC, 10, SIZE_OF_BYTE);
 
-    addNumber(head, &DC, 150, DH);
+    addNumber(head, &DC, 150, SIZE_OF_HALF_WORD);
 
-    addNumber(head, &DC, -3500, DW);
+    addNumber(head, &DC, -3500, SIZE_OF_WORD);
 
-    addNumber(head, &DC, 500, DH);
+    addNumber(head, &DC, 500, SIZE_OF_HALF_WORD);
 
-    printNumbers(DC, head);
-
+    if(checkDataImage(DC, head, buffer)){
+        printf("dataImageDB - addNumber - good!\n");
+    }
+    else{
+        printf("!!TEST FAILED!!! dataImageDB - addNumber\n");
+    }
+    printf("-----------------------------------------------------------------------------------------------\n");
 }
 
 
 void testAddString(void *head) {
-    int DC = 0;
+    long DC = 0;
+    unsigned char buffer[] = {'a', 's', 'd', '\0', ' ', ' ', 'w', 'S', '$', ' ', ' ', '#', 'a', '\0',
+                              'a', 's', 'd', '\0', '\0'};
     addString(head, &DC, "asd");
     addString(head, &DC, "  wS$  #a");
     addString(head, &DC, "asd");
     addString(head, &DC, "");
-    printData(19, head);
+
+    if(checkDataImage(DC, head, buffer)){
+        printf("dataImageDB - addString - good!\n");
+    }
+    else{
+        printf("!!TEST FAILED!!! dataImageDB - addString\n");
+    }
+    printf("-----------------------------------------------------------------------------------------------\n");
 }
 
 
@@ -776,37 +825,56 @@ void testAddString(void *head) {
 
 
 void testAddingCommands(void *head){
-    int IC = STARTING_ADDRESS;
+    long IC = STARTING_ADDRESS;
+    boolean error = FALSE;
 
     /* test 1 */
     if(!addRCommand(&head, &IC, 1, 2, 3, 0, 3)){
         printf("addingCommands test 1 - not good\n");
+        printf("--------------------------------------\n");
+        error = TRUE;
     }
     else{
         if(IC != 104){
             printf("addingCommands test 1 - IC value wrong\n");
+            printf("--------------------------------------\n");
+            error = TRUE;
         }
     }
 
     /* test 2 */
     if(!addRCommand(&head, &IC, 10, 30, 0, 1, 2)){
         printf("addingCommands test 2 - not good\n");
+        printf("--------------------------------------\n");
+        error = TRUE;
     }
     else{
         if(IC != 108){
             printf("addingCommands test 2 - IC value wrong\n");
+            printf("--------------------------------------\n");
+            error = TRUE;
         }
     }
 
     /* test 3 */
     if(!addRCommand(&head, &IC, 10, 5, 4, 0, 5)){
         printf("addingCommands test 3 - not good\n");
+        printf("--------------------------------------\n");
+        error = TRUE;
     }
     else{
         if(IC != 112){
             printf("addingCommands test 3 - IC value wrong\n");
+            printf("--------------------------------------\n");
+            error = TRUE;
         }
     }
+
+    if(!error){
+        printf("codeImageDB - addingCommands - good!\n");
+    }
+
+    printf("-----------------------------------------------------------------------------------------------\n");
 
 }
 
