@@ -1,5 +1,4 @@
 #include <ctype.h>
-#include <stdint.h>/* experimental */
 #include <stdlib.h>
 #include <errno.h>
 

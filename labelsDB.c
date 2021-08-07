@@ -14,8 +14,6 @@ typedef struct node{
     int value;
     labelType type;
     labelPtr next;
-    boolean isEntry;
-    boolean isExtern;
 }label;
 
 
@@ -98,7 +96,6 @@ boolean addNewLabel(void *head, char *labelName, int value, labelType type, erro
     strcpy(current->name, labelName);
     current->value = value;
     current->type = type;
-    current->isExtern = type == EXTERN_LABEL ? TRUE : FALSE;
 
     return TRUE;
 }

@@ -43,6 +43,7 @@ int main(int argc, char *argv[]){
 
 
     /* test zone*/
+    testGetStringFromLine();
     /*testGetStringFromLine();
     testGetNumbersFromLine();*/
     testExtractOperands(databasePointers[LABEL_CALLS_POINTER]);
@@ -111,7 +112,8 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr, void **databasePoi
     char label[TOKEN_ARRAY_SIZE];/* store label name if a label is declared or used in entry\extern */
 
     /* counters */
-    int IC, DC;/* code and data image counters */
+    int IC = STARTING_ADDRESS;
+    int DC = 0;/* code and data image counters */
     int lineIndex;/* counter for current index in line array */
     int lineCounter;/* number of current line */
 
@@ -126,15 +128,15 @@ boolean firstPass(FILE *sourceFile, int *ICFPtr, int *DCFPtr, void **databasePoi
     operationClass commandOpType;/* if relevant, stores type of operation by parameters */
     dataOps dataOpType;/* if command is data type */
     errorCodes lineError;/* type of error in current line, if present */
-    boolean generalError;/* flag if error found in current file */
+    boolean generalError = FALSE;/* flag if error found in current file */
     boolean labelDefinition;/* flag if current line defines a label */
 
 
     /* reset file wide counters and flags */
-    IC = STARTING_ADDRESS;
+    /*IC = STARTING_ADDRESS;
     DC = 0;
     generalError = FALSE;
-
+    */
 
     /* todo check condition */
     for(lineCounter = 1; !feof(sourceFile); lineCounter++){

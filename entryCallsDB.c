@@ -38,6 +38,9 @@ boolean addEntryCall(void *head, char *labelName, errorCodes *lineErrorPtr){
     if(entryCallsCounter){/* not first label */
         /* find next available node */
         while(current){
+            if(!strcmp(labelName, current->name)){/* already added this name */
+                return TRUE;
+            }
             prev = current;
             current = current->next;
         }
@@ -53,6 +56,7 @@ boolean addEntryCall(void *head, char *labelName, errorCodes *lineErrorPtr){
         prev->next = current;
     }
 
+    entryCallsCounter++;
     /* write down label name */
     strcpy(current->name, labelName);
 
