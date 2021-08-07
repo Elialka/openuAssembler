@@ -47,7 +47,7 @@ boolean seekLabel(void *head, char *name) {
     return FALSE;
 }
 
-
+/* todo split function - can remodel seekLabel */
 boolean addNewLabel(void *head, char *labelName, long address, labelClass type, errorCodes *lineErrorPtr){
     static int labelsCounter = 0;/* how many labels currently in database */
     labelPtr current;

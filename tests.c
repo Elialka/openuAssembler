@@ -27,8 +27,6 @@ void testFunctions(void **databasePointers){
 
     /* codeImageDB tests */
     testAddingCommands(databasePointers[CODE_IMAGE_POINTER]);
-
-
 }
 
 /* pandas tests */
@@ -765,8 +763,6 @@ void testAddNewLabel(void *head) {
 
     printf("You didnt write the test yet you idiot!\n");
     printf("-----------------------------------------------------------------------------------------------\n");
-
-    clearLabels(head);
 }
 
 
