@@ -47,6 +47,8 @@ typedef enum{
     LABEL_TOO_LONG,
     ILLEGAL_LABEL_NAME,
     ADDRESS_DESTANCE_OVER_LIMITS,
+    ENTRY_IS_EXTERN,
+    ENTRY_NOT_DEFINED,
     /* memory */
     MEMORY_ALLOCATION_FAILURE,
     /* operation names */

@@ -28,7 +28,7 @@ void *initEntryCallsDB(){
 }
 
 
-boolean addEntryCall(void *head, char *labelName, errorCodes *lineErrorPtr){
+boolean setEntryCall(void *head, char *labelName, errorCodes *lineErrorPtr){
     static int entryCallsCounter = 0;/* how many entry calls currently in database */
     entryCallPtr current;
     entryCallPtr prev;
@@ -62,6 +62,40 @@ boolean addEntryCall(void *head, char *labelName, errorCodes *lineErrorPtr){
 
     return TRUE;
 }
+
+
+void * getNextEntryCall(void *currentEntryPtr){
+    void *nextEntryPtr;
+    if(currentEntryPtr == NULL){
+        nextEntryPtr == NULL;
+    }
+    else{
+        nextEntryPtr = ((entryCallPtr)currentEntryPtr)->next;
+    }
+
+    return nextEntryPtr;
+}
+
+
+char * getEntryCallName(void *currentEntryPtr){
+    char *namePtr;
+    if(!currentEntryPtr){
+        namePtr = NULL;
+    }
+    else{
+        namePtr = ((entryCallPtr)currentEntryPtr)->name;
+    }
+
+    return namePtr;
+}
+
+
+void *setEntryCallValue(void *currentEntryPtr, long address) {
+    if(currentEntryPtr){
+        ((entryCallPtr)currentEntryPtr)->value = address;
+    }
+}
+
 
 void clearEntryCallsDB(void *head){
     entryCallPtr current = head;

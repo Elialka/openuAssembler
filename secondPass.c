@@ -2,6 +2,7 @@
 #include "labelsDB.h"
 #include "labelCallsDB.h"
 #include "codeImageDB.h"
+#include "entryCallsDB.h"
 
 static boolean validateExternalUsage(labelCall currentCall, labelClass labelType);
 
@@ -9,8 +10,12 @@ static boolean updateCodeImage(void *codeImageDatabase, labelCall currentCall, l
 
 static boolean fillMissingLabelAddresses(void **databasePointers);
 
+static boolean locateEntryDefinitions(void *entryCallsDatabase, void *labelsDatabase, errorCodes *lineErrorPtr);
+
+
 boolean secondPass(void **databasePointers, long ICF) {
     boolean validPass;
+    errorCodes lineError = NO_ERROR;
 
     /* add ICF to data-type labels' addresses */
     updateDataLabels(databasePointers[LABELS_POINTER], ICF);
@@ -18,7 +23,14 @@ boolean secondPass(void **databasePointers, long ICF) {
     /* handle labels as operators usages */
     validPass = fillMissingLabelAddresses(databasePointers);
 
-    /* todo validate entry declarations */
+    if(validPass){/* no errors */
+        /*  */
+        validPass = locateEntryDefinitions(databasePointers[ENTRY_CALLS_POINTER],
+                                           databasePointers[LABELS_POINTER],
+                                           &lineError);
+    }
+
+    /* todo setup extern database */
 
     return validPass;
 }
@@ -95,5 +107,42 @@ static boolean updateCodeImage(void *codeImageDatabase, labelCall currentCall, l
     }
 
     return result;
+}
+
+
+static boolean locateEntryDefinitions(void *entryCallsDatabase, void *labelsDatabase, errorCodes *lineErrorPtr) {
+    boolean validOp = TRUE;/* reset error flag */
+    void *currentEntryCall = getNextEntryCall(entryCallsDatabase);/* get first entry call */
+    char *currentEntryName;/* point to string representing current entry call name */
+    labelClass labelType;/* current label type */
+    long labelAddress;/* address where label was defined */
+
+    /* validate each label declared as entry is defined in current .as file */
+    while(currentEntryCall){
+        /* get entry name */
+        if((currentEntryName = getEntryCallName(currentEntryCall))){
+            /* get label type */
+            validOp = getLabelAttributes(labelsDatabase, currentEntryName, &labelAddress, &labelType);
+        }
+        else{/* entry name */
+            /* todo handle */
+        }
+
+        if(validOp){/* label exists */
+            if(labelType != EXTERN_LABEL){/* label is locally defined */
+                setEntryCallValue(currentEntryCall, labelAddress);/* update definition location */
+            }
+            else{/* cannot declare entry with external label */
+                *lineErrorPtr = ENTRY_IS_EXTERN;
+                validOp = FALSE;
+            }
+        }
+        else{/* label does not exist */
+            *lineErrorPtr = ENTRY_NOT_DEFINED;
+            validOp = FALSE;
+        }
+    }
+
+    return validOp;
 }
 

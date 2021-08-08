@@ -84,7 +84,7 @@ boolean sourceFilePass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **data
                     /* read label operand */
                     if(getLabel(&currentPos, label, &lineError)){
                         if(dataOpType == ENTRY){
-                            addEntryCall(databasePointers[ENTRY_CALLS_POINTER], label, &lineError);
+                            setEntryCall(databasePointers[ENTRY_CALLS_POINTER], label, &lineError);
                         }
                         else{/* extern declaration */
                             addNewLabel(databasePointers[LABELS_POINTER],
