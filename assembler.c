@@ -8,6 +8,7 @@
 #include "codeImageDB.h"
 #include "labelCallsDB.h"
 #include "entryCallsDB.h"
+#include "externUsesDB.h"
 #ifndef MAX_LINE
 #include "data.h"
 #endif
@@ -121,6 +122,9 @@ static boolean initDataBases(void *databasePointers[]){
     else if(!(databasePointers[ENTRY_CALLS_POINTER] = initEntryCallsDB())){
         allocationSuccess = FALSE;
     }
+    else if(!(databasePointers[EXTERN_POINTER] = initExternUsesDB())){
+        allocationSuccess = FALSE;
+    }
 
     return allocationSuccess;
 
@@ -150,5 +154,6 @@ static void clearDatabases(void **databasePointers){
     clearCodeImageDB(databasePointers[CODE_IMAGE_POINTER]);
     clearLabelCallsDB(databasePointers[LABEL_CALLS_POINTER]);
     clearEntryCallsDB(databasePointers[ENTRY_CALLS_POINTER]);
+    clearExternUsesDB(databasePointers[EXTERN_POINTER]);
 }
 

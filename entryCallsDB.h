@@ -4,7 +4,7 @@
 
 void *initEntryCallsDB();
 
-boolean setEntryCall(void *head, char *labelName, errorCodes *lineErrorPtr);
+boolean addEntryCall(void *head, char *labelName, errorCodes *lineErrorPtr);
 
 void * getNextEntryCall(void *entryCallPtr);
 
