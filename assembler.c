@@ -86,7 +86,7 @@ int main(int argc, char *argv[]){
 
         /* generate output files */
         if(validFile){
-            writeFiles(databasePointers, argv[i]);
+            writeFiles(databasePointers, argv[i], ICF, DCF);
         }
 
         /* clear databases */

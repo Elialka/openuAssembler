@@ -1,4 +1,3 @@
-#include <stddef.h>
 #include "secondPass.h"
 #include "labelsDB.h"
 #include "labelCallsDB.h"
@@ -21,8 +20,8 @@ boolean secondPass(void **databasePointers, long ICF) {
     boolean validPass;
     errorCodes lineError = NO_ERROR;
 
-    /* add ICF to data-type labels' addresses */
-    updateDataLabels(databasePointers[LABELS_POINTER], ICF);
+    /* update data-type labels' addresses, to appear after code image */
+    updateDataLabels(databasePointers[LABELS_POINTER], ICF + STARTING_ADDRESS);
 
     /* handle labels as operators usages */
     validPass = fillMissingLabelAddresses(databasePointers);

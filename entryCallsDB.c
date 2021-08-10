@@ -10,7 +10,7 @@ typedef struct entryCall *entryCallPtr;
 
 typedef struct entryCall{
     char name[MAX_LABEL_LENGTH];
-    int value;
+    long value;
     entryCallPtr next;
 }entryCall;
 
@@ -85,6 +85,20 @@ char * getEntryCallName(void *currentEntryPtr){
     }
 
     return namePtr;
+}
+
+
+long getEntryCallAddress(void *currentExternUsePtr){
+    long address;
+
+    if(!currentExternUsePtr){
+        address = 0;
+    }
+    else{
+        address =  ((entryCallPtr)currentExternUsePtr)->value;
+    }
+
+    return address;
 }
 
 

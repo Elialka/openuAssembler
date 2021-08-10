@@ -66,6 +66,48 @@ boolean externDBIsEmpty(void *head){
     return result;
 }
 
+
+void * getNextExternUse(void *currentExternUsePtr){
+    void *nextExternUsePtr;
+    if(!currentExternUsePtr){
+        nextExternUsePtr = NULL;
+    }
+    else{
+        nextExternUsePtr = ((externUsePtr)currentExternUsePtr)->next;
+    }
+
+    return nextExternUsePtr;
+}
+
+
+char * getExternUseName(void *currentExternUsePtr){
+    char *namePtr;
+
+    if(!currentExternUsePtr){
+        namePtr = NULL;
+    }
+    else{
+        namePtr = ((externUsePtr)currentExternUsePtr)->name;
+    }
+
+    return namePtr;
+}
+
+
+long getExternUseAddress(void *currentExternUsePtr){
+    long address;
+
+    if(!currentExternUsePtr){
+        address = 0;
+    }
+    else{
+        address = ((externUsePtr)currentExternUsePtr)->IC;
+    }
+
+    return address;
+}
+
+
 void clearExternUsesDB(void *head){
     externUsePtr current = head;
     externUsePtr prev;

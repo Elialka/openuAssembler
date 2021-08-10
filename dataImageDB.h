@@ -11,4 +11,6 @@ boolean addNumberArray(void *head, long *DCPtr, long *array, int amountOfNumbers
 
 boolean addString(void *head, long *DCPtr, char *str);
 
+unsigned char getNextDataByte(void *head, long index);
+
 void clearDataImageDB(void *head);

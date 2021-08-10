@@ -9,7 +9,7 @@ static void removeFileExtension(char *buffer, char *source);
 
 
 
-void writeFiles(void **databasePointers, char *sourceFilename){
+void writeFiles(void **databasePointers, char *sourceFilename, long ICF, long DCF) {
     char fileNameNoExtension[MAX_FILENAME_LENGTH];
 
     removeFileExtension(fileNameNoExtension, sourceFilename);
@@ -17,11 +17,11 @@ void writeFiles(void **databasePointers, char *sourceFilename){
     /* todo print object file */
 
     if(!entryCallDBIsEmpty(databasePointers[ENTRY_CALLS_POINTER])){/* need to print entry file */
-        /* todo write getNext and getName\value in database + write print function here */
+        /* todo write print function here */
     }
 
     if(!externDBIsEmpty(databasePointers[EXTERN_POINTER])){/* need to print extern file */
-        /* todo write getNext and getName\value in database + write print function here */
+        /* todo write print function here */
     }
 
 

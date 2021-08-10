@@ -157,6 +157,12 @@ boolean updateJTypeAddress(void *head, long IC, long address, errorCodes *lineEr
 }
 
 
+char getNextCodeByte(void *head, long index) {
+
+    return ((char *)head)[index];
+}
+
+
 void printCode(void *head, long IC){
     int i, j;
     codeLine *current;

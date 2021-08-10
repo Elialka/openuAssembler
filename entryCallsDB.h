@@ -10,6 +10,8 @@ void * getNextEntryCall(void *entryCallPtr);
 
 char * getEntryCallName(void *currentEntryPtr);
 
+long getEntryCallAddress(void *currentExternUsePtr);
+
 void *setEntryCallValue(void *currentEntryPtr, long address);
 
 boolean entryCallDBIsEmpty(void *head);

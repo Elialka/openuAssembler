@@ -119,6 +119,14 @@ boolean addString(void *head, long *DCPtr, char *str) {
     return TRUE;
 }
 
+
+unsigned char getNextDataByte(void *head, long index){
+
+    return ((char *)head)[index];
+}
+
+
+
 void clearDataImageDB(void *head){
     free(head);
 }
