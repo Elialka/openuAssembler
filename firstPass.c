@@ -88,7 +88,7 @@ boolean sourceFilePass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **data
                         }
                         else{/* extern declaration */
                             addNewLabel(databasePointers[LABELS_POINTER],
-                                        label, EXTEN_LABEL_VALUE, EXTERN_LABEL, &lineError);
+                                        label, EXTERN_LABEL_VALUE, EXTERN_LABEL, &lineError);
                         }
                     }
                     else{
@@ -188,6 +188,11 @@ boolean sourceFilePass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **data
 
     *ICFPtr = IC - STARTING_ADDRESS;
     *DCFPtr = DC;
+
+    if(IC + DC > ADDRESS_MAX_VALUE){
+        generalError = TRUE;
+        /* todo print error + check if >= instead */
+    }
 
     return !generalError;
 }/* end sourceFilePass */

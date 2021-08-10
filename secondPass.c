@@ -1,18 +1,22 @@
+#include <stddef.h>
 #include "secondPass.h"
 #include "labelsDB.h"
 #include "labelCallsDB.h"
 #include "codeImageDB.h"
 #include "entryCallsDB.h"
+#include "externUsesDB.h"
 
-static boolean validateExternalUsage(labelCall currentCall, labelClass labelType);
+static boolean
+validateExternalUsage(void *externDatabase, labelCall currentCall, labelClass labelType, errorCodes *errorPtr);
 
-static boolean updateCodeImage(void *codeImageDatabase, labelCall currentCall, long labelAddress, errorCodes *callErrorPtr);
+static boolean
+updateCodeImage(void *codeImageDatabase, labelCall currentCall, long labelAddress, errorCodes *callErrorPtr);
 
 static boolean fillMissingLabelAddresses(void **databasePointers);
 
 static boolean locateEntryDefinitions(void *entryCallsDatabase, void *labelsDatabase, errorCodes *lineErrorPtr);
 
-
+/* todo test EVERYTHING */
 boolean secondPass(void **databasePointers, long ICF) {
     boolean validPass;
     errorCodes lineError = NO_ERROR;
@@ -30,8 +34,6 @@ boolean secondPass(void **databasePointers, long ICF) {
                                            &lineError);
     }
 
-    /* todo setup extern database */
-
     return validPass;
 }
 
@@ -41,7 +43,7 @@ static boolean fillMissingLabelAddresses(void **databasePointers){
     labelClass labelType;/* store label type - code\data\external */
     boolean validCall;/* track if an error occurred during current call */
     boolean validPass = TRUE;/* track whether any errors occurred during second pass */
-    errorCodes callError;/* if errors occur, track error code */
+    errorCodes error = NO_ERROR;/* if errors occur, track error code */
     labelCall currentCall;/* pointer to next label call in database */
 
     /* resolve each label call not handle in first pass */
@@ -52,21 +54,16 @@ static boolean fillMissingLabelAddresses(void **databasePointers){
 
         /* validate legality of label type with command type */
         if(validCall){/* found label */
-            validCall = validateExternalUsage(currentCall, labelType);
-        }
-        else{/* label does not exist */
-            /* todo print error */
+            validCall = validateExternalUsage(databasePointers[EXTERN_POINTER], currentCall, labelType, &error);
         }
 
         /* update code image */
         if(validCall){/* label is of legal type for command type */
-            validCall = updateCodeImage(databasePointers[CODE_IMAGE_POINTER], currentCall, labelAddress, &callError);
-        }
-        else{/* illegal label type */
-            /* todo print error */
+            validCall = updateCodeImage(databasePointers[CODE_IMAGE_POINTER], currentCall, labelAddress, &error);
         }
 
         if(!validCall){/* mark error occurred */
+            /* todo print error */
             validPass = FALSE;
         }
     }
@@ -75,16 +72,16 @@ static boolean fillMissingLabelAddresses(void **databasePointers){
 }
 
 
-static boolean validateExternalUsage(labelCall currentCall, labelClass labelType){
+static boolean validateExternalUsage(void *externDatabase, labelCall currentCall,
+                                     labelClass labelType, errorCodes *errorPtr) {
     boolean result = TRUE;
 
-    /* I_branching commands cannot use external labels */
     if(labelType == EXTERN_LABEL){
-        if(currentCall.type == I_BRANCHING){
+        if(currentCall.type == I_BRANCHING){/* illegal - I_branching commands cannot use external labels */
             result = FALSE;
         }
-        else{
-            /* todo add entry to extern database */
+        else{/* add extern use to database */
+            addExternUse(externDatabase, currentCall.name, currentCall.IC, errorPtr);
         }
     }
 
@@ -124,7 +121,7 @@ static boolean locateEntryDefinitions(void *entryCallsDatabase, void *labelsData
             /* get label type */
             validOp = getLabelAttributes(labelsDatabase, currentEntryName, &labelAddress, &labelType);
         }
-        else{/* entry name */
+        else{/* entry name doesn't exist*/
             /* todo handle */
         }
 
@@ -141,6 +138,8 @@ static boolean locateEntryDefinitions(void *entryCallsDatabase, void *labelsData
             *lineErrorPtr = ENTRY_NOT_DEFINED;
             validOp = FALSE;
         }
+
+        currentEntryCall = getNextEntryCall(currentEntryCall);
     }
 
     return validOp;

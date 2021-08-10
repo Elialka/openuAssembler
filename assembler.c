@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "firstPass.h"
 #include "secondPass.h"
@@ -9,6 +10,7 @@
 #include "labelCallsDB.h"
 #include "entryCallsDB.h"
 #include "externUsesDB.h"
+#include "print.h"
 #ifndef MAX_LINE
 #include "data.h"
 #endif
@@ -16,10 +18,9 @@
 #include "tests.h"
 
 
-
-/* todo setup extern database */
-/* todo code and data image - array size counters will not reinitialize for next file */
-/* todo split sourceFilePass */
+/* todo code and data image - array size counters will not reinitialize for next file - refactor to use externDBIsEmpty*/
+/* todo output files */
+/* todo split firstPass */
 
 
 static boolean initDataBases(void **databasePointers);
@@ -60,9 +61,6 @@ int main(int argc, char *argv[]){
         if(validFile){/* legal file name */
             sourceFile = fopen(argv[i], "r");
         }
-        else{/* illegal file name */
-            /* todo print error */
-        }
 
         /* initialize/reset databases */
         if(sourceFile){/* file opened */
@@ -88,7 +86,7 @@ int main(int argc, char *argv[]){
 
         /* generate output files */
         if(validFile){
-            /* todo generate files */
+            writeFiles(databasePointers, argv[i]);
         }
 
         /* clear databases */
@@ -132,19 +130,32 @@ static boolean initDataBases(void *databasePointers[]){
 
 
 /* TODO test function */
-boolean legitFileName(char *name){
+boolean legitFileName(char *name) {
     char *c;
+    boolean result;
+    errorCodes error = NO_ERROR;
 
     /* seek . in name */
     for(c = name; *c && *c != '.'; c++)
         ;
 
-    if(*c == '.' && *(c+1) == 'a' && *(c+2) == 's') {
-        return TRUE;
+    if(strlen(name) > MAX_FILENAME_LENGTH){/* not supported filename length */
+        error = FILENAME_LENGTH_NOT_SUPPORTED;
+        result = FALSE;
+    }
+    else if(*c == '.' && *(c+1) == 'a' && *(c+2) == 's'){/* legal file extension */
+        result = TRUE;
     }
     else{
-        return FALSE;
+        error = ILLEGAL_FILE_EXTENSION;
+        result = FALSE;
     }
+
+    if(error){
+        /* todo print error */
+    }
+
+    return result;
 }
 
 

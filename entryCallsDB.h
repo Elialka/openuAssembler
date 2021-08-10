@@ -12,4 +12,6 @@ char * getEntryCallName(void *currentEntryPtr);
 
 void *setEntryCallValue(void *currentEntryPtr, long address);
 
+boolean entryCallDBIsEmpty(void *head);
+
 void clearEntryCallsDB(void *head);

@@ -12,6 +12,7 @@
 #define ADDRESS_MAX_VALUE (33554432)
 #define REGISTER_MIN_INDEX (0)
 #define REGISTER_MAX_INDEX (31)
+#define MAX_FILENAME_LENGTH (250)
 
 
 /* array types sizes */
@@ -24,11 +25,14 @@
 
 /* default values */
 #define STARTING_ADDRESS (100)
-#define EXTEN_LABEL_VALUE (0)
+#define EXTERN_LABEL_VALUE (0)
 
 
 /* formats */
 #define DECIMAL_BASE (10)
+#define OBJECT_FILE_EXTENSION ("ob")
+#define ENTRY_FILE_EXTENSION ("ent")
+#define EXTERN_FILE_EXTENSION ("ext")
 
 
 typedef enum {
@@ -46,7 +50,7 @@ typedef enum{
     LABEL_IS_OPERATION,
     LABEL_TOO_LONG,
     ILLEGAL_LABEL_NAME,
-    ADDRESS_DESTANCE_OVER_LIMITS,
+    ADDRESS_DISTANCE_OVER_LIMITS,
     ENTRY_IS_EXTERN,
     ENTRY_NOT_DEFINED,
     /* memory */
@@ -72,6 +76,9 @@ typedef enum{
     /* parsing */
     MISSING_COMMA,
     ILLEGAL_COMMA,
+    /* file name */
+    FILENAME_LENGTH_NOT_SUPPORTED,
+    ILLEGAL_FILE_EXTENSION,
     /* other */
     EXTRANEOUS_TEXT,
     /* warnings */

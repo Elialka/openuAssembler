@@ -29,13 +29,12 @@ void *initEntryCallsDB(){
 
 
 boolean addEntryCall(void *head, char *labelName, errorCodes *lineErrorPtr){
-    static int entryCallsCounter = 0;/* how many entry calls currently in database */
     entryCallPtr current;
     entryCallPtr prev;
 
     current = head;
 
-    if(entryCallsCounter){/* not first label */
+    if(!entryCallDBIsEmpty(head)){/* not first entry call */
         /* find next available node */
         while(current){
             if(!strcmp(labelName, current->name)){/* already added this name */
@@ -45,7 +44,7 @@ boolean addEntryCall(void *head, char *labelName, errorCodes *lineErrorPtr){
             current = current->next;
         }
 
-        /* allocate memory for new label - memory for first label is allocated when database was initialized */
+        /* allocate memory for new node call - memory for first node is allocated when database was initialized */
         current = calloc(1, sizeof(entryCall));
         if(!current){
             *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
@@ -56,8 +55,7 @@ boolean addEntryCall(void *head, char *labelName, errorCodes *lineErrorPtr){
         prev->next = current;
     }
 
-    entryCallsCounter++;
-    /* write down label name */
+    /* add new extern use */
     strcpy(current->name, labelName);
 
     return TRUE;
@@ -94,6 +92,16 @@ void *setEntryCallValue(void *currentEntryPtr, long address) {
     if(currentEntryPtr){
         ((entryCallPtr)currentEntryPtr)->value = address;
     }
+}
+
+
+boolean entryCallDBIsEmpty(void *head){
+    boolean result;
+
+    /* check if first node was used */
+    result = *(((entryCallPtr)head)->name) ? FALSE : TRUE;
+
+    return result;
 }
 
 

@@ -127,7 +127,7 @@ boolean updateITypeImmed(void *head, long IC, long address, errorCodes *lineErro
 
     /* verify calculated value is in range */
     if(distance > I_TYPE_IMMED_MAX_VALUE || distance < I_TYPE_IMMED_MIN_VALUE){
-        *lineErrorPtr = ADDRESS_DESTANCE_OVER_LIMITS;
+        *lineErrorPtr = ADDRESS_DISTANCE_OVER_LIMITS;
         result = FALSE;
     }
     else{

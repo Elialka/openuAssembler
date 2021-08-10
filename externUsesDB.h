@@ -4,7 +4,9 @@
 
 void *initExternUsesDB();
 
+boolean addExternUse(void *head, char *labelName, long IC, errorCodes *errorPtr);
 
+boolean externDBIsEmpty(void *head);
 
 
 
