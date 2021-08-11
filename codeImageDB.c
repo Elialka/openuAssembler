@@ -157,7 +157,7 @@ boolean updateJTypeAddress(void *head, long IC, long address, errorCodes *lineEr
 }
 
 
-char getNextCodeByte(void *head, long index) {
+unsigned char getNextCodeByte(void *head, long index) {
 
     return ((char *)head)[index];
 }

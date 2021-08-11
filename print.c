@@ -4,32 +4,41 @@
 #include "print.h"
 #include "entryCallsDB.h"
 #include "externUsesDB.h"
+#include "codeImageDB.h"
+#include "dataImageDB.h"
 
-static void removeFileExtension(char *buffer, char *source);
+#define BYTES_IN_ROW (4)
+#define SPACES_BEFORE_HEADLINE (5)
+
+static void replaceExtension(char *sourceFileName, char *newExtension, char *destination);
+
+static void printObjectFile(void **databasePointers, char *sourceFileName, long ICF, long DCF);
+
+static void printEntryFile(void *entryDatabase, char *sourceFileName);
+
+static void printExternFile(void *externDatabase, char *sourceFileName);
 
 
 
 void writeFiles(void **databasePointers, char *sourceFilename, long ICF, long DCF) {
     char fileNameNoExtension[MAX_FILENAME_LENGTH];
 
-    removeFileExtension(fileNameNoExtension, sourceFilename);
-
-    /* todo print object file */
+    printObjectFile(databasePointers, sourceFilename, ICF, DCF);
 
     if(!entryCallDBIsEmpty(databasePointers[ENTRY_CALLS_POINTER])){/* need to print entry file */
-        /* todo write print function here */
+        printEntryFile(databasePointers[ENTRY_CALLS_POINTER], sourceFilename);
     }
 
     if(!externDBIsEmpty(databasePointers[EXTERN_POINTER])){/* need to print extern file */
-        /* todo write print function here */
+        printEntryFile(databasePointers[EXTERN_POINTER], sourceFilename);
     }
 
 
 }
 
 
-static void removeFileExtension(char *buffer, char *source){
-    char *position = source;
+static void replaceExtension(char *sourceFileName, char *newExtension, char *destination) {
+    char *position = sourceFileName;
     int length;
 
     /* find end of source file */
@@ -40,16 +49,68 @@ static void removeFileExtension(char *buffer, char *source){
     for(;*position != '.'; position--)
         ;
 
+    /* calculate length of name without extension */
+    length = (int)(position - sourceFileName);
 
-    length = (int)(position - source);
+    /* copy source file name without the extension */
+    strncpy(destination, sourceFileName, length);
 
-    strncpy(buffer, source, length);
-}
-
-
-static void addExtension(char *name, char *extension){
     /* add dot */
-    strcat(name, ".");
+    strcat(destination, ".");
+
     /* add extension */
-    strcat(name, extension);
+    strcat(destination, newExtension);
 }
+
+
+static void printObjectFile(void **databasePointers, char *sourceFileName, long ICF, long DCF) {
+    FILE *objectFile;
+    char objectFileName[MAX_FILENAME_LENGTH];
+    unsigned char nextByte;
+    int i;
+    long imageCounter;/* how many bytes already printed */
+    long dataCounter;/* how many data bytes already printed */
+
+    replaceExtension(sourceFileName, "ob", objectFileName);
+
+    /* create file */
+    objectFile = fopen(objectFileName, "w");
+    if(!objectFile){/* cannot create file */
+        /* todo print error quit function */
+    }
+
+    /* print headline */
+    for(i = 0; i < SPACES_BEFORE_HEADLINE; i++){
+        fprintf(objectFile, " ");
+    }
+    fprintf(objectFile, "%ld %ld", ICF, DCF);
+
+    /* print code image */
+    for(imageCounter = 0; imageCounter < ICF; imageCounter++){
+        if(!imageCounter % BYTES_IN_ROW){/* print in new line + print current address */
+            fprintf(objectFile, "\n%03ld", imageCounter + STARTING_ADDRESS);
+        }
+        nextByte = getNextCodeByte(databasePointers[CODE_IMAGE_POINTER], imageCounter);
+        fprintf(objectFile, " %02X", nextByte);
+    }
+
+    /* print data image */
+    for(dataCounter = 0; dataCounter < DCF; dataCounter++, imageCounter++){
+        if(!imageCounter % BYTES_IN_ROW){/* print in new line + print current address */
+            fprintf(objectFile, "\n%03ld", imageCounter + STARTING_ADDRESS);
+        }
+        nextByte = getNextDataByte(databasePointers[DATA_IMAGE_POINTER], dataCounter);
+        fprintf(objectFile, " %02X", nextByte);
+    }
+}
+
+
+static void printEntryFile(void *entryDatabase, char *sourceFileName){
+
+}
+
+
+static void printExternFile(void *externDatabase, char *sourceFileName){
+
+}
+

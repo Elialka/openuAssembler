@@ -16,6 +16,6 @@ boolean updateITypeImmed(void *head, long IC, long address, errorCodes *lineErro
 
 boolean updateJTypeAddress(void *head, long IC, long address, errorCodes *lineErrorPtr);
 
-char getNextCodeByte(void *head, long index);
+unsigned char getNextCodeByte(void *head, long index);
 
 void clearCodeImageDB(void *head);
