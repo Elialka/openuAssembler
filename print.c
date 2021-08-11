@@ -10,30 +10,34 @@
 #define BYTES_IN_ROW (4)
 #define SPACES_BEFORE_HEADLINE (5)
 
+typedef enum{
+    ENTRY_TYPE,
+    EXTERN_TYPE
+}fileType;
+
 static void replaceExtension(char *sourceFileName, char *newExtension, char *destination);
 
 static void printObjectFile(void **databasePointers, char *sourceFileName, long ICF, long DCF);
 
-static void printEntryFile(void *entryDatabase, char *sourceFileName);
+static void printLabelAddressesFile(void *database, char *sourceFileName, fileType currentFileType);
 
-static void printExternFile(void *externDatabase, char *sourceFileName);
+static char * getCurrentLabelName(void *currentLabel, fileType currentFileType);
 
+static long getCurrentLabelAddress(void *currentLabel, fileType currentFileType);
+
+void * getNextLabel(void *currentLabel, fileType currentFileType);
 
 
 void writeFiles(void **databasePointers, char *sourceFilename, long ICF, long DCF) {
-    char fileNameNoExtension[MAX_FILENAME_LENGTH];
-
     printObjectFile(databasePointers, sourceFilename, ICF, DCF);
 
     if(!entryCallDBIsEmpty(databasePointers[ENTRY_CALLS_POINTER])){/* need to print entry file */
-        printEntryFile(databasePointers[ENTRY_CALLS_POINTER], sourceFilename);
+        printLabelAddressesFile(databasePointers[ENTRY_CALLS_POINTER], sourceFilename, ENTRY_TYPE);
     }
 
     if(!externDBIsEmpty(databasePointers[EXTERN_POINTER])){/* need to print extern file */
-        printEntryFile(databasePointers[EXTERN_POINTER], sourceFilename);
+        printLabelAddressesFile(databasePointers[EXTERN_POINTER], sourceFilename, EXTERN_TYPE);
     }
-
-
 }
 
 
@@ -87,8 +91,8 @@ static void printObjectFile(void **databasePointers, char *sourceFileName, long 
 
     /* print code image */
     for(imageCounter = 0; imageCounter < ICF; imageCounter++){
-        if(!imageCounter % BYTES_IN_ROW){/* print in new line + print current address */
-            fprintf(objectFile, "\n%03ld", imageCounter + STARTING_ADDRESS);
+        if(!(imageCounter % BYTES_IN_ROW)){/* print in new line + print current address */
+            fprintf(objectFile, "\n%04ld", imageCounter + STARTING_ADDRESS);
         }
         nextByte = getNextCodeByte(databasePointers[CODE_IMAGE_POINTER], imageCounter);
         fprintf(objectFile, " %02X", nextByte);
@@ -102,15 +106,84 @@ static void printObjectFile(void **databasePointers, char *sourceFileName, long 
         nextByte = getNextDataByte(databasePointers[DATA_IMAGE_POINTER], dataCounter);
         fprintf(objectFile, " %02X", nextByte);
     }
+
+    /* close file */
+    fclose(objectFile);
 }
 
 
-static void printEntryFile(void *entryDatabase, char *sourceFileName){
+static void printLabelAddressesFile(void *database, char *sourceFileName, fileType currentFileType) {
+    FILE *labelsFile;
+    char labelsFileName[MAX_FILENAME_LENGTH];
+    void *currentLabel = database;
+    char *labelName;
+    long labelAddress;
 
+    /* get file name including relevant extension */
+    char *extension = currentFileType == ENTRY_TYPE ? "ent" : "ext";
+    replaceExtension(sourceFileName, extension, labelsFileName);
+
+    /* create file */
+    labelsFile = fopen(labelsFileName, "w");
+    if(!labelsFile){/* cannot create file */
+        /* todo print error quit function */
+    }
+
+    /* print each entry line */
+    while(currentLabel){
+        /* get entry attributes and print them in format */
+        labelName = getCurrentLabelName(currentLabel, currentFileType);
+        labelAddress = getCurrentLabelAddress(currentLabel, currentFileType);
+        fprintf(labelsFile, "%s %04ld\n", labelName, labelAddress);
+
+        /* get next entry */
+        currentLabel = getNextLabel(currentLabel, currentFileType);
+    }
+
+    /* close file */
+    fclose(labelsFile);
 }
 
 
-static void printExternFile(void *externDatabase, char *sourceFileName){
+static char * getCurrentLabelName(void *currentLabel, fileType currentFileType){
+    char *result;
 
+    if(currentFileType == ENTRY_TYPE){
+        result = getEntryCallName(currentLabel);
+    }
+    else{
+        result = getExternUseName(currentLabel);
+    }
+
+    return result;
 }
+
+
+static long getCurrentLabelAddress(void *currentLabel, fileType currentFileType){
+    long result;
+
+    if(currentFileType == ENTRY_TYPE){
+        result = getEntryCallAddress(currentLabel);
+    }
+    else{
+        result = getExternUseAddress(currentLabel);
+    }
+
+    return result;
+}
+
+
+void * getNextLabel(void *currentLabel, fileType currentFileType){
+    void *result;
+
+    if(currentFileType == ENTRY_TYPE){
+        result = getNextEntryCall(currentLabel);
+    }
+    else{
+        result = getNextExternUse(currentLabel);
+    }
+
+    return result;
+}
+
 

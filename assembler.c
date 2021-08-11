@@ -19,8 +19,10 @@
 
 
 /* todo code and data image - array size counters will not reinitialize for next file - refactor to use externDBIsEmpty*/
-/* todo output files */
-/* todo split firstPass */
+
+/* todo possible refactors */
+/* refactor every database to store pointer in different function as static variable - set and get functionality */
+/* split firstPass */
 
 
 static boolean initDataBases(void **databasePointers);
@@ -89,9 +91,10 @@ int main(int argc, char *argv[]){
             writeFiles(databasePointers, argv[i], ICF, DCF);
         }
 
-        /* clear databases */
+        /* clear databases, close file */
         if(sourceFile){/* file was opened - databases were initialized */
             clearDatabases(databasePointers);
+            fclose(sourceFile);/* todo check if need to use returned value */
         }
     }
 
