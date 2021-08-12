@@ -97,7 +97,7 @@ int seekOp(void *head, char *str) {
         }
     }
 
-    return FALSE;
+    return NOT_FOUND;
 }
 
 /*
@@ -110,7 +110,7 @@ boolean getOpcode(void *head, char *str, commandOps *opCodePtr, functValues *fun
 
     current = head;
 
-    if((operationIndex = seekOp(head, str)))
+    if((operationIndex = seekOp(head, str)) != NOT_FOUND)
     {
         /* go to correct operation node */
         current += operationIndex;

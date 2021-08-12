@@ -12,7 +12,7 @@
 static boolean clearLine(char *currentPos, errorCodes *lineErrorPtr, FILE *sourceFile);
 
 /* todo split function */
-boolean sourceFilePass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **databasePointers) {
+boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **databasePointers) {
     /* buffers */
     char line[LINE_ARRAY_SIZE];/* used to load one line from file */
     char command[TOKEN_ARRAY_SIZE];/* extracted command name for each line */
@@ -23,7 +23,6 @@ boolean sourceFilePass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **data
     /* counters */
     long IC = STARTING_ADDRESS;
     long DC = 0;/* code and data image counters */
-    int lineIndex;/* counter for current index in line array */
     int lineCounter;/* number of current line */
 
     /* current line identifiers */
@@ -52,13 +51,12 @@ boolean sourceFilePass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **data
 
         /* reset 'per line' pointers, counters and flags */
         currentPos = line;
-        lineIndex = 0;
         lineError = NO_ERROR;
         labelDefinition = FALSE;
 
         /* check if current line includes label definition */
         if(isLabelDefinition(&currentPos, label)){
-            if(seekOp(databasePointers[OPERATIONS_POINTER], label)){/* label name is operation name */
+            if(seekOp(databasePointers[OPERATIONS_POINTER], label) != NOT_FOUND){/* label name is operation name */
                 /* todo print error LABEL_IS_OPERATION */
                 generalError = TRUE;
             }
@@ -68,7 +66,7 @@ boolean sourceFilePass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **data
         }
 
         /* try to read command name */
-        if(!extractCommandName(line, &lineIndex, command, labelDefinition, &lineError)){
+        if(!extractCommandName(&currentPos, command, labelDefinition, &lineError)){
             /* todo print error */
             generalError = TRUE;
             continue;
@@ -101,7 +99,7 @@ boolean sourceFilePass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **data
                         addNewLabel(databasePointers[LABELS_POINTER], label, DC, DATA_LABEL, &lineError);
                     }
                     if(dataOpType == ASCIZ){
-                        if(!getStringFromLine(line, &lineIndex, string, &lineError)){
+                        if(!getStringFromLine(&currentPos, string, &lineError)){
                             /* todo print error */
                             generalError = TRUE;
                         }
@@ -114,7 +112,7 @@ boolean sourceFilePass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **data
                         }
                     }
                     else if(dataOpType == DB || dataOpType == DH || dataOpType == DW){
-                        amountOfNumbers = getNumbersFromLine(line, &lineIndex, numbers, dataOpType, &lineError);
+                        amountOfNumbers = getNumbersFromLine(&currentPos, numbers, dataOpType, &lineError);
                         if(!amountOfNumbers){/* no numbers read - error occurred */
                             /* todo print error */
                             generalError = TRUE;
@@ -145,7 +143,7 @@ boolean sourceFilePass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **data
                     addNewLabel(databasePointers[LABELS_POINTER], label, IC, CODE_LABEL, &lineError);
                 }
                 /* get operation operands */
-                if(extractOperands(line, &lineIndex, commandOpType, IC,
+                if(extractOperands(&currentPos, commandOpType, IC,
                                    &jIsReg, &reg1, &reg2, &reg3, &immed,
                                    &lineError, databasePointers[LABEL_CALLS_POINTER]))
                 {
@@ -195,7 +193,7 @@ boolean sourceFilePass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **data
     }
 
     return !generalError;
-}/* end sourceFilePass */
+}/* end firstPass */
 
 
 /* todo check clearLine EOF*/

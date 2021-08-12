@@ -19,9 +19,11 @@
 
 
 /* todo code and data image - array size counters will not reinitialize for next file - refactor to use externDBIsEmpty*/
+/* todo add error printing */
 
 /* todo possible refactors */
 /* refactor every database to store pointer in different function as static variable - set and get functionality */
+/* remake change void * to specific pointer, move pointers definition to header files */
 /* split firstPass */
 
 
@@ -32,8 +34,6 @@ static boolean legitFileName(char *name);
 static void clearDatabases(void **databasePointers);
 
 
-
-
 int main(int argc, char *argv[]){
     long ICF, DCF, i;
     boolean validFile;/* track if any error occurred during current file */
@@ -42,6 +42,7 @@ int main(int argc, char *argv[]){
 
     if(argc < 2){/* no files to compile */
         /* todo print error - quit program */
+        printf("No arguments to program, argc:%d\n", argc);
     }
 
     /* initialize operation names database */
@@ -50,9 +51,6 @@ int main(int argc, char *argv[]){
     }
 
     /* test - delete */
-    initDataBases(databasePointers);
-    testFunctions(databasePointers);
-    clearDatabases(databasePointers);
     /* end of test */
 
     /* compile files */
@@ -77,13 +75,16 @@ int main(int argc, char *argv[]){
 
         /* read source file */
         if(validFile){/* no errors so far */
-            validFile = sourceFilePass(sourceFile, &ICF, &DCF, databasePointers);
+            validFile = firstPass(sourceFile, &ICF, &DCF, databasePointers);
         }
 
         /* fill missing data in codeImage */
         if(validFile){/* no errors so far  */
             /* todo update data labels + ICF */
             validFile = secondPass(databasePointers, ICF);
+        }
+        else{/* temp - delete */
+            printf("firstPassFailed\n");
         }
 
         /* generate output files */

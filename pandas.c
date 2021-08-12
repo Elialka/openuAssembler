@@ -36,7 +36,7 @@ boolean ignoreLine(char *line){
 }
 
 
-int extractToken(char *current, char *buffer){
+int copyNextToken(char *current, char *buffer){
     int i;
 
     for(i = 0; *current && !isspace(*current) && *current != ','; current++, i++){
@@ -65,7 +65,7 @@ boolean isLabelDefinition(char **currentPosPtr, char *currentLabel) {
     progress += (int)(current - *currentPosPtr);
 
     /* extract first token */
-    progress += extractToken(current, buffer);
+    progress += copyNextToken(current, buffer);
 
     current = buffer;
 
@@ -79,7 +79,7 @@ boolean isLabelDefinition(char **currentPosPtr, char *currentLabel) {
             *current = '\0';/* remove ':' from label name */
             *currentPosPtr += progress;
             /* copy to current label */
-            extractToken(buffer, currentLabel);
+            copyNextToken(buffer, currentLabel);
             return TRUE;
         }
     }
@@ -92,16 +92,10 @@ boolean isLabelDefinition(char **currentPosPtr, char *currentLabel) {
  * extract command name from line
  * return TRUE if no errors occurred, FALSE otherwise
  */
-boolean extractCommandName(char *line, int *lineIndexPtr, char *commandName,
-                           boolean labelDefinition, errorCodes *lineErrorPtr)
+boolean extractCommandName(char **currentPosPtr, char *commandName, boolean labelDefinition, errorCodes *lineErrorPtr)
                            {
-    char *current;/* current character */
-    char *start;/* first character to track progress in line array */
+    char *current = *currentPosPtr;/* current character */
     int tokenLength;
-
-    /* reset current to first unread character */
-    current = line + *lineIndexPtr;
-    start = current;
 
     if(labelDefinition){/* check white character after label definition */
         if(isspace(*current)){
@@ -115,15 +109,16 @@ boolean extractCommandName(char *line, int *lineIndexPtr, char *commandName,
 
     SKIP_WHITES(current);
 
-    tokenLength = extractToken(current, commandName);
+    tokenLength = copyNextToken(current, commandName);
+    current += tokenLength;
 
     if(!tokenLength){/* no characters read */
         *lineErrorPtr = MISSING_OPERATION_NAME;
         return FALSE;
     }
 
-    /* count how many characters read, add to counter */
-    *lineIndexPtr += (int)(current - start);
+    /* update current position in the line */
+    *currentPosPtr = current;
 
     return TRUE;
 }
@@ -154,13 +149,9 @@ boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValu
 }
 
 
-boolean getStringFromLine(char *line, int *indexPtr, char *buffer, errorCodes *lineErrorPtr){
+boolean getStringFromLine(char **currentPosPtr, char *buffer, errorCodes *lineErrorPtr) {
     int i;
-    char *current;
-    char *start;
-
-    current = line + *indexPtr;/* next unread character */
-    start = current;
+    char *current = *currentPosPtr;
 
     SKIP_WHITES(current);
 
@@ -184,7 +175,7 @@ boolean getStringFromLine(char *line, int *indexPtr, char *buffer, errorCodes *l
         if (*current=='"')
         {
             buffer[i]='\0';
-            *indexPtr += (int)(current - start);
+            *currentPosPtr = current;
         }
         else
         {
@@ -200,17 +191,16 @@ boolean getStringFromLine(char *line, int *indexPtr, char *buffer, errorCodes *l
 }
 
 
-int getNumbersFromLine(char *line, int *indexPtr, long *buffer, dataOps dataOpType, errorCodes *lineErrorPtr) {
+int getNumbersFromLine(char **currentPosPtr, long *buffer, dataOps dataOpType, errorCodes *lineErrorPtr) {
     int i;
     long value;
     char number[MAX_LINE];
     int numberLength;
     int numberCounter;
-    char *current;
+    char *current = *currentPosPtr;
     char *endPtr;
     int maxValue;
 
-    current = line + *indexPtr;
     numberCounter = 0;
 
     /* check maxValue */
@@ -247,7 +237,7 @@ int getNumbersFromLine(char *line, int *indexPtr, long *buffer, dataOps dataOpTy
 
         }
         else {/* expecting a number */
-            numberLength = extractToken(current, number);
+            numberLength = copyNextToken(current, number);
             if(!numberLength){/* end of line */
                 if(i){/* already read some numbers */
                     *lineErrorPtr = ILLEGAL_COMMA;
@@ -321,9 +311,8 @@ boolean idRegister(char *token, int *regPtr, errorCodes *lineErrorPtr) {
 }
 
 
-boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpType, long IC, boolean *jIsRegPtr,
-                        int *reg1Ptr, int *reg2Ptr, int *reg3Ptr, long *immedPtr,
-                        errorCodes *lineErrorPtr, void *labelCallsHead) {
+boolean extractOperands(char **currentPosPtr, operationClass commandOpType, long IC, boolean *jIsRegPtr, int *reg1Ptr,
+                        int *reg2Ptr, int *reg3Ptr, long *immedPtr, errorCodes *lineErrorPtr, void *labelCallsHead) {
     char *current;/* current character */
     char buffer[TOKEN_ARRAY_SIZE];/* next token */
     int bufferLength;/* token length */
@@ -342,11 +331,11 @@ boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpT
     finished = FALSE;
 
     /* next unread character */
-    current = line + *lineIndexPtr;
+    current = *currentPosPtr;
     SKIP_WHITES(current);
 
     /* get next token */
-    bufferLength = extractToken(current, buffer);
+    bufferLength = copyNextToken(current, buffer);
     current += bufferLength;
 
     /* analyse first operator */
@@ -371,7 +360,7 @@ boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpT
         }
         else{/* comma as expected */
             /* get next token */
-            bufferLength = extractToken(current, buffer);
+            bufferLength = copyNextToken(current, buffer);
             current += bufferLength;
 
             /* analyse second operator */
@@ -396,7 +385,7 @@ boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpT
         }
         else{/* comma as expected */
             /* get next token */
-            bufferLength = extractToken(current, buffer);
+            bufferLength = copyNextToken(current, buffer);
             current += bufferLength;
 
             /* determine which register buffer is next unused */
@@ -415,7 +404,7 @@ boolean extractOperands(char *line, int *lineIndexPtr, operationClass commandOpT
         }
     }
 
-    *lineIndexPtr = (int)(current - line);
+    *currentPosPtr = current;
 
     return !generalError;
 }
@@ -587,24 +576,23 @@ boolean getThirdOperand(char *token, int tokenLength, long IC, operationClass co
 }
 
 
-boolean getLabel(char **currentPtr, char *labelName, errorCodes *lineErrorPtr){
+boolean getLabel(char **currentPosPtr, char *labelName, errorCodes *lineErrorPtr){
     char buffer[TOKEN_ARRAY_SIZE];
-    char *current;
-    int tokenLength;
+    char *current = *currentPosPtr;
+    int tokenLength = 0;
 
-    current = *currentPtr;
-    tokenLength = 0;
 
     SKIP_WHITES(current);
 
-    tokenLength += extractToken(current, buffer);
+    tokenLength += copyNextToken(current, buffer);
     current += tokenLength;
 
     if(!tokenLength){/* missing token */
         *lineErrorPtr = MISSING_PARAMETER;
     }
     else if(tokenIsLabel(buffer, tokenLength, lineErrorPtr)){/* legal label name */
-        extractToken(buffer, labelName);
+        copyNextToken(buffer, labelName);
+        *currentPosPtr = current;
         return TRUE;
     }
 

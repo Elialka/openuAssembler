@@ -2,6 +2,6 @@
 #include "data.h"
 #endif
 
-boolean sourceFilePass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **databasePointers);
+boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **databasePointers);
 
 

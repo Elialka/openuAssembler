@@ -37,7 +37,7 @@ typedef union{
 
 
 /* todo change function call to use address of head in first pass - head may not be updated when reallocating memory */
-static boolean addCommandToDatabase(codeLine **headPtr, long *ICPtr, codeLine *current){
+static boolean addCommandToDatabase(codeLine *headPtr, long *ICPtr, codeLine *current){
     static int currentSize = IMAGE_BLOCK_SIZE;/* size of allocated memory, counted by codeLine type units */
     int nextFreeIndex;
     void *temp;
@@ -46,19 +46,19 @@ static boolean addCommandToDatabase(codeLine **headPtr, long *ICPtr, codeLine *c
     nextFreeIndex = (*ICPtr - STARTING_ADDRESS) / (int)sizeof(codeLine);
 
     if(nextFreeIndex >= currentSize){/* out of allocated memory */
-        temp = realloc(*headPtr, currentSize + IMAGE_BLOCK_SIZE);
+        temp = realloc(headPtr, currentSize + IMAGE_BLOCK_SIZE);
         if(!temp){/* memory allocation failed */
             return FALSE;
         }
-        *headPtr = temp;
+        headPtr = temp;
         currentSize += IMAGE_BLOCK_SIZE;
     }
 
     /* copy to database */
-    (*headPtr)[nextFreeIndex].bytes.first = current->bytes.first;
-    (*headPtr)[nextFreeIndex].bytes.second = current->bytes.second;
-    (*headPtr)[nextFreeIndex].bytes.third = current->bytes.third;
-    (*headPtr)[nextFreeIndex].bytes.fourth = current->bytes.fourth;
+    (headPtr + nextFreeIndex)->bytes.first = current->bytes.first;
+    (headPtr + nextFreeIndex)->bytes.second = current->bytes.second;
+    (headPtr + nextFreeIndex)->bytes.third = current->bytes.third;
+    (headPtr + nextFreeIndex)->bytes.fourth = current->bytes.fourth;
 
     /* update code image counter */
     *ICPtr += sizeof(codeLine);
@@ -87,7 +87,7 @@ boolean addRCommand(void *headPtr, long *ICPtr, int reg1, int reg2, int reg3,
     new.R.rd = reg3;
     new.R.funct = funct;
 
-    return addCommandToDatabase((codeLine **)headPtr, ICPtr, &new);
+    return addCommandToDatabase((codeLine *)headPtr, ICPtr, &new);
 }
 
 
@@ -99,7 +99,7 @@ boolean addICommand(void *headPtr, long *ICPtr, int reg1, int reg2, int immed, c
     new.I.rt = reg2;
     new.I.immed = immed;
 
-    return addCommandToDatabase((codeLine **)headPtr, ICPtr, &new);
+    return addCommandToDatabase((codeLine *)headPtr, ICPtr, &new);
 }
 
 
@@ -111,7 +111,7 @@ boolean addJCommand(void *headPtr, long *ICPtr, boolean isReg, long address, com
     new.J.address1 = address & FIRST_16_BITS_MASK;
     new.J.address2 = address >> 16;
 
-    return addCommandToDatabase((codeLine **)headPtr, ICPtr, &new);
+    return addCommandToDatabase((codeLine *)headPtr, ICPtr, &new);
 }
 
 /* todo maybe handle IC out of range */

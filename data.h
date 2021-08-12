@@ -26,6 +26,7 @@
 /* default values */
 #define STARTING_ADDRESS (100)
 #define EXTERN_LABEL_VALUE (0)
+#define NOT_FOUND (-1)
 
 
 /* formats */
