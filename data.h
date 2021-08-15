@@ -172,3 +172,31 @@ typedef struct{
     operationClass type;
 }labelCall;
 
+/* database pointer types */
+
+typedef union codeLine *codeImagePtr;
+
+typedef char *dataImagePtr;
+
+typedef struct entryCall *entryCallPtr;
+
+typedef struct externUse *externUsePtr;
+
+typedef struct call *labelCallPtr;
+
+typedef struct node *labelPtr;
+
+typedef struct operation *operationPtr;
+
+typedef struct databaseRouter *databaseRouterPtr;
+
+typedef struct databaseRouter{
+    codeImagePtr codeImageDB;
+    dataImagePtr dataImageDB;
+    entryCallPtr entryCallsDB;
+    externUsePtr externUsesDB;
+    labelCallPtr labelCallsDB;
+    labelPtr labelsDB;
+    operationPtr operationsDB;
+}databaseRouter;
+

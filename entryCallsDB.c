@@ -6,8 +6,6 @@
 /* todo check if corresponding label already exists, ignore */
 
 
-typedef struct entryCall *entryCallPtr;
-
 typedef struct entryCall{
     char name[MAX_LABEL_LENGTH];
     long value;
@@ -15,8 +13,8 @@ typedef struct entryCall{
 }entryCall;
 
 
-void *initEntryCallsDB(){
-    void *head;
+entryCallPtr initEntryCallsDB(){
+    entryCallPtr head;
 
     head = calloc(1, sizeof(entryCall));
 
@@ -28,7 +26,7 @@ void *initEntryCallsDB(){
 }
 
 
-boolean addEntryCall(void *head, char *labelName, errorCodes *lineErrorPtr){
+boolean addEntryCall(entryCallPtr head, char *labelName, errorCodes *lineErrorPtr){
     entryCallPtr current;
     entryCallPtr prev;
 
@@ -62,8 +60,8 @@ boolean addEntryCall(void *head, char *labelName, errorCodes *lineErrorPtr){
 }
 
 
-void * getNextEntryCall(void *currentEntryPtr){
-    void *nextEntryPtr;
+entryCallPtr getNextEntryCall(entryCallPtr currentEntryPtr){
+    entryCallPtr nextEntryPtr;
     if(currentEntryPtr == NULL){
         nextEntryPtr = NULL;
     }
@@ -75,7 +73,7 @@ void * getNextEntryCall(void *currentEntryPtr){
 }
 
 
-char * getEntryCallName(void *currentEntryPtr){
+char * getEntryCallName(entryCallPtr currentEntryPtr){
     char *namePtr;
     if(!currentEntryPtr){
         namePtr = NULL;
@@ -88,38 +86,38 @@ char * getEntryCallName(void *currentEntryPtr){
 }
 
 
-long getEntryCallAddress(void *currentExternUsePtr){
+long getEntryCallAddress(entryCallPtr currentEntryCallPtr){
     long address;
 
-    if(!currentExternUsePtr){
+    if(!currentEntryCallPtr){
         address = 0;
     }
     else{
-        address =  ((entryCallPtr)currentExternUsePtr)->value;
+        address =  ((entryCallPtr)currentEntryCallPtr)->value;
     }
 
     return address;
 }
 
 
-void *setEntryCallValue(void *currentEntryPtr, long address) {
+void setEntryCallValue(entryCallPtr currentEntryPtr, long address) {
     if(currentEntryPtr){
         ((entryCallPtr)currentEntryPtr)->value = address;
     }
 }
 
 
-boolean entryCallDBIsEmpty(void *head){
+boolean entryCallDBIsEmpty(entryCallPtr head){
     boolean result;
 
-    /* check if first node was used */
+    /* check if first node's name is empty */
     result = *(((entryCallPtr)head)->name) ? FALSE : TRUE;
 
     return result;
 }
 
 
-void clearEntryCallsDB(void *head){
+void clearEntryCallsDB(entryCallPtr head){
     entryCallPtr current = head;
     entryCallPtr prev;
 

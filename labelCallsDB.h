@@ -2,10 +2,10 @@
 #include "data.h"
 #endif
 
-void * initLabelCallsDB();
+labelCallPtr initLabelCallsDB();
 
-boolean setLabelCall(void *head, long IC, char *labelName, operationClass commandOpType, errorCodes *lineErrorPtr);
+boolean setLabelCall(labelCallPtr head, long IC, char *labelName, operationClass commandOpType, errorCodes *lineErrorPtr);
 
-boolean getLabelCall(void *head, int index, labelCall *destination);
+boolean getLabelCall(labelCallPtr head, int index, labelCall *destination);
 
-void clearLabelCallsDB(void *head);
+void clearLabelCallsDB(labelCallPtr head);

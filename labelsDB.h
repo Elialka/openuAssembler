@@ -11,15 +11,15 @@ typedef enum{
 }attribs;
 
 
-void *initLabelsDB();
+labelPtr initLabelsDB();
 
-boolean seekLabel(void *head, char *name);
+boolean seekLabel(labelPtr head, char *name);
 
-boolean addNewLabel(void *head, char *labelName, long address, labelClass type, errorCodes *lineErrorPtr);
+boolean addNewLabel(labelPtr head, char *labelName, long address, labelClass type, errorCodes *lineErrorPtr);
 
-boolean getLabelAttributes(void *head, char *name, long *addressPtr, labelClass *typePtr);
+boolean getLabelAttributes(labelPtr head, char *name, long *addressPtr, labelClass *typePtr);
 
-void updateDataLabels(void *head, long ICF);
+void updateDataLabels(labelPtr head, long ICF);
 
-void clearLabels(void *head);
+void clearLabels(labelPtr head);
 

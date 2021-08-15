@@ -8,25 +8,25 @@
 
 /* run all tests */
 
-void testFunctions(void **databasePointers){
+void testFunctions(databaseRouterPtr databasesPtr){
     /* pandas */
     testIsLabelDefinition();
     testGetStringFromLine();
     testStringToLong();
     testGetNumbersFromLine();
     testIdRegister();
-    testExtractOperands(databasePointers[LABEL_CALLS_POINTER]);
+    testExtractOperands(databasesPtr->labelCallsDB);
 
     /* labelsDB */
-    testAddNewLabel(databasePointers[LABELS_POINTER]);
+    testAddNewLabel(databasesPtr->labelsDB);
 
     /* dataImageDB tests */
-    testAddNumber(databasePointers[DATA_IMAGE_POINTER]);
-    testAddByte(databasePointers[DATA_IMAGE_POINTER]);
-    testAddString(databasePointers[DATA_IMAGE_POINTER]);
+    testAddNumber(databasesPtr->dataImageDB);
+    testAddByte(databasesPtr->dataImageDB);
+    testAddString(databasesPtr->dataImageDB);
 
     /* codeImageDB tests */
-    testAddingCommands(databasePointers[CODE_IMAGE_POINTER]);
+    testAddingCommands(databasesPtr->codeImageDB);
 }
 
 /* pandas tests */
@@ -833,7 +833,7 @@ void testAddingCommands(void *head){
     boolean error = FALSE;
 
     /* test 1 */
-    if(!addRCommand(&head, &IC, 1, 2, 3, 0, 3)){
+    if(!addRCommand(head, &IC, 1, 2, 3, 0, 3)){
         printf("addingCommands test 1 - not good\n");
         printf("--------------------------------------\n");
         error = TRUE;
@@ -847,7 +847,7 @@ void testAddingCommands(void *head){
     }
 
     /* test 2 */
-    if(!addRCommand(&head, &IC, 10, 30, 0, 1, 2)){
+    if(!addRCommand(head, &IC, 10, 30, 0, 1, 2)){
         printf("addingCommands test 2 - not good\n");
         printf("--------------------------------------\n");
         error = TRUE;
@@ -861,7 +861,7 @@ void testAddingCommands(void *head){
     }
 
     /* test 3 */
-    if(!addRCommand(&head, &IC, 10, 5, 4, 0, 5)){
+    if(!addRCommand(head, &IC, 10, 5, 4, 0, 5)){
         printf("addingCommands test 3 - not good\n");
         printf("--------------------------------------\n");
         error = TRUE;

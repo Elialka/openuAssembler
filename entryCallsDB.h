@@ -2,18 +2,18 @@
 #include "data.h"
 #endif
 
-void *initEntryCallsDB();
+entryCallPtr initEntryCallsDB();
 
-boolean addEntryCall(void *head, char *labelName, errorCodes *lineErrorPtr);
+boolean addEntryCall(entryCallPtr head, char *labelName, errorCodes *lineErrorPtr);
 
-void * getNextEntryCall(void *entryCallPtr);
+entryCallPtr getNextEntryCall(entryCallPtr currentEntryPtr);
 
-char * getEntryCallName(void *currentEntryPtr);
+char * getEntryCallName(entryCallPtr currentEntryPtr);
 
-long getEntryCallAddress(void *currentExternUsePtr);
+long getEntryCallAddress(entryCallPtr currentEntryCallPtr);
 
-void *setEntryCallValue(void *currentEntryPtr, long address);
+void setEntryCallValue(entryCallPtr currentEntryPtr, long address);
 
-boolean entryCallDBIsEmpty(void *head);
+boolean entryCallDBIsEmpty(entryCallPtr head);
 
-void clearEntryCallsDB(void *head);
+void clearEntryCallsDB(entryCallPtr head);

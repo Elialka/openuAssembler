@@ -27,18 +27,19 @@
 /* split firstPass */
 
 
-static boolean initDataBases(void **databasePointers);
+static boolean initDataBases(databaseRouterPtr databasePtr);
 
 static boolean legitFileName(char *name);
 
-static void clearDatabases(void **databasePointers);
+static void clearDatabases(databaseRouterPtr databasePtr);
 
 
 int main(int argc, char *argv[]){
     long ICF, DCF, i;
     boolean validFile;/* track if any error occurred during current file */
     FILE *sourceFile;
-    void *databasePointers[DATABASE_POINTER_ARRAY_SIZE];
+    databaseRouter databases;
+    databaseRouterPtr databasesPtr = &databases;
 
     if(argc < 2){/* no files to compile */
         /* todo print error - quit program */
@@ -46,7 +47,7 @@ int main(int argc, char *argv[]){
     }
 
     /* initialize operation names database */
-    if(!(databasePointers[OPERATIONS_POINTER] = setOperations())){
+    if(!(databasesPtr->operationsDB = setOperations())){
         /* todo print error */
     }
 
@@ -64,7 +65,7 @@ int main(int argc, char *argv[]){
 
         /* initialize/reset databases */
         if(sourceFile){/* file opened */
-            if(!initDataBases(databasePointers)){
+            if(!initDataBases(databasesPtr)){
                 /* todo print error memory alloc - quit program */
             }
         }
@@ -75,13 +76,13 @@ int main(int argc, char *argv[]){
 
         /* read source file */
         if(validFile){/* no errors so far */
-            validFile = firstPass(sourceFile, &ICF, &DCF, databasePointers);
+            validFile = firstPass(sourceFile, &ICF, &DCF, databasesPtr);
         }
 
         /* fill missing data in codeImage */
         if(validFile){/* no errors so far  */
             /* todo update data labels + ICF */
-            validFile = secondPass(databasePointers, ICF);
+            validFile = secondPass(databasesPtr, ICF);
         }
         else{/* temp - delete */
             printf("firstPassFailed\n");
@@ -89,47 +90,46 @@ int main(int argc, char *argv[]){
 
         /* generate output files */
         if(validFile){
-            writeFiles(databasePointers, argv[i], ICF, DCF);
+            writeFiles(databasesPtr, argv[i], ICF, DCF);
         }
 
         /* clear databases, close file */
         if(sourceFile){/* file was opened - databases were initialized */
-            clearDatabases(databasePointers);
+            clearDatabases(databasesPtr);
             fclose(sourceFile);/* todo check if need to use returned value */
         }
     }
 
     /* free remaining memory allocations */
-    clearOperationDB(databasePointers[OPERATIONS_POINTER]);
+    clearOperationDB(databasesPtr->operationsDB);
 
     return 0;
 }
 
 
-static boolean initDataBases(void *databasePointers[]){
+static boolean initDataBases(databaseRouterPtr databasePtr){
     boolean allocationSuccess = TRUE;
 
-    if(!(databasePointers[LABELS_POINTER] = initLabelsDB())){
+    if(!(databasePtr->codeImageDB = initCodeImage())){
         allocationSuccess = FALSE;
     }
-    else if(!(databasePointers[DATA_IMAGE_POINTER] = initDataImageDB())){
+    else if(!(databasePtr->dataImageDB = initDataImageDB())){
         allocationSuccess = FALSE;
     }
-    else if(!(databasePointers[CODE_IMAGE_POINTER] = initCodeImage())){
+    else if(!(databasePtr->entryCallsDB = initEntryCallsDB())){
         allocationSuccess = FALSE;
     }
-    else if(!(databasePointers[LABEL_CALLS_POINTER] = initLabelCallsDB())){
+    else if(!(databasePtr->externUsesDB = initExternUsesDB())){
         allocationSuccess = FALSE;
     }
-    else if(!(databasePointers[ENTRY_CALLS_POINTER] = initEntryCallsDB())){
+    else if(!(databasePtr->labelCallsDB = initLabelCallsDB())){
         allocationSuccess = FALSE;
     }
-    else if(!(databasePointers[EXTERN_POINTER] = initExternUsesDB())){
+    else if(!(databasePtr->labelsDB = initLabelsDB())){
         allocationSuccess = FALSE;
     }
 
     return allocationSuccess;
-
 }
 
 
@@ -163,12 +163,24 @@ boolean legitFileName(char *name) {
 }
 
 
-static void clearDatabases(void **databasePointers){
-    clearLabels(databasePointers[LABELS_POINTER]);
-    clearDataImageDB(databasePointers[DATA_IMAGE_POINTER]);
-    clearCodeImageDB(databasePointers[CODE_IMAGE_POINTER]);
-    clearLabelCallsDB(databasePointers[LABEL_CALLS_POINTER]);
-    clearEntryCallsDB(databasePointers[ENTRY_CALLS_POINTER]);
-    clearExternUsesDB(databasePointers[EXTERN_POINTER]);
+static void clearDatabases(databaseRouterPtr databasePtr){
+    clearCodeImageDB(databasePtr->codeImageDB);
+    databasePtr->codeImageDB = NULL;
+
+    clearDataImageDB(databasePtr->dataImageDB);
+    databasePtr->dataImageDB = NULL;
+
+    clearEntryCallsDB(databasePtr->entryCallsDB);
+    databasePtr->entryCallsDB = NULL;
+
+    clearExternUsesDB(databasePtr->externUsesDB);
+    databasePtr->externUsesDB = NULL;
+
+    clearLabelCallsDB(databasePtr->labelCallsDB);
+    databasePtr->labelCallsDB = NULL;
+
+    clearLabels(databasePtr->labelsDB);
+    databasePtr->labelsDB = NULL;
+
 }
 

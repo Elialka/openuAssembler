@@ -5,8 +5,6 @@
 #include "operationsDB.h"
 
 
-typedef struct node *labelPtr;
-
 /* todo write function */
 
 typedef struct node{
@@ -17,8 +15,8 @@ typedef struct node{
 }label;
 
 
-void *initLabelsDB(){
-    void *head;
+labelPtr initLabelsDB(){
+    labelPtr head;
 
     head = calloc(1, sizeof(label));
 
@@ -34,7 +32,7 @@ void *initLabelsDB(){
  * todo may be redundant
  * return if label with matching name already exists in database
  */
-boolean seekLabel(void *head, char *name) {
+boolean seekLabel(labelPtr head, char *name) {
     labelPtr curr;
 
     curr = head;
@@ -48,7 +46,7 @@ boolean seekLabel(void *head, char *name) {
 }
 
 /* todo split function - can remodel seekLabel */
-boolean addNewLabel(void *head, char *labelName, long address, labelClass type, errorCodes *lineErrorPtr){
+boolean addNewLabel(labelPtr head, char *labelName, long address, labelClass type, errorCodes *lineErrorPtr){
     static int labelsCounter = 0;/* how many labels currently in database */
     labelPtr current;
     labelPtr prev;
@@ -101,7 +99,7 @@ boolean addNewLabel(void *head, char *labelName, long address, labelClass type, 
 }
 
 
-boolean getLabelAttributes(void *head, char *name, long *addressPtr, labelClass *typePtr) {
+boolean getLabelAttributes(labelPtr head, char *name, long *addressPtr, labelClass *typePtr) {
     labelPtr current = head;
     boolean result = FALSE;
 
@@ -120,7 +118,7 @@ boolean getLabelAttributes(void *head, char *name, long *addressPtr, labelClass 
 }
 
 
-void updateDataLabels(void *head, long ICF){
+void updateDataLabels(labelPtr head, long ICF){
     labelPtr currentLabelPtr = head;
 
     while(currentLabelPtr){/* there is another label in the database */
@@ -134,7 +132,7 @@ void updateDataLabels(void *head, long ICF){
 }
 
 
-void clearLabels(void *head) {
+void clearLabels(labelPtr head) {
     labelPtr temp;
     while(head){
         temp = head;

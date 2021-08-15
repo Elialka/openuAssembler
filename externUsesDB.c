@@ -3,8 +3,6 @@
 
 #include "externUsesDB.h"
 
-typedef struct externUse *externUsePtr;
-
 typedef struct externUse{
     char name[MAX_LABEL_LENGTH];
     long IC;
@@ -12,8 +10,8 @@ typedef struct externUse{
 }externUse;
 
 
-void *initExternUsesDB(){
-    void *head;
+externUsePtr initExternUsesDB(){
+    externUsePtr head;
 
     head = calloc(1, sizeof(externUse));
 
@@ -25,7 +23,7 @@ void *initExternUsesDB(){
 }
 
 
-boolean addExternUse(void *head, char *labelName, long IC, errorCodes *errorPtr){
+boolean addExternUse(externUsePtr head, char *labelName, long IC, errorCodes *errorPtr){
     externUsePtr current = head;
     externUsePtr prev;
     boolean result = TRUE;
@@ -57,7 +55,7 @@ boolean addExternUse(void *head, char *labelName, long IC, errorCodes *errorPtr)
 }
 
 
-boolean externDBIsEmpty(void *head){
+boolean externDBIsEmpty(externUsePtr head){
     boolean result;
 
     /* check if first node was used */
@@ -67,7 +65,7 @@ boolean externDBIsEmpty(void *head){
 }
 
 
-void * getNextExternUse(void *currentExternUsePtr){
+externUsePtr getNextExternUse(externUsePtr currentExternUsePtr){
     void *nextExternUsePtr;
     if(!currentExternUsePtr){
         nextExternUsePtr = NULL;
@@ -80,7 +78,7 @@ void * getNextExternUse(void *currentExternUsePtr){
 }
 
 
-char * getExternUseName(void *currentExternUsePtr){
+char * getExternUseName(externUsePtr currentExternUsePtr){
     char *namePtr;
 
     if(!currentExternUsePtr){
@@ -94,7 +92,7 @@ char * getExternUseName(void *currentExternUsePtr){
 }
 
 
-long getExternUseAddress(void *currentExternUsePtr){
+long getExternUseAddress(externUsePtr currentExternUsePtr){
     long address;
 
     if(!currentExternUsePtr){
@@ -108,7 +106,7 @@ long getExternUseAddress(void *currentExternUsePtr){
 }
 
 
-void clearExternUsesDB(void *head){
+void clearExternUsesDB(externUsePtr head){
     externUsePtr current = head;
     externUsePtr prev;
 

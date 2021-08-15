@@ -2,4 +2,4 @@
 #include "data.h"
 #endif
 
-boolean secondPass(void **databasePointers, long ICF);
+boolean secondPass(databaseRouterPtr databasesPtr, long ICF);

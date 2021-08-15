@@ -1,9 +1,9 @@
-void * setOperations();
+operationPtr setOperations();
 
-int seekOp(void *head, char *str);
+int seekOp(operationPtr head, char *str);
 
 boolean seekDataOp(char *str, dataOps *dataOpTypePtr);
 
-boolean getOpcode(void *head, char *str, commandOps *opCodePtr, functValues *functPtr, operationClass *opTypePtr);
+boolean getOpcode(operationPtr head, char *str, commandOps *opCodePtr, functValues *functPtr, operationClass *opTypePtr);
 
-void clearOperationDB(void *head);
+void clearOperationDB(operationPtr head);

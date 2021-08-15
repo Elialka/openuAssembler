@@ -17,7 +17,7 @@ typedef enum{
 
 static void replaceExtension(char *sourceFileName, char *newExtension, char *destination);
 
-static void printObjectFile(void **databasePointers, char *sourceFileName, long ICF, long DCF);
+static void printObjectFile(databaseRouter databases, char *sourceFileName, long ICF, long DCF);
 
 static void printLabelAddressesFile(void *database, char *sourceFileName, fileType currentFileType);
 
@@ -28,15 +28,15 @@ static long getCurrentLabelAddress(void *currentLabel, fileType currentFileType)
 void * getNextLabel(void *currentLabel, fileType currentFileType);
 
 
-void writeFiles(void **databasePointers, char *sourceFilename, long ICF, long DCF) {
-    printObjectFile(databasePointers, sourceFilename, ICF, DCF);
+void writeFiles(databaseRouter databases, char *sourceFilename, long ICF, long DCF) {
+    printObjectFile(databases, sourceFilename, ICF, DCF);
 
-    if(!entryCallDBIsEmpty(databasePointers[ENTRY_CALLS_POINTER])){/* need to print entry file */
-        printLabelAddressesFile(databasePointers[ENTRY_CALLS_POINTER], sourceFilename, ENTRY_TYPE);
+    if(!entryCallDBIsEmpty(databases.entryCallsDB)){/* need to print entry file */
+        printLabelAddressesFile(databases.entryCallsDB, sourceFilename, ENTRY_TYPE);
     }
 
-    if(!externDBIsEmpty(databasePointers[EXTERN_POINTER])){/* need to print extern file */
-        printLabelAddressesFile(databasePointers[EXTERN_POINTER], sourceFilename, EXTERN_TYPE);
+    if(!externDBIsEmpty(databases.externUsesDB)){/* need to print extern file */
+        printLabelAddressesFile(databases.externUsesDB, sourceFilename, EXTERN_TYPE);
     }
 }
 
@@ -67,7 +67,7 @@ static void replaceExtension(char *sourceFileName, char *newExtension, char *des
 }
 
 
-static void printObjectFile(void **databasePointers, char *sourceFileName, long ICF, long DCF) {
+static void printObjectFile(databaseRouter databases, char *sourceFileName, long ICF, long DCF) {
     FILE *objectFile;
     char objectFileName[MAX_FILENAME_LENGTH];
     unsigned char nextByte;
@@ -94,7 +94,7 @@ static void printObjectFile(void **databasePointers, char *sourceFileName, long 
         if(!(imageCounter % BYTES_IN_ROW)){/* print in new line + print current address */
             fprintf(objectFile, "\n%04ld", imageCounter + STARTING_ADDRESS);
         }
-        nextByte = getNextCodeByte(databasePointers[CODE_IMAGE_POINTER], imageCounter);
+        nextByte = getNextCodeByte(databases.codeImageDB, imageCounter);
         fprintf(objectFile, " %02X", nextByte);
     }
 
@@ -103,7 +103,7 @@ static void printObjectFile(void **databasePointers, char *sourceFileName, long 
         if(!imageCounter % BYTES_IN_ROW){/* print in new line + print current address */
             fprintf(objectFile, "\n%03ld", imageCounter + STARTING_ADDRESS);
         }
-        nextByte = getNextDataByte(databasePointers[DATA_IMAGE_POINTER], dataCounter);
+        nextByte = getNextDataByte(databases.dataImageDB, dataCounter);
         fprintf(objectFile, " %02X", nextByte);
     }
 
@@ -185,5 +185,3 @@ void * getNextLabel(void *currentLabel, fileType currentFileType){
 
     return result;
 }
-
-

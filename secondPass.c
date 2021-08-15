@@ -6,37 +6,37 @@
 #include "externUsesDB.h"
 
 static boolean
-validateExternalUsage(void *externDatabase, labelCall currentCall, labelClass labelType, errorCodes *errorPtr);
+validateExternalUsage(externUsePtr externDatabase, labelCall currentCall, labelClass labelType, errorCodes *errorPtr);
 
 static boolean
-updateCodeImage(void *codeImageDatabase, labelCall currentCall, long labelAddress, errorCodes *callErrorPtr);
+updateCodeImage(codeImagePtr codeImageDatabase, labelCall currentCall, long labelAddress, errorCodes *callErrorPtr);
 
-static boolean fillMissingLabelAddresses(void **databasePointers);
+static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr);
 
-static boolean locateEntryDefinitions(void *entryCallsDatabase, void *labelsDatabase, errorCodes *lineErrorPtr);
+static boolean locateEntryDefinitions(entryCallPtr entryCallsDatabase, labelPtr labelsDatabase, errorCodes *lineErrorPtr);
 
 /* todo test EVERYTHING */
-boolean secondPass(void **databasePointers, long ICF) {
+boolean secondPass(databaseRouterPtr databasesPtr, long ICF) {
     boolean validPass;
     errorCodes lineError = NO_ERROR;
 
     /* update data-type labels' addresses, to appear after code image */
-    updateDataLabels(databasePointers[LABELS_POINTER], ICF + STARTING_ADDRESS);
+    updateDataLabels(databasesPtr->labelsDB, ICF + STARTING_ADDRESS);
 
     /* handle labels as operators usages */
-    validPass = fillMissingLabelAddresses(databasePointers);
+    validPass = fillMissingLabelAddresses(databasesPtr);
 
     if(validPass){/* no errors */
         /*  */
-        validPass = locateEntryDefinitions(databasePointers[ENTRY_CALLS_POINTER],
-                                           databasePointers[LABELS_POINTER],
+        validPass = locateEntryDefinitions(databasesPtr->entryCallsDB,
+                                           databasesPtr->labelsDB,
                                            &lineError);
     }
 
     return validPass;
 }
 
-static boolean fillMissingLabelAddresses(void **databasePointers){
+static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr){
     int i;/* count how many label calls did we already handled */
     long labelAddress;/* store label definition address */
     labelClass labelType;/* store label type - code\data\external */
@@ -46,19 +46,19 @@ static boolean fillMissingLabelAddresses(void **databasePointers){
     labelCall currentCall;/* pointer to next label call in database */
 
     /* resolve each label call not handle in first pass */
-    for(i = 0; getLabelCall(databasePointers[LABEL_CALLS_POINTER], i, &currentCall); i++){
+    for(i = 0; getLabelCall(databasesPtr->labelCallsDB, i, &currentCall); i++){
         /* get label value */
-        validCall = getLabelAttributes(databasePointers[LABELS_POINTER],
+        validCall = getLabelAttributes(databasesPtr->labelsDB,
                                        currentCall.name, &labelAddress, &labelType);
 
         /* validate legality of label type with command type */
         if(validCall){/* found label */
-            validCall = validateExternalUsage(databasePointers[EXTERN_POINTER], currentCall, labelType, &error);
+            validCall = validateExternalUsage(databasesPtr->externUsesDB, currentCall, labelType, &error);
         }
 
         /* update code image */
         if(validCall){/* label is of legal type for command type */
-            validCall = updateCodeImage(databasePointers[CODE_IMAGE_POINTER], currentCall, labelAddress, &error);
+            validCall = updateCodeImage(databasesPtr->codeImageDB, currentCall, labelAddress, &error);
         }
 
         if(!validCall){/* mark error occurred */
@@ -71,7 +71,7 @@ static boolean fillMissingLabelAddresses(void **databasePointers){
 }
 
 
-static boolean validateExternalUsage(void *externDatabase, labelCall currentCall,
+static boolean validateExternalUsage(externUsePtr externDatabase, labelCall currentCall,
                                      labelClass labelType, errorCodes *errorPtr) {
     boolean result = TRUE;
 
@@ -88,7 +88,7 @@ static boolean validateExternalUsage(void *externDatabase, labelCall currentCall
 }
 
 
-static boolean updateCodeImage(void *codeImageDatabase, labelCall currentCall, long labelAddress, errorCodes *callErrorPtr){
+static boolean updateCodeImage(codeImagePtr codeImageDatabase, labelCall currentCall, long labelAddress, errorCodes *callErrorPtr){
     boolean result;
 
     if(currentCall.type == I_BRANCHING){
@@ -106,9 +106,9 @@ static boolean updateCodeImage(void *codeImageDatabase, labelCall currentCall, l
 }
 
 
-static boolean locateEntryDefinitions(void *entryCallsDatabase, void *labelsDatabase, errorCodes *lineErrorPtr) {
+static boolean locateEntryDefinitions(entryCallPtr entryCallsDatabase, labelPtr labelsDatabase, errorCodes *lineErrorPtr) {
     boolean validOp = TRUE;/* reset error flag */
-    void *currentEntryCall = getNextEntryCall(entryCallsDatabase);/* get first entry call */
+    entryCallPtr currentEntryCall = getNextEntryCall(entryCallsDatabase);/* get first entry call */
     char *currentEntryName;/* point to string representing current entry call name */
     labelClass labelType;/* current label type */
     long labelAddress;/* address where label was defined */

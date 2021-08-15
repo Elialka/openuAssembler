@@ -2,6 +2,6 @@
 #include "data.h"
 #endif
 
-void writeFiles(void **databasePointers, char *sourceFilename, long ICF, long DCF);
+void writeFiles(databaseRouter databases, char *sourceFilename, long ICF, long DCF);
 
 

@@ -2,7 +2,7 @@
 #include "data.h"
 #endif
 
-void testFunctions(void **databasePointers);
+void testFunctions(databaseRouterPtr databasesPtr);
 
 /* pandas tests */
 

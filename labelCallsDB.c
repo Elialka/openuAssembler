@@ -4,16 +4,14 @@
 #include "labelCallsDB.h"
 
 
-typedef struct call *labelCallNodePtr;
-
 typedef struct call{
     labelCall attributes;
-    labelCallNodePtr next;
+    labelCallPtr next;
 }labelCallNode;
 
 
-void * initLabelCallsDB(){
-    void *head;
+labelCallPtr initLabelCallsDB(){
+    labelCallPtr head;
 
     head = calloc(1, sizeof(labelCallNode));
 
@@ -26,10 +24,10 @@ void * initLabelCallsDB(){
 }
 
 
-boolean setLabelCall(void *head, long IC, char *labelName, operationClass commandOpType, errorCodes *lineErrorPtr) {
+boolean setLabelCall(labelCallPtr head, long IC, char *labelName, operationClass commandOpType, errorCodes *lineErrorPtr) {
     static int labelCallsCounter = 0;/* counts how many label calls added to the database */
-    labelCallNodePtr current;
-    labelCallNodePtr prev;
+    labelCallPtr current;
+    labelCallPtr prev;
 
     current = head;
 
@@ -69,9 +67,9 @@ boolean setLabelCall(void *head, long IC, char *labelName, operationClass comman
 }
 
 
-boolean getLabelCall(void *head, int index, labelCall *destination){
+boolean getLabelCall(labelCallPtr head, int index, labelCall *destination){
     int i;
-    labelCallNodePtr current = head;
+    labelCallPtr current = head;
 
     for(i = 0; current && i < index; current = current->next, i++)
         ;
@@ -86,9 +84,9 @@ boolean getLabelCall(void *head, int index, labelCall *destination){
 }
 
 
-void clearLabelCallsDB(void *head){
-    labelCallNodePtr current = head;
-    labelCallNodePtr prev;
+void clearLabelCallsDB(labelCallPtr head){
+    labelCallPtr current = head;
+    labelCallPtr prev;
 
     while(current){
         prev = current;

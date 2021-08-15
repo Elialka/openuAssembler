@@ -12,7 +12,7 @@
 static boolean clearLine(char *currentPos, errorCodes *lineErrorPtr, FILE *sourceFile);
 
 /* todo split function */
-boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **databasePointers) {
+boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPtr databasesPtr) {
     /* buffers */
     char line[LINE_ARRAY_SIZE];/* used to load one line from file */
     char command[TOKEN_ARRAY_SIZE];/* extracted command name for each line */
@@ -56,7 +56,7 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **databaseP
 
         /* check if current line includes label definition */
         if(isLabelDefinition(&currentPos, label)){
-            if(seekOp(databasePointers[OPERATIONS_POINTER], label) != NOT_FOUND){/* label name is operation name */
+            if(seekOp(databasesPtr->operationsDB, label) != NOT_FOUND){/* label name is operation name */
                 /* todo print error LABEL_IS_OPERATION */
                 generalError = TRUE;
             }
@@ -82,10 +82,10 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **databaseP
                     /* read label operand */
                     if(getLabel(&currentPos, label, &lineError)){
                         if(dataOpType == ENTRY){
-                            addEntryCall(databasePointers[ENTRY_CALLS_POINTER], label, &lineError);
+                            addEntryCall(databasesPtr->entryCallsDB, label, &lineError);
                         }
                         else{/* extern declaration */
-                            addNewLabel(databasePointers[LABELS_POINTER],
+                            addNewLabel(databasesPtr->labelsDB,
                                         label, EXTERN_LABEL_VALUE, EXTERN_LABEL, &lineError);
                         }
                     }
@@ -96,7 +96,7 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **databaseP
                 else{
                     /* add new label if label definition is present */
                     if(labelDefinition){
-                        addNewLabel(databasePointers[LABELS_POINTER], label, DC, DATA_LABEL, &lineError);
+                        addNewLabel(databasesPtr->labelsDB, label, DC, DATA_LABEL, &lineError);
                     }
                     if(dataOpType == ASCIZ){
                         if(!getStringFromLine(&currentPos, string, &lineError)){
@@ -104,7 +104,7 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **databaseP
                             generalError = TRUE;
                         }
                         else{/* string read successfully */
-                            if(!addString(databasePointers[DATA_IMAGE_POINTER],
+                            if(!addString(&databasesPtr->dataImageDB,
                                           &DC, string)){/* can't add to database */
                                 /* todo print error quit program */
                                 generalError = TRUE;
@@ -118,7 +118,7 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **databaseP
                             generalError = TRUE;
                         }
                         else{/* numbers read successfully */
-                            if(!addNumberArray(databasePointers[DATA_IMAGE_POINTER],
+                            if(!addNumberArray(&databasesPtr->dataImageDB,
                                                &DC, numbers, amountOfNumbers, dataOpType)){/* cannot add to data image */
                                 /* todo print error */
                                 generalError = TRUE;
@@ -132,7 +132,7 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **databaseP
             }
         }
         else{/* line is operation command */
-            if(!getOpcode(databasePointers[OPERATIONS_POINTER],
+            if(!getOpcode(databasesPtr->operationsDB,
                           command, &opCode, &funct, &commandOpType)){/* operation command not found */
                 /* todo print error continue */
                 generalError = TRUE;
@@ -140,16 +140,16 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **databaseP
             else{/* legal operation command name */
                 /* add new label if label definition is present */
                 if(labelDefinition){
-                    addNewLabel(databasePointers[LABELS_POINTER], label, IC, CODE_LABEL, &lineError);
+                    addNewLabel(databasesPtr->labelsDB, label, IC, CODE_LABEL, &lineError);
                 }
                 /* get operation operands */
                 if(extractOperands(&currentPos, commandOpType, IC,
                                    &jIsReg, &reg1, &reg2, &reg3, &immed,
-                                   &lineError, databasePointers[LABEL_CALLS_POINTER]))
+                                   &lineError, databasesPtr->labelCallsDB))
                 {
                     /* add command to code image */
                     if(commandOpType == R_ARITHMETIC || commandOpType == R_COPY){
-                        if(!addRCommand(databasePointers[CODE_IMAGE_POINTER],
+                        if(!addRCommand(&databasesPtr->codeImageDB,
                                         &IC, reg1, reg2, reg3, opCode, funct)){
                             /* todo print error memory alloc */
                         }
@@ -158,13 +158,13 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, void **databaseP
                     commandOpType == I_MEMORY_LOAD ||
                     commandOpType == I_ARITHMETIC)
                     {
-                        if(!addICommand(databasePointers[CODE_IMAGE_POINTER],
+                        if(!addICommand(&databasesPtr->codeImageDB,
                                         &IC, reg1, reg2, immed, opCode)){
                             /* todo print error memory alloc */
                         }
                     }
                     else{/* is J command */
-                        if(!addJCommand(databasePointers[CODE_IMAGE_POINTER],
+                        if(!addJCommand(&databasesPtr->codeImageDB,
                                         &IC, jIsReg, immed, opCode)){
                             /* todo print error memory alloc */
                         }

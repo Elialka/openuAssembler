@@ -2,20 +2,18 @@
 #include "dataImageDB.h"
 #include "string.h"
 
-#include <stdio.h>/* temp */
-
 #define BITS_IN_BYTE (8)
 
 
 
-static boolean addByte(char *head, unsigned char byte, long DC);
+static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC);
 
 
 /*
  * initialize database - allocate first block
  * */
-void * initDataImageDB(){
-    void *database = calloc(IMAGE_BLOCK_SIZE, sizeof(char));
+dataImagePtr initDataImageDB(){
+    dataImagePtr database = calloc(IMAGE_BLOCK_SIZE, sizeof(char));
     if(!database){
         /* todo print error quit */
     }
@@ -23,20 +21,20 @@ void * initDataImageDB(){
 }
 
 /* todo change head to char ** - head is not updated when reallocating memory */
-static boolean addByte(char *head, unsigned char byte, long DC) {
+static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC) {
     static int size = IMAGE_BLOCK_SIZE;/* current size of database */
     void *temp;
 
     /* check if enough memory */
     if(DC >= size){
-        temp = realloc(head, size + IMAGE_BLOCK_SIZE);
+        temp = realloc(*headPtr, size + IMAGE_BLOCK_SIZE);
         if(!temp){
             return FALSE;
         }
-        head = temp;
+        *headPtr = temp;
     }
 
-    memcpy(head + DC, &byte, sizeof(char));
+    memcpy(*headPtr + DC, &byte, sizeof(char));
     return TRUE;
 }
 
@@ -45,7 +43,7 @@ static boolean addByte(char *head, unsigned char byte, long DC) {
  * this function adds number to database
  */
 /* todo add error pointer, check overall + negative numbers */
-boolean addNumber(void *head, long *DCPtr, long value, int numOfBytes) {
+boolean addNumber(dataImagePtr *headPtr, long *DCPtr, long value, int numOfBytes) {
     int i, offset;
     unsigned long mask;
     unsigned long formattedNumber;
@@ -63,7 +61,7 @@ boolean addNumber(void *head, long *DCPtr, long value, int numOfBytes) {
 
     for(i = 0; i < numOfBytes; i++, (*DCPtr)++){
         offset = i * BITS_IN_BYTE;
-        if(!addByte(head, (formattedNumber & (mask << offset)) >> offset, *DCPtr)){
+        if(!addByte(headPtr, (formattedNumber & (mask << offset)) >> offset, *DCPtr)){
             return FALSE;
         }
     }
@@ -71,7 +69,7 @@ boolean addNumber(void *head, long *DCPtr, long value, int numOfBytes) {
     return TRUE;
 }
 
-boolean addNumberArray(void *head, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType) {
+boolean addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType) {
     int i;
     int numOfBytes;
 
@@ -92,7 +90,7 @@ boolean addNumberArray(void *head, long *DCPtr, long *array, int amountOfNumbers
     }
 
     for(i = 0; i < amountOfNumbers; i++){
-        if(!addNumber(head, DCPtr, array[i], numOfBytes)){
+        if(!addNumber(headPtr, DCPtr, array[i], numOfBytes)){
             return FALSE;
         }
     }
@@ -104,14 +102,14 @@ boolean addNumberArray(void *head, long *DCPtr, long *array, int amountOfNumbers
 /*
  * this function adds a string to database
  */
-boolean addString(void *head, long *DCPtr, char *str) {
+boolean addString(dataImagePtr *headPtr, long *DCPtr, char *str) {
     char *current;
     char *prev;
 
     /* add each character to database */
     for(current = str, prev = current; *prev; current++, (*DCPtr)++){
         prev = current;
-        if(!addByte(head, *prev, *DCPtr)){
+        if(!addByte(headPtr, *prev, *DCPtr)){
             return FALSE;
         }
     }
@@ -120,15 +118,15 @@ boolean addString(void *head, long *DCPtr, char *str) {
 }
 
 
-unsigned char getNextDataByte(void *head, long index){
+unsigned char getNextDataByte(dataImagePtr headPtr, long index){
 
-    return ((char *)head)[index];
+    return (headPtr)[index];
 }
 
 
 
-void clearDataImageDB(void *head){
-    free(head);
+void clearDataImageDB(dataImagePtr headPtr){
+    free(headPtr);
 }
 
 

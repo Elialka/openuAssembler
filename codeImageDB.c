@@ -6,7 +6,7 @@
 
 #define FIRST_16_BITS_MASK (0xFFFF)
 
-typedef union{
+typedef union codeLine{
     struct{
         unsigned int :6;
         unsigned int funct:5;
@@ -37,7 +37,7 @@ typedef union{
 
 
 /* todo change function call to use address of head in first pass - head may not be updated when reallocating memory */
-static boolean addCommandToDatabase(codeLine *headPtr, long *ICPtr, codeLine *current){
+static boolean addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeLine *current){
     static int currentSize = IMAGE_BLOCK_SIZE;/* size of allocated memory, counted by codeLine type units */
     int nextFreeIndex;
     void *temp;
@@ -46,19 +46,19 @@ static boolean addCommandToDatabase(codeLine *headPtr, long *ICPtr, codeLine *cu
     nextFreeIndex = (*ICPtr - STARTING_ADDRESS) / (int)sizeof(codeLine);
 
     if(nextFreeIndex >= currentSize){/* out of allocated memory */
-        temp = realloc(headPtr, currentSize + IMAGE_BLOCK_SIZE);
+        temp = realloc(*headPtr, currentSize + IMAGE_BLOCK_SIZE);
         if(!temp){/* memory allocation failed */
             return FALSE;
         }
-        headPtr = temp;
+        *headPtr = temp;
         currentSize += IMAGE_BLOCK_SIZE;
     }
 
     /* copy to database */
-    (headPtr + nextFreeIndex)->bytes.first = current->bytes.first;
-    (headPtr + nextFreeIndex)->bytes.second = current->bytes.second;
-    (headPtr + nextFreeIndex)->bytes.third = current->bytes.third;
-    (headPtr + nextFreeIndex)->bytes.fourth = current->bytes.fourth;
+    (*headPtr + nextFreeIndex)->bytes.first = current->bytes.first;
+    (*headPtr + nextFreeIndex)->bytes.second = current->bytes.second;
+    (*headPtr + nextFreeIndex)->bytes.third = current->bytes.third;
+    (*headPtr + nextFreeIndex)->bytes.fourth = current->bytes.fourth;
 
     /* update code image counter */
     *ICPtr += sizeof(codeLine);
@@ -67,7 +67,7 @@ static boolean addCommandToDatabase(codeLine *headPtr, long *ICPtr, codeLine *cu
 }
 
 
-void *initCodeImage(){
+codeImagePtr initCodeImage(){
     void *head;
 
     head = calloc(IMAGE_BLOCK_SIZE, sizeof(codeLine));
@@ -77,7 +77,7 @@ void *initCodeImage(){
     return head;
 }
 
-boolean addRCommand(void *headPtr, long *ICPtr, int reg1, int reg2, int reg3,
+boolean addRCommand(codeImagePtr *headPtr, long *ICPtr, int reg1, int reg2, int reg3,
                     commandOps opcode, functValues funct){
     codeLine new;
 
@@ -87,11 +87,11 @@ boolean addRCommand(void *headPtr, long *ICPtr, int reg1, int reg2, int reg3,
     new.R.rd = reg3;
     new.R.funct = funct;
 
-    return addCommandToDatabase((codeLine *)headPtr, ICPtr, &new);
+    return addCommandToDatabase(headPtr, ICPtr, &new);
 }
 
 
-boolean addICommand(void *headPtr, long *ICPtr, int reg1, int reg2, int immed, commandOps opcode){
+boolean addICommand(codeImagePtr *headPtr, long *ICPtr, int reg1, int reg2, int immed, commandOps opcode){
     codeLine new;
 
     new.I.opcode = opcode;
@@ -99,11 +99,11 @@ boolean addICommand(void *headPtr, long *ICPtr, int reg1, int reg2, int immed, c
     new.I.rt = reg2;
     new.I.immed = immed;
 
-    return addCommandToDatabase((codeLine *)headPtr, ICPtr, &new);
+    return addCommandToDatabase(headPtr, ICPtr, &new);
 }
 
 
-boolean addJCommand(void *headPtr, long *ICPtr, boolean isReg, long address, commandOps opcode){
+boolean addJCommand(codeImagePtr *headPtr, long *ICPtr, boolean isReg, long address, commandOps opcode){
     codeLine new;
 
     new.J.opcode = opcode;
@@ -111,13 +111,13 @@ boolean addJCommand(void *headPtr, long *ICPtr, boolean isReg, long address, com
     new.J.address1 = address & FIRST_16_BITS_MASK;
     new.J.address2 = address >> 16;
 
-    return addCommandToDatabase((codeLine *)headPtr, ICPtr, &new);
+    return addCommandToDatabase(headPtr, ICPtr, &new);
 }
 
 /* todo maybe handle IC out of range */
-boolean updateITypeImmed(void *head, long IC, long address, errorCodes *lineErrorPtr) {
+boolean updateITypeImmed(codeImagePtr headPtr, long IC, long address, errorCodes *lineErrorPtr) {
     boolean result = TRUE;/* return value - if operation was successful */
-    codeLine *current = head;
+    codeLine *current = headPtr;
     long distance = address - IC;
     /* calculate index of code line with given IC */
     long index = (long)((IC - STARTING_ADDRESS) / sizeof(codeLine));
@@ -140,8 +140,8 @@ boolean updateITypeImmed(void *head, long IC, long address, errorCodes *lineErro
 
 
 /* todo maybe handle IC out of range, maybe literal number 16 */
-boolean updateJTypeAddress(void *head, long IC, long address, errorCodes *lineErrorPtr) {
-    codeLine *current = head;
+boolean updateJTypeAddress(codeImagePtr headPtr, long IC, long address, errorCodes *lineErrorPtr) {
+    codeLine *current = headPtr;
     /* calculate index of code line with given IC */
     long index = (long)((IC - STARTING_ADDRESS) / sizeof(codeLine));
 
@@ -157,9 +157,9 @@ boolean updateJTypeAddress(void *head, long IC, long address, errorCodes *lineEr
 }
 
 
-unsigned char getNextCodeByte(void *head, long index) {
+unsigned char getNextCodeByte(codeImagePtr headPtr, long index) {
 
-    return ((char *)head)[index];
+    return ((char *)headPtr)[index];
 }
 
 
@@ -192,6 +192,6 @@ void printCode(void *head, long IC){
 }/* temp - delete */
 
 
-void clearCodeImageDB(void *head){
-    free(head);
+void clearCodeImageDB(codeImagePtr headPtr){
+    free(headPtr);
 }

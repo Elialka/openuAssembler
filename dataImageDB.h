@@ -3,14 +3,14 @@
 #endif
 
 
-void * initDataImageDB();
+dataImagePtr initDataImageDB();
 
-boolean addNumber(void *head, long *DCPtr, long value, int numOfBytes);
+boolean addNumber(dataImagePtr *headPtr, long *DCPtr, long value, int numOfBytes);
 
-boolean addNumberArray(void *head, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType);
+boolean addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType);
 
-boolean addString(void *head, long *DCPtr, char *str);
+boolean addString(dataImagePtr *headPtr, long *DCPtr, char *str);
 
-unsigned char getNextDataByte(void *head, long index);
+unsigned char getNextDataByte(dataImagePtr headPtr, long index);
 
-void clearDataImageDB(void *head);
+void clearDataImageDB(dataImagePtr headPtr);

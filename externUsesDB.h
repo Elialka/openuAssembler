@@ -2,16 +2,16 @@
 #include "data.h"
 #endif
 
-void *initExternUsesDB();
+externUsePtr initExternUsesDB();
 
-boolean addExternUse(void *head, char *labelName, long IC, errorCodes *errorPtr);
+boolean addExternUse(externUsePtr head, char *labelName, long IC, errorCodes *errorPtr);
 
-boolean externDBIsEmpty(void *head);
+boolean externDBIsEmpty(externUsePtr head);
 
-void * getNextExternUse(void *currentExternUsePtr);
+externUsePtr getNextExternUse(externUsePtr currentExternUsePtr);
 
-char * getExternUseName(void *currentExternUsePtr);
+char * getExternUseName(externUsePtr currentExternUsePtr);
 
-long getExternUseAddress(void *currentExternUsePtr);
+long getExternUseAddress(externUsePtr currentExternUsePtr);
 
-void clearExternUsesDB(void *head);
+void clearExternUsesDB(externUsePtr head);

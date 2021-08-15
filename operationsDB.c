@@ -9,11 +9,11 @@
 
 /* number of different operations available */
 #define NUM_OF_OPERATIONS (27)
-/* number of character in longest operation name, including terminating '\0' */
+/* number of character in the longest operation name, including terminating '\0' */
 #define OPERATION_NAME_LENGTH (5)
 
 
-typedef struct{
+typedef struct operation{
     char name[OPERATION_NAME_LENGTH];
     commandOps opcode;
     functValues funct;
@@ -21,14 +21,11 @@ typedef struct{
 }operation;
 
 
-typedef operation *operationPtr;
-
-
 /*
  * This function is used to set a database, containing operation names, types and OpCodes
  * Return value is TRUE if memory allocation succeeded, FALSE otherwise
  */
-void *setOperations(){
+operationPtr setOperations(){
     int i;
     operationPtr head;
     char *names[] = {"add", "sub", "and", "or", "nor", "move", "mvhi", "mvlo",
@@ -84,10 +81,10 @@ void *setOperations(){
 
 /*
  * look for an operation with a name matching to str
- * return it's position in the database (non zero) if found
+ * return its position in the database (non-zero) if found
  * return zero if not found
  */
-int seekOp(void *head, char *str) {
+int seekOp(operationPtr head, char *str) {
     int i;
     operationPtr current = head;
     for (i = 0; i <= NUM_OF_OPERATIONS; i++, current++){
@@ -104,7 +101,7 @@ int seekOp(void *head, char *str) {
  * find an operation with a name matching str
  * return opcode if found, zero otherwise
  */
-boolean getOpcode(void *head, char *str, commandOps *opCodePtr, functValues *functPtr, operationClass *opTypePtr) {
+boolean getOpcode(operationPtr head, char *str, commandOps *opCodePtr, functValues *functPtr, operationClass *opTypePtr) {
     int operationIndex;
     operationPtr current;
 
@@ -156,6 +153,6 @@ boolean seekDataOp(char *str, dataOps *dataOpTypePtr){
     return TRUE;
 }
 
-void clearOperationDB(void *head){
+void clearOperationDB(operationPtr head){
     free(head);
 }
