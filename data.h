@@ -184,7 +184,7 @@ typedef struct externUse *externUsePtr;
 
 typedef struct call *labelCallPtr;
 
-typedef struct node *labelPtr;
+typedef struct label *labelPtr;
 
 typedef struct operation *operationPtr;
 
@@ -200,3 +200,33 @@ typedef struct databaseRouter{
     operationPtr operationsDB;
 }databaseRouter;
 
+
+/* operand managing type definitions */
+
+typedef struct rOperands{
+    unsigned char opcode;
+    unsigned char rs;
+    unsigned char rt;
+    unsigned char rd;
+    unsigned char funct;
+}rOperands;
+
+typedef struct iOperands{
+    unsigned char opcode;
+    unsigned char reg1;
+    unsigned char reg2;
+    unsigned int immed;
+}iOperands;
+
+typedef struct jOperands{
+    unsigned char opcode;
+    boolean isReg;
+    long address;
+}jOperands;
+
+
+typedef union operands{
+    rOperands rAttributes;
+    iOperands iAttributes;
+    jOperands jAttributes;
+}operands;

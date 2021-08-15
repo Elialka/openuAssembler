@@ -14,6 +14,6 @@ long getEntryCallAddress(entryCallPtr currentEntryCallPtr);
 
 void setEntryCallValue(entryCallPtr currentEntryPtr, long address);
 
-boolean entryCallDBIsEmpty(entryCallPtr head);
+boolean isEntryCallDBEmpty(entryCallPtr head);
 
 void clearEntryCallsDB(entryCallPtr head);

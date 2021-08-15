@@ -32,7 +32,7 @@ boolean addEntryCall(entryCallPtr head, char *labelName, errorCodes *lineErrorPt
 
     current = head;
 
-    if(!entryCallDBIsEmpty(head)){/* not first entry call */
+    if(!isEntryCallDBEmpty(head)){/* not first entry call */
         /* find next available node */
         while(current){
             if(!strcmp(labelName, current->name)){/* already added this name */
@@ -107,7 +107,7 @@ void setEntryCallValue(entryCallPtr currentEntryPtr, long address) {
 }
 
 
-boolean entryCallDBIsEmpty(entryCallPtr head){
+boolean isEntryCallDBEmpty(entryCallPtr head){
     boolean result;
 
     /* check if first node's name is empty */

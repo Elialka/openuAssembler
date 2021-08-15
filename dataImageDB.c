@@ -5,7 +5,6 @@
 #define BITS_IN_BYTE (8)
 
 
-
 static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC);
 
 
@@ -20,22 +19,25 @@ dataImagePtr initDataImageDB(){
     return database;
 }
 
-/* todo change head to char ** - head is not updated when reallocating memory */
-static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC) {
-    static int size = IMAGE_BLOCK_SIZE;/* current size of database */
+
+static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC){
+    boolean result = TRUE;
     void *temp;
 
-    /* check if enough memory */
-    if(DC >= size){
-        temp = realloc(*headPtr, size + IMAGE_BLOCK_SIZE);
+    if(DC && !(DC & IMAGE_BLOCK_SIZE)){/* out of allocated memory */
+        temp = realloc(*headPtr, DC + IMAGE_BLOCK_SIZE);
         if(!temp){
-            return FALSE;
+            result =  FALSE;
+            /* todo free allocated memory - quit program */
         }
         *headPtr = temp;
     }
 
-    memcpy(*headPtr + DC, &byte, sizeof(char));
-    return TRUE;
+    /* add byte to database */
+    if(result){
+        memcpy(*headPtr + DC, &byte, sizeof(char));
+    }
+    return result;
 }
 
 
@@ -43,7 +45,8 @@ static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC) {
  * this function adds number to database
  */
 /* todo add error pointer, check overall + negative numbers */
-boolean addNumber(dataImagePtr *headPtr, long *DCPtr, long value, int numOfBytes) {
+/* todo maybe make static */
+boolean addNumber(dataImagePtr *headPtr, long *DCPtr, long value, int numOfBytes){
     int i, offset;
     unsigned long mask;
     unsigned long formattedNumber;

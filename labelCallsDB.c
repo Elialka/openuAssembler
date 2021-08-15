@@ -10,6 +10,9 @@ typedef struct call{
 }labelCallNode;
 
 
+static boolean isLabelCallsEmpty(labelCallPtr head);
+
+
 labelCallPtr initLabelCallsDB(){
     labelCallPtr head;
 
@@ -24,14 +27,20 @@ labelCallPtr initLabelCallsDB(){
 }
 
 
-boolean setLabelCall(labelCallPtr head, long IC, char *labelName, operationClass commandOpType, errorCodes *lineErrorPtr) {
-    static int labelCallsCounter = 0;/* counts how many label calls added to the database */
+static boolean isLabelCallsEmpty(labelCallPtr head){
+    /* check if any attributes has been set, IC is starting at non-zero value */
+    return head && head->attributes.IC;
+}
+
+
+boolean setLabelCall(labelCallPtr head, long IC, char *labelName, operationClass commandOpType, errorCodes *lineErrorPtr){
+    boolean result = TRUE;
     labelCallPtr current;
     labelCallPtr prev;
 
     current = head;
 
-    if(labelCallsCounter){/* not first label call */
+    if(!isLabelCallsEmpty(head)){/* not first label call */
         /* find last label call record */
         while(current){
             prev = current;
@@ -42,28 +51,29 @@ boolean setLabelCall(labelCallPtr head, long IC, char *labelName, operationClass
         current = calloc(1, sizeof(labelCallNode));
         if(!current){
             *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
-            return FALSE;
+            /* todo handle error - free all allocated memory, quit program */
+            result = FALSE;
         }
 
         /* link new node to database */
         prev->next = current;
     }
 
+    /* todo - forgot LA or CALL options */
     /* impossible value */
     if(commandOpType != I_BRANCHING && commandOpType != J_JUMP){
         *lineErrorPtr = IMPOSSIBLE;
-        return FALSE;
+        result =  FALSE;
     }
 
-    /* count another label call */
-    labelCallsCounter++;
+    if(result){
+        /* update fields */
+        current->attributes.IC = IC;
+        strcpy(current->attributes.name, labelName);
+        current->attributes.type = commandOpType;
+    }
 
-    /* update fields */
-    current->attributes.IC = IC;
-    strcpy(current->attributes.name, labelName);
-    current->attributes.type = commandOpType;
-
-    return TRUE;
+    return result;
 }
 
 

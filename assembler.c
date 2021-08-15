@@ -18,13 +18,13 @@
 #include "tests.h"
 
 
-/* todo code and data image - array size counters will not reinitialize for next file - refactor to use externDBIsEmpty*/
 /* todo add error printing */
+/* todo forgot to address LA or CALL operations to get a label */
 
 /* todo possible refactors */
-/* refactor every database to store pointer in different function as static variable - set and get functionality */
 /* remake change void * to specific pointer, move pointers definition to header files */
 /* split firstPass */
+/* for every database - extract finding end of DB\allocating additional memory to different function */
 
 
 static boolean initDataBases(databaseRouterPtr databasePtr);
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]){
 
         /* generate output files */
         if(validFile){
-            writeFiles(databasesPtr, argv[i], ICF, DCF);
+            writeFiles(databases, argv[i], ICF, DCF);
         }
 
         /* clear databases, close file */

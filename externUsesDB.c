@@ -28,8 +28,7 @@ boolean addExternUse(externUsePtr head, char *labelName, long IC, errorCodes *er
     externUsePtr prev;
     boolean result = TRUE;
 
-    if(!externDBIsEmpty(head)){/* not first extern use */
-        /* mark first node use */
+    if(!isExternDBEmpty(head)){/* not first extern use */
         /* find next available node */
         while(current){
             prev = current;
@@ -55,7 +54,7 @@ boolean addExternUse(externUsePtr head, char *labelName, long IC, errorCodes *er
 }
 
 
-boolean externDBIsEmpty(externUsePtr head){
+boolean isExternDBEmpty(externUsePtr head){
     boolean result;
 
     /* check if first node was used */

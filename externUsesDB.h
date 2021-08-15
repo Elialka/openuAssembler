@@ -6,7 +6,7 @@ externUsePtr initExternUsesDB();
 
 boolean addExternUse(externUsePtr head, char *labelName, long IC, errorCodes *errorPtr);
 
-boolean externDBIsEmpty(externUsePtr head);
+boolean isExternDBEmpty(externUsePtr head);
 
 externUsePtr getNextExternUse(externUsePtr currentExternUsePtr);
 

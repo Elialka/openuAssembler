@@ -31,11 +31,11 @@ void * getNextLabel(void *currentLabel, fileType currentFileType);
 void writeFiles(databaseRouter databases, char *sourceFilename, long ICF, long DCF) {
     printObjectFile(databases, sourceFilename, ICF, DCF);
 
-    if(!entryCallDBIsEmpty(databases.entryCallsDB)){/* need to print entry file */
+    if(!isEntryCallDBEmpty(databases.entryCallsDB)){/* need to print entry file */
         printLabelAddressesFile(databases.entryCallsDB, sourceFilename, ENTRY_TYPE);
     }
 
-    if(!externDBIsEmpty(databases.externUsesDB)){/* need to print extern file */
+    if(!isExternDBEmpty(databases.externUsesDB)){/* need to print extern file */
         printLabelAddressesFile(databases.externUsesDB, sourceFilename, EXTERN_TYPE);
     }
 }
@@ -75,7 +75,7 @@ static void printObjectFile(databaseRouter databases, char *sourceFileName, long
     long imageCounter;/* how many bytes already printed */
     long dataCounter;/* how many data bytes already printed */
 
-    replaceExtension(sourceFileName, "ob", objectFileName);
+    replaceExtension(sourceFileName, OBJECT_FILE_EXTENSION, objectFileName);
 
     /* create file */
     objectFile = fopen(objectFileName, "w");
@@ -120,7 +120,7 @@ static void printLabelAddressesFile(void *database, char *sourceFileName, fileTy
     long labelAddress;
 
     /* get file name including relevant extension */
-    char *extension = currentFileType == ENTRY_TYPE ? "ent" : "ext";
+    char *extension = currentFileType == ENTRY_TYPE ? ENTRY_FILE_EXTENSION : EXTERN_FILE_EXTENSION;
     replaceExtension(sourceFileName, extension, labelsFileName);
 
     /* create file */

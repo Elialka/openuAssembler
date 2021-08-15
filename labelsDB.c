@@ -7,12 +7,15 @@
 
 /* todo write function */
 
-typedef struct node{
+typedef struct label{
     char name[LABEL_ARRAY_SIZE];
     long address;
     labelClass type;
     labelPtr next;
 }label;
+
+
+static boolean isLabelsDBEmpty(labelPtr head);
 
 
 labelPtr initLabelsDB(){
@@ -25,6 +28,12 @@ labelPtr initLabelsDB(){
     }
 
     return head;
+}
+
+
+static boolean isLabelsDBEmpty(labelPtr head){
+    /* check if any labels has been set - cannot have empty name */
+    return head && *head->name;
 }
 
 
@@ -47,28 +56,29 @@ boolean seekLabel(labelPtr head, char *name) {
 
 /* todo split function - can remodel seekLabel */
 boolean addNewLabel(labelPtr head, char *labelName, long address, labelClass type, errorCodes *lineErrorPtr){
-    static int labelsCounter = 0;/* how many labels currently in database */
+    boolean result = TRUE;
     labelPtr current;
     labelPtr prev;
 
     current = head;
 
-    if(labelsCounter){/* not first label */
+    if(!isLabelsDBEmpty(head)){/* not first label */
         /* find last defined label, in the process look for new name in defined labels */
         while(current){
             if(!strcmp(labelName, current->name)){/* label already defined */
                 if(current->type == EXTERN_LABEL || type == EXTERN_LABEL){/* if the old or the new label is external */
                     if(current->type == EXTERN_LABEL && type == EXTERN_LABEL){/* both labels are external */
-                        return TRUE;/* multiple extern declarations are allowed */
+                        result =  TRUE;/* multiple extern declarations are allowed */
                     }
                     else{/* only one of them is external */
                         *lineErrorPtr = LABEL_LOCAL_AND_EXTERN;
+                        result =  FALSE;
                     }
                 }
                 else{/* two local label definitions */
                     *lineErrorPtr = DOUBLE_LABEL_DEFINITION;
+                    result =  FALSE;
                 }
-                return FALSE;
             }
             else{/* new label name is not used so far */
                 prev = current;
@@ -76,26 +86,27 @@ boolean addNewLabel(labelPtr head, char *labelName, long address, labelClass typ
             }
         }
 
-        /* allocate memory for new label - memory for first label is allocated when database was initialized */
-        current = calloc(1, sizeof(label));
-        if(!current){
-            *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
-            return FALSE;
+        if(result){
+            /* allocate memory for new label - memory for first label is allocated when database was initialized */
+            current = calloc(1, sizeof(label));
+            if(!current){
+                *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
+                result =  FALSE;
+            }
         }
 
         /* link new node to database */
         prev->next = current;
     }
 
-    /* count label addition */
-    labelsCounter++;
+    if(result){
+        /* update fields */
+        strcpy(current->name, labelName);
+        current->address = address;
+        current->type = type;
+    }
 
-    /* update fields */
-    strcpy(current->name, labelName);
-    current->address = address;
-    current->type = type;
-
-    return TRUE;
+    return result;
 }
 
 
