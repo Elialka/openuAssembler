@@ -22,9 +22,10 @@
 /* todo forgot to address LA or CALL operations to get a label */
 
 /* todo possible refactors */
-/* remake change void * to specific pointer, move pointers definition to header files */
+/* pandas refactor long functions/functions that receive many parameters */
 /* split firstPass */
 /* for every database - extract finding end of DB\allocating additional memory to different function */
+/* in the end, make as many functions as static as possible */
 
 
 static boolean initDataBases(databaseRouterPtr databasePtr);
@@ -52,6 +53,7 @@ int main(int argc, char *argv[]){
     }
 
     /* test - delete */
+    testFunctions(databasesPtr);
     /* end of test */
 
     /* compile files */

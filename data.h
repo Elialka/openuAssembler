@@ -1,6 +1,8 @@
 /* max supported sizes */
 #define MAX_LABEL_LENGTH (31)
 #define MAX_LINE (80)
+#define MAX_FILENAME_LENGTH (250)
+#define MAX_COMMAND_LENGTH (7)
 #define SIZE_OF_BYTE (1)
 #define SIZE_OF_HALF_WORD (2)
 #define SIZE_OF_WORD (4)
@@ -12,7 +14,6 @@
 #define ADDRESS_MAX_VALUE (33554432)
 #define REGISTER_MIN_INDEX (0)
 #define REGISTER_MAX_INDEX (31)
-#define MAX_FILENAME_LENGTH (250)
 
 
 /* array types sizes */
@@ -21,6 +22,7 @@
 #define TOKEN_ARRAY_SIZE (MAX_LINE)
 #define NUMBERS_ARRAY_SIZE (MAX_LINE / 2)
 #define IMAGE_BLOCK_SIZE (50)
+#define COMMAND_ARRAY_SIZE (MAX_COMMAND_LENGTH + 1)
 #define DATABASE_POINTER_ARRAY_SIZE (7)
 
 /* default values */
@@ -50,6 +52,7 @@ typedef enum{
     NO_SPACE_AFTER_LABEL,
     LABEL_IS_OPERATION,
     LABEL_TOO_LONG,
+    LABEL_DEFINITION_TOO_LONG,
     ILLEGAL_LABEL_NAME,
     ADDRESS_DISTANCE_OVER_LIMITS,
     ENTRY_IS_EXTERN,

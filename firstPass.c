@@ -15,7 +15,7 @@ static boolean clearLine(char *currentPos, errorCodes *lineErrorPtr, FILE *sourc
 boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPtr databasesPtr) {
     /* buffers */
     char line[LINE_ARRAY_SIZE];/* used to load one line from file */
-    char command[TOKEN_ARRAY_SIZE];/* extracted command name for each line */
+    char command[COMMAND_ARRAY_SIZE];/* extracted command name for each line */
     char string[TOKEN_ARRAY_SIZE];/* extracted string */
     long numbers[NUMBERS_ARRAY_SIZE];/* list of numbers */
     char label[TOKEN_ARRAY_SIZE];/* store label name if a label is declared or used in entry\extern */
@@ -55,7 +55,7 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
         labelDefinition = FALSE;
 
         /* check if current line includes label definition */
-        if(isLabelDefinition(&currentPos, label)){
+        if(isLabelDefinition(&currentPos, label, &lineError)){
             if(seekOp(databasesPtr->operationsDB, label) != NOT_FOUND){/* label name is operation name */
                 /* todo print error LABEL_IS_OPERATION */
                 generalError = TRUE;
@@ -66,7 +66,7 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
         }
 
         /* try to read command name */
-        if(!extractCommandName(&currentPos, command, labelDefinition, &lineError)){
+        if((lineError = extractCommandName(&currentPos, command))){
             /* todo print error */
             generalError = TRUE;
             continue;
@@ -99,7 +99,7 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
                         addNewLabel(databasesPtr->labelsDB, label, DC, DATA_LABEL, &lineError);
                     }
                     if(dataOpType == ASCIZ){
-                        if(!getStringFromLine(&currentPos, string, &lineError)){
+                        if(!(lineError = getStringFromLine(&currentPos, string))){
                             /* todo print error */
                             generalError = TRUE;
                         }

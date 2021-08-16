@@ -37,12 +37,13 @@ void testIsLabelDefinition()
     char *currentPos;
     char *temp;
     boolean generalError;
+    errorCodes lineError;
 
     generalError = FALSE;
 
     /* test 1*/
     currentPos = "  	hELLO: ";
-    if (!isLabelDefinition(&currentPos, currentLabel))
+    if (!isLabelDefinition(&currentPos, currentLabel, &lineError))
     {
         printf("isLabelDefinition test 1 failed - return value\n");
         printf("-------------------------\n");
@@ -61,7 +62,7 @@ void testIsLabelDefinition()
 
     /* test 2*/
     currentPos = "asdf: ";
-    if (!isLabelDefinition(&currentPos, currentLabel))
+    if (!isLabelDefinition(&currentPos, currentLabel, &lineError))
     {
         printf("isLabelDefinition test 2 failed - return value\n");
         printf("-------------------------\n");
@@ -81,7 +82,7 @@ void testIsLabelDefinition()
 
     /* test 3*/
     currentPos = "asdd2:";
-    if (!isLabelDefinition(&currentPos, currentLabel))
+    if (!isLabelDefinition(&currentPos, currentLabel, &lineError))
     {
         printf("isLabelDefinition test 3 failed - return value\n");
         printf("-------------------------\n");
@@ -101,7 +102,7 @@ void testIsLabelDefinition()
     /* test 4*/
     currentPos = "  2asd2: ";
     temp = currentPos;
-    if(isLabelDefinition(&currentPos, currentLabel)){
+    if(isLabelDefinition(&currentPos, currentLabel, &lineError)){
         generalError = TRUE;
         printf("isLabelDefinition test 4 failed - return value\n");
         printf("-------------------------\n");
@@ -132,7 +133,7 @@ void testGetStringFromLine(){
 
     /* test 1 */
     strcpy(line, "\"asdfg  asd\"");
-    if(!getStringFromLine(&currentPos, string, &errorTemp)){
+    if(!getStringFromLine(&currentPos, string)){
         printf("pandas - testGetStringFromLine test 1 failed - returned FALSE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -146,7 +147,7 @@ void testGetStringFromLine(){
 
     /* test 2 */
     strcpy(line, "\"  &^     hjagfsdy5\"");
-    if(!getStringFromLine(&currentPos, string, &errorTemp)){
+    if(!getStringFromLine(&currentPos, string)){
         printf("pandas - testGetStringFromLine test 2 failed - returned FALSE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -160,7 +161,7 @@ void testGetStringFromLine(){
 
     /* test 3 */
     strcpy(line, "\"asdfg  asdasd asd");
-    if(getStringFromLine(&currentPos, string, &errorTemp)){
+    if(getStringFromLine(&currentPos, string)){
         printf("pandas - testGetStringFromLine test 3 failed - returned TRUE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -168,7 +169,7 @@ void testGetStringFromLine(){
 
     /* test 4 */
     strcpy(line, "asdfg  asdasd asd\"");
-    if(getStringFromLine(&currentPos, string, &errorTemp)){
+    if(getStringFromLine(&currentPos, string)){
         printf("pandas - testGetStringFromLine test 4 failed - returned TRUE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;

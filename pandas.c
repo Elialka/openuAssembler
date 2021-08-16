@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 
 
@@ -11,11 +12,18 @@
 
 #define SKIP_WHITES(x) for(; isspace(*(x)); (x)++)
 
-
-/*
- * return TRUE if empty or comment line
+/**
+ * Count legal label characters
+ * @param token Name string
+ * @return How many characters read until string ended, or until illegal character encountered
  */
+static int countLabelNameCharacters(char *token);
+
+
+
+
 boolean ignoreLine(char *line){
+    boolean result;
     char *current;
 
     current = line;
@@ -24,109 +32,114 @@ boolean ignoreLine(char *line){
 
     if(*current){
         if(*current == ';'){/* comment line */
-            return TRUE;
+            result =  TRUE;
         }
         else{/* line is not empty */
-            return FALSE;
+            result =  FALSE;
         }
     }
     else{/* line is empty */
-        return TRUE;
+        result =  TRUE;
     }
+
+    return result;
 }
 
 
-int copyNextToken(char *current, char *buffer){
+int copyNextToken(char *source, char *buffer){
     int i;
 
-    for(i = 0; *current && !isspace(*current) && *current != ','; current++, i++){
-        buffer[i] = *current;
+    for(i = 0; *source && !isspace(*source) && *source != ','; source++, i++){
+        buffer[i] = *source;
     }
     buffer[i] = '\0';
     return i;
 }
 
 
-/*
- * return TRUE if line starts with label definition
- */
-boolean isLabelDefinition(char **currentPosPtr, char *currentLabel) {
-    char *current;/* tracks progress in checks */
-    char buffer[TOKEN_ARRAY_SIZE];/* store token to examine it */
-    int i;
-    int progress;/* counts how many characters read from currentPos */
+static int countLabelNameCharacters(char *token){
+    int counter = 0;/* how many consecutive legal name characters */
+    char *currentChar = token;/* position in token string */
 
-    /* set current to next unread character and reset progress counter*/
-    current = *currentPosPtr;
-    progress = 0;
-
-    /* skip white characters and count progress */
-    SKIP_WHITES(current);
-    progress += (int)(current - *currentPosPtr);
-
-    /* extract first token */
-    progress += copyNextToken(current, buffer);
-
-    current = buffer;
-
-    /* validate characters */
-    if(isalpha(*current)){
-        for (i = 0; (isalpha(*current) || isdigit(*current)) && i < MAX_LABEL_LENGTH;
-        current++)/* legal char */
+    if(isalpha(*currentChar)){
+        for (; (isalpha(*currentChar) || isdigit(*currentChar));
+            currentChar++, counter++)/* legal char */
             ;
-
-        if ((*current)==':'){/* end of label definition */
-            *current = '\0';/* remove ':' from label name */
-            *currentPosPtr += progress;
-            /* copy to current label */
-            copyNextToken(buffer, currentLabel);
-            return TRUE;
-        }
     }
 
-    return FALSE;
+    return counter;
 }
 
 
-/*
- * extract command name from line
- * return TRUE if no errors occurred, FALSE otherwise
- */
-boolean extractCommandName(char **currentPosPtr, char *commandName, boolean labelDefinition, errorCodes *lineErrorPtr)
-                           {
-    char *current = *currentPosPtr;/* current character */
+boolean isLabelDefinition(char **currentPosPtr, char *currentLabel, errorCodes *lineErrorPtr) {
+    boolean result = FALSE;
+    char *currentChar = *currentPosPtr;/* tracks progress in strings */
+    char *definitionEnd;/* point to the end of the definition */
+    char token[TOKEN_ARRAY_SIZE];/* store token to examine it */
+    int nameLength;/* how many characters are in the name being defined */
+
+    /* skip white characters and count progress */
+    SKIP_WHITES(currentChar);
+
+    /* extract first token */
+    currentChar += copyNextToken(currentChar, token);
+
+    if((definitionEnd = strchr(token, ':'))){/* a label is defined */
+        nameLength = countLabelNameCharacters(token);
+        if(nameLength > MAX_LABEL_LENGTH){
+            *lineErrorPtr = LABEL_DEFINITION_TOO_LONG;
+        }
+        else if(nameLength != definitionEnd - token){/* illegal characters before ':' */
+            *lineErrorPtr = ILLEGAL_LABEL_NAME;
+        }
+        else{/* legal length and characters */
+            if(isspace(*(definitionEnd + 1))){/* no white character after label definition */
+                *lineErrorPtr = NO_SPACE_AFTER_LABEL;
+            }
+            else{
+                *currentPosPtr = currentChar;/* update line position */
+                *definitionEnd = '\0';/* mark end of name string */
+                strcpy(currentLabel, token);/* save label name */
+                result = TRUE;
+            }
+        }
+    }
+
+    return result;
+}
+
+
+errorCodes extractCommandName(char **currentPosPtr, char *commandName) {
+    errorCodes encounteredError = NO_ERROR;
+    char *currentCharacter = *currentPosPtr;
+    char buffer[TOKEN_ARRAY_SIZE];
     int tokenLength;
 
-    if(labelDefinition){/* check white character after label definition */
-        if(isspace(*current)){
-            current++;
-        }
-        else{
-            *lineErrorPtr = NO_SPACE_AFTER_LABEL;
-            return FALSE;
-        }
-    }
+    SKIP_WHITES(currentCharacter);
 
-    SKIP_WHITES(current);
-
-    tokenLength = copyNextToken(current, commandName);
-    current += tokenLength;
+    /* get next token */
+    tokenLength = copyNextToken(currentCharacter, buffer);
+    currentCharacter += tokenLength;
 
     if(!tokenLength){/* no characters read */
-        *lineErrorPtr = MISSING_OPERATION_NAME;
-        return FALSE;
+        encounteredError = MISSING_OPERATION_NAME;
+    }
+    else if(tokenLength > MAX_COMMAND_LENGTH){/* impossible length */
+        encounteredError = UNIDENTIFIED_OPERATION_NAME;
+    }
+    else{/* possible command name */
+        *currentPosPtr = currentCharacter;
+        strcpy(commandName, buffer);
     }
 
-    /* update current position in the line */
-    *currentPosPtr = current;
-
-    return TRUE;
+    return encounteredError;
 }
 
 
 boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValue) {
+    boolean result = TRUE;
     long value;
-    long minValue;
+    long minValue;/* negative border for number of bits used */
 
     /* reset global error flag */
     errno = 0;
@@ -140,16 +153,18 @@ boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValu
     /* is value in range */
     if(token != *endPtrPtr && !errno && value <= maxValue && value >= minValue){
         *valuePtr = value;
-        return TRUE;
     }
     else{
-        return FALSE;
+        errno = 0;
+        result = FALSE;
     }
 
+    return result;
 }
 
 
-boolean getStringFromLine(char **currentPosPtr, char *buffer, errorCodes *lineErrorPtr) {
+errorCodes getStringFromLine(char **currentPosPtr, char *destination) {
+    errorCodes encounteredError = NO_ERROR;
     int i;
     char *current = *currentPosPtr;
 
@@ -159,35 +174,34 @@ boolean getStringFromLine(char **currentPosPtr, char *buffer, errorCodes *lineEr
     if(*current=='"')
     {
         current++;
-        /* copy string to string buffer */
-        for (i=0; *current && *current != '"' && i < TOKEN_ARRAY_SIZE; i++, current++)
-        {
-            if(isprint(*current)){
-                buffer[i] = *current;
-            }
-            else{
-                *lineErrorPtr = ILLEGAL_CHARACTER;
-                return FALSE;
-            }
-        }
-
-        /* validate closing quotes */
-        if (*current=='"')
-        {
-            buffer[i]='\0';
-            *currentPosPtr = current;
-        }
-        else
-        {
-            *lineErrorPtr = MISSING_QUOTE;
-            return FALSE;
-        }
     }
     else{
-        return FALSE;
+        encounteredError = MISSING_QUOTE;
     }
 
-    return TRUE;
+    /* copy string to string buffer */
+    for (i=0; !encounteredError && *current && *current != '"'; i++, current++)
+    {
+        if(isprint(*current)){
+            destination[i] = *current;
+        }
+        else{/* only printable characters are allowed */
+            encounteredError = ILLEGAL_CHARACTER;
+        }
+    }
+
+    /* validate closing quotes */
+    if (!encounteredError && *current=='"')
+    {
+        destination[i]='\0';
+        *currentPosPtr = current;
+    }
+    else
+    {
+        encounteredError = MISSING_QUOTE;
+    }
+
+    return encounteredError;
 }
 
 
@@ -224,7 +238,7 @@ int getNumbersFromLine(char **currentPosPtr, long *buffer, dataOps dataOpType, e
 
         if (i % 2) {/* expecting a comma */
 
-            if (!*current) /*end of line*/
+            if (!*current) /*end of line*//* todo refactor to use readComma */
                 {break;}
                 if (*current != ',') {
                     *lineErrorPtr = ILLEGAL_EXPRESSION;
@@ -411,27 +425,20 @@ boolean extractOperands(char **currentPosPtr, operationClass commandOpType, long
 
 
 boolean tokenIsLabel(char *token, int tokenLength, errorCodes *lineErrorPtr){
-    boolean result;
-    char *current;
+    boolean result = FALSE;
+    int nameLength;
 
-    result = TRUE;
-    current = token;
+    /* count how many legal characters are in token */
+    nameLength = countLabelNameCharacters(token);
 
-    if(tokenLength > MAX_LABEL_LENGTH){/* impossible length */
+    if(nameLength > MAX_LABEL_LENGTH){/* impossible length */
         *lineErrorPtr = LABEL_TOO_LONG;
-        result = FALSE;
     }
-    else if(!isalpha(*current)){/* does not start with letter */
+    else if(nameLength < tokenLength){/* illegal characters present */
         *lineErrorPtr = ILLEGAL_LABEL_NAME;
-        result = FALSE;
     }
-    else{/* starts with a letter && possible length */
-        for(current++; *current; current++){
-            if(!isalnum(*current)){/* illegal character */
-                *lineErrorPtr = ILLEGAL_LABEL_NAME;
-                result = FALSE;
-            }
-        }
+    else{/* possible label name */
+        result = TRUE;
     }
 
     return result;
@@ -577,6 +584,7 @@ boolean getThirdOperand(char *token, int tokenLength, long IC, operationClass co
 
 
 boolean getLabel(char **currentPosPtr, char *labelName, errorCodes *lineErrorPtr){
+    boolean result = FALSE;
     char buffer[TOKEN_ARRAY_SIZE];
     char *current = *currentPosPtr;
     int tokenLength = 0;
@@ -593,10 +601,10 @@ boolean getLabel(char **currentPosPtr, char *labelName, errorCodes *lineErrorPtr
     else if(tokenIsLabel(buffer, tokenLength, lineErrorPtr)){/* legal label name */
         copyNextToken(buffer, labelName);
         *currentPosPtr = current;
-        return TRUE;
+        result = TRUE;
     }
 
-    return FALSE;
+    return result;
 }
 
 
