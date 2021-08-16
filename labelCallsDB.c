@@ -23,7 +23,6 @@ labelCallPtr initLabelCallsDB(){
     }
 
     return head;
-
 }
 
 
@@ -33,8 +32,8 @@ static boolean isLabelCallsEmpty(labelCallPtr head){
 }
 
 
-boolean setLabelCall(labelCallPtr head, long IC, char *labelName, operationClass commandOpType, errorCodes *lineErrorPtr){
-    boolean result = TRUE;
+errorCodes setLabelCall(labelCallPtr head, long IC, char *labelName, operationClass commandOpType) {
+    errorCodes encounteredError = NO_ERROR;
     labelCallPtr current;
     labelCallPtr prev;
 
@@ -50,30 +49,27 @@ boolean setLabelCall(labelCallPtr head, long IC, char *labelName, operationClass
         /* allocate memory for new label - memory for first label is allocated when database was initialized */
         current = calloc(1, sizeof(labelCallNode));
         if(!current){
-            *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
+             encounteredError = MEMORY_ALLOCATION_FAILURE;
             /* todo handle error - free all allocated memory, quit program */
-            result = FALSE;
         }
 
         /* link new node to database */
         prev->next = current;
     }
 
-    /* todo - forgot LA or CALL options */
     /* impossible value */
-    if(commandOpType != I_BRANCHING && commandOpType != J_JUMP){
-        *lineErrorPtr = IMPOSSIBLE;
-        result =  FALSE;
+    if(commandOpType != I_BRANCHING && commandOpType != J_JUMP && commandOpType != J_CALL_OR_LA){
+        encounteredError = IMPOSSIBLE;
     }
 
-    if(result){
+    if(!encounteredError){
         /* update fields */
         current->attributes.IC = IC;
         strcpy(current->attributes.name, labelName);
         current->attributes.type = commandOpType;
     }
 
-    return result;
+    return encounteredError;
 }
 
 

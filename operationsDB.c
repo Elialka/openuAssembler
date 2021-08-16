@@ -153,6 +153,70 @@ boolean seekDataOp(char *str, dataOps *dataOpTypePtr){
     return TRUE;
 }
 
+
+boolean firstOperandFormat(operationClass commandOpType, codeLineData *currentLineDataPtr,
+                           operandAttributes *currentOperandPtr) {
+    boolean needMoreOperands = TRUE;
+
+    /* set relevant pointer to correct attribute's address */
+    if(commandOpType == J_STOP){
+        needMoreOperands = FALSE;
+    }
+    else if(commandOpType <= R_COPY){/* is R type *//* todo check if r copy is same or reverse order */
+        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->rAttributes.rs;
+    }
+    else if(commandOpType <= I_MEMORY_LOAD){/* is I type */
+        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->iAttributes.rs;
+    }
+    else{/* is J type - not stop */
+        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->jAttributes.address;
+    }
+
+    return needMoreOperands;
+}
+
+
+boolean secondOperandFormat(operationClass commandOpType, codeLineData *currentLineDataPtr,
+                            operandAttributes *currentOperandPtr) {
+    boolean needMoreOperands = TRUE;
+
+    if(commandOpType >= J_JUMP){/* is J type */
+        needMoreOperands = FALSE;
+    }
+    else if(commandOpType == R_ARITHMETIC){
+        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->rAttributes.rt;
+    }
+    else if(commandOpType == R_COPY){
+        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->rAttributes.rd;
+    }
+    else if(commandOpType == I_ARITHMETIC || commandOpType == I_MEMORY_LOAD){
+        currentOperandPtr->operandData.immedPtr = &currentLineDataPtr->iAttributes.immed;
+    }
+    else if(commandOpType == I_BRANCHING){
+        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->iAttributes.rt;
+    }
+
+    return needMoreOperands;
+}
+
+boolean thirdOperandFormat(operationClass commandOpType, codeLineData *currentLineDataPtr,
+                           operandAttributes *currentOperandPtr){
+    boolean needMoreOperands = TRUE;
+
+    if(commandOpType >= J_JUMP || commandOpType == R_COPY){/* is J type or R_COPY */
+        needMoreOperands = FALSE;
+    }
+    else if(commandOpType == R_ARITHMETIC){
+        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->rAttributes.rd;
+    }
+    else if(commandOpType == I_ARITHMETIC || commandOpType == I_MEMORY_LOAD){
+        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->iAttributes.rt;
+    }
+
+    return needMoreOperands;
+}
+
+
 void clearOperationDB(operationPtr head){
     free(head);
 }

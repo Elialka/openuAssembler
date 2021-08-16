@@ -6,6 +6,8 @@
 
 #define FIRST_16_BITS_MASK (0xFFFF)
 
+/* todo refactor addition function parameters */
+
 typedef union codeLine{
     struct{
         unsigned int :6;

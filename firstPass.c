@@ -11,6 +11,16 @@
 
 static boolean clearLine(char *currentPos, errorCodes *lineErrorPtr, FILE *sourceFile);
 
+/* todo left to refactor before new firstPass */
+/* pandas - isLabelDefinition, getNumbersFromLine, readComma(check line removal) */
+/* codeImageDB - refactor functions API to match new format */
+/* labelCallsDB - add support for J_CALL_OR_LA */
+/* secondPass - add support for J_CALL_OR_LA */
+/* tests - maybe remake tests to work with new API */
+/* print - start to write error printing function */
+
+/* todo check memory limits 25 bits */
+
 /* todo split function */
 boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPtr databasesPtr) {
     /* buffers */
@@ -55,7 +65,7 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
         labelDefinition = FALSE;
 
         /* check if current line includes label definition */
-        if(isLabelDefinition(&currentPos, label, &lineError)){
+        if(isLabelDefinition(&currentPos, label)){
             if(seekOp(databasesPtr->operationsDB, label) != NOT_FOUND){/* label name is operation name */
                 /* todo print error LABEL_IS_OPERATION */
                 generalError = TRUE;
@@ -80,7 +90,7 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
             else{/* legal data command name */
                 if(dataOpType == ENTRY || dataOpType == EXTERN){
                     /* read label operand */
-                    if(getLabel(&currentPos, label, &lineError)){
+                    if(getLabelOperand(currentPos, 0, label)){/* todo does not work after getLabelOperand refactor */
                         if(dataOpType == ENTRY){
                             addEntryCall(databasesPtr->entryCallsDB, label, &lineError);
                         }
@@ -143,9 +153,10 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
                     addNewLabel(databasesPtr->labelsDB, label, IC, CODE_LABEL, &lineError);
                 }
                 /* get operation operands */
-                if(extractOperands(&currentPos, commandOpType, IC,
-                                   &jIsReg, &reg1, &reg2, &reg3, &immed,
-                                   &lineError, databasesPtr->labelCallsDB))
+                /*if(extractOperandsOLD(&currentPos, commandOpType, IC,
+                                      &jIsReg, &reg1, &reg2, &reg3, &immed,
+                                      &lineError, databasesPtr->labelCallsDB))*/
+                if(TRUE)
                 {
                     /* add command to code image */
                     if(commandOpType == R_ARITHMETIC || commandOpType == R_COPY){
@@ -195,18 +206,62 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
     return !generalError;
 }/* end firstPass */
 
+/* todo make static */
+errorCodes extractOperands(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
+                                  labelCallPtr labelCallsDB, long IC) {
+    errorCodes encounteredError = NO_ERROR;
+    operandAttributes currentOperand;
+    boolean needAnotherOperand = firstOperandFormat(commandOpType, currentLineDataPtr, &currentOperand);
+
+    currentOperand.isLabel = FALSE;/* reset flag */
+
+    if(needAnotherOperand){/* an operand is needed */
+        encounteredError = getFirstOperand(currentPosPtr, commandOpType, &currentOperand);
+    }
+
+    /* read second operand */
+    if(!encounteredError && needAnotherOperand){/* first operand read successfully */
+        needAnotherOperand = secondOperandFormat(commandOpType, currentLineDataPtr, &currentOperand);
+        if(needAnotherOperand){/* second operand needed */
+            encounteredError = readComma(currentPosPtr);
+            if(!encounteredError){/* comma present */
+                encounteredError = getSecondOperand(currentPosPtr, commandOpType, &currentOperand);
+            }
+        }
+    }
+
+    /* read third operand */
+    if(!encounteredError && needAnotherOperand){/* second operand read successfully */
+        needAnotherOperand = thirdOperandFormat(commandOpType, currentLineDataPtr, &currentOperand);
+        if(needAnotherOperand){/* third operand needed */
+            encounteredError = readComma(currentPosPtr);
+            if(!encounteredError){/* comma present */
+                encounteredError = getThirdOperand(currentPosPtr, commandOpType, &currentOperand);
+            }
+        }
+    }
+
+    if(!encounteredError && currentOperand.isLabel){/* a label has been used as a parameter */
+        encounteredError = setLabelCall(labelCallsDB, IC, currentOperand.labelName, commandOpType);
+    }
+
+    return encounteredError;
+}
+
+
+
 
 /* todo check clearLine EOF*/
 boolean clearLine(char *currentPos, errorCodes *lineErrorPtr, FILE *sourceFile) {
+    boolean result = TRUE;
     int currentChar;
 
     if(*(currentPos) != '\n'){/* source line is longer than maximum supported length */
         for(; (currentChar = fgetc(sourceFile)) != EOF && currentChar != '\n' ; currentPos++)
             ;
         *lineErrorPtr = LINE_TOO_LONG;
-        return FALSE;
+        result = FALSE;
     }
-    return TRUE;
 
-
+    return result;
 }

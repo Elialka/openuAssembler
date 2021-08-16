@@ -5,6 +5,7 @@
 #include "dataImageDB.h"
 #include "labelsDB.h"
 #include "codeImageDB.h"
+#include "firstPass.h"
 
 /* run all tests */
 
@@ -21,12 +22,12 @@ void testFunctions(databaseRouterPtr databasesPtr){
     testAddNewLabel(databasesPtr->labelsDB);
 
     /* dataImageDB tests */
-    testAddNumber(databasesPtr->dataImageDB);
-    testAddByte(databasesPtr->dataImageDB);
-    testAddString(databasesPtr->dataImageDB);
+    testAddNumber(&databasesPtr->dataImageDB);
+    testAddByte(&databasesPtr->dataImageDB);
+    testAddString(&databasesPtr->dataImageDB);
 
     /* codeImageDB tests */
-    testAddingCommands(databasesPtr->codeImageDB);
+    testAddingCommands(&databasesPtr->codeImageDB);
 }
 
 /* pandas tests */
@@ -37,13 +38,12 @@ void testIsLabelDefinition()
     char *currentPos;
     char *temp;
     boolean generalError;
-    errorCodes lineError;
 
     generalError = FALSE;
 
     /* test 1*/
     currentPos = "  	hELLO: ";
-    if (!isLabelDefinition(&currentPos, currentLabel, &lineError))
+    if (isLabelDefinition(&currentPos, currentLabel))
     {
         printf("isLabelDefinition test 1 failed - return value\n");
         printf("-------------------------\n");
@@ -62,7 +62,7 @@ void testIsLabelDefinition()
 
     /* test 2*/
     currentPos = "asdf: ";
-    if (!isLabelDefinition(&currentPos, currentLabel, &lineError))
+    if (isLabelDefinition(&currentPos, currentLabel))
     {
         printf("isLabelDefinition test 2 failed - return value\n");
         printf("-------------------------\n");
@@ -81,8 +81,8 @@ void testIsLabelDefinition()
 
 
     /* test 3*/
-    currentPos = "asdd2:";
-    if (!isLabelDefinition(&currentPos, currentLabel, &lineError))
+    currentPos = "asdd2: ";
+    if (isLabelDefinition(&currentPos, currentLabel))
     {
         printf("isLabelDefinition test 3 failed - return value\n");
         printf("-------------------------\n");
@@ -102,7 +102,7 @@ void testIsLabelDefinition()
     /* test 4*/
     currentPos = "  2asd2: ";
     temp = currentPos;
-    if(isLabelDefinition(&currentPos, currentLabel, &lineError)){
+    if(!isLabelDefinition(&currentPos, currentLabel)){
         generalError = TRUE;
         printf("isLabelDefinition test 4 failed - return value\n");
         printf("-------------------------\n");
@@ -123,7 +123,6 @@ void testIsLabelDefinition()
 
 
 void testGetStringFromLine(){
-    errorCodes errorTemp;
     char line[LINE_ARRAY_SIZE];
     char *currentPos = line;
     char string[TOKEN_ARRAY_SIZE];
@@ -133,7 +132,7 @@ void testGetStringFromLine(){
 
     /* test 1 */
     strcpy(line, "\"asdfg  asd\"");
-    if(!getStringFromLine(&currentPos, string)){
+    if(getStringFromLine(&currentPos, string)){
         printf("pandas - testGetStringFromLine test 1 failed - returned FALSE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -146,8 +145,9 @@ void testGetStringFromLine(){
     }
 
     /* test 2 */
+    currentPos = line;
     strcpy(line, "\"  &^     hjagfsdy5\"");
-    if(!getStringFromLine(&currentPos, string)){
+    if(getStringFromLine(&currentPos, string)){
         printf("pandas - testGetStringFromLine test 2 failed - returned FALSE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -161,7 +161,7 @@ void testGetStringFromLine(){
 
     /* test 3 */
     strcpy(line, "\"asdfg  asdasd asd");
-    if(getStringFromLine(&currentPos, string)){
+    if(!getStringFromLine(&currentPos, string)){
         printf("pandas - testGetStringFromLine test 3 failed - returned TRUE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -169,7 +169,7 @@ void testGetStringFromLine(){
 
     /* test 4 */
     strcpy(line, "asdfg  asdasd asd\"");
-    if(getStringFromLine(&currentPos, string)){
+    if(!getStringFromLine(&currentPos, string)){
         printf("pandas - testGetStringFromLine test 4 failed - returned TRUE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -444,15 +444,14 @@ void testGetNumbersFromLine(){
 void testIdRegister()
 {
     boolean generalError;
-    int tempReg;
-    errorCodes errorTemp;
+    unsigned char tempReg;
 
     generalError = FALSE;
 
     /* todo noa check also value in tempReg after each call and update error prints to match case */
 
     /* test 1 */
-    if (!(idRegister("$12", &tempReg, &errorTemp)))
+    if (getRegisterOperand("$12", &tempReg))
     {
         printf("pandas - testIsRegister test 1 failed - returned FALSE\n");
         printf("--------------------------------------\n");
@@ -461,7 +460,7 @@ void testIdRegister()
 
 
     /*test 2*/
-    if (idRegister("$ 12", &tempReg, &errorTemp) )
+    if (!getRegisterOperand("$", &tempReg))
     {
         printf("pandas - testIsRegister test 2 failed - returned FALSE\n");
         printf("--------------------------------------\n");
@@ -469,21 +468,21 @@ void testIdRegister()
     }
 
     /*test 3*/
-    if (idRegister("$12.5", &tempReg, &errorTemp))
+    if (!getRegisterOperand("$12.5", &tempReg))
     {
         printf("pandas - testIsRegister test 3 failed - returned FALSE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
     /*test 4*/
-    if (idRegister("12", &tempReg, &errorTemp))
+    if (!getRegisterOperand("12", &tempReg))
     {
         printf("pandas - testIsRegister test 4 failed - returned FALSE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
     /*test 5*/
-    if (idRegister("$125", &tempReg, &errorTemp))
+    if (!getRegisterOperand("$125", &tempReg))
     {
         printf("pandas - testIsRegister test 5 failed - returned FALSE\n");
         printf("--------------------------------------\n");
@@ -491,13 +490,13 @@ void testIdRegister()
     }
 
     /*test 6*/
-    if (idRegister("$12#", &tempReg, &errorTemp))
+    if (!getRegisterOperand("$12#", &tempReg))
     {
         printf("pandas - testIsRegister test 6 failed - returned FALSE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
-    if (!(idRegister("$0", &tempReg, &errorTemp)))
+    if ((getRegisterOperand("$0", &tempReg)))
     {
         printf("pandas - testIsRegister test 3 failed - returned FALSE\n");
         printf("--------------------------------------\n");
@@ -515,93 +514,89 @@ void testIdRegister()
 void testExtractOperands(void *head) {
     boolean generalError;
     errorCodes errorTemp;
-    boolean jumpIsReg = FALSE;
     long IC = 100;
-    int tmpReg1;
-    int tmpReg2;
-    int tmpReg3;
-    long tmpImmed;
     char line[LINE_ARRAY_SIZE];
     char *currentPos = line;
-
+    codeLineData currentLineData;
     generalError = FALSE;
 
     /*test 1*/
     strcpy(line, "$10, $20, $30");
-    if (!(extractOperands(&currentPos, R_ARITHMETIC, IC, &jumpIsReg,
-                          &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))) {
+    if (extractOperands(&currentPos, R_ARITHMETIC, &currentLineData, head,IC)) {
         printf("pandas - testExtractOperands test 1 failed - returned FALSE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
 
-    /*test 2*/
-    strcpy(line, "$10, $20, $30");
-    extractOperands(&currentPos, R_ARITHMETIC, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
 
-    if (tmpReg1 != 10 || tmpReg2 != 20 || tmpReg3 != 30) {
+    /*test 2*/
+    currentPos = line;
+    strcpy(line, "$10, $20, $30");
+    extractOperands(&currentPos, R_ARITHMETIC, &currentLineData, head,IC);
+
+    if (currentLineData.rAttributes.rs != 10 || currentLineData.rAttributes.rt != 20 ||
+        currentLineData.rAttributes.rd != 30) {
         printf("pandas - testExtractOperands test 2 failed - saved incorrect values\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
-    /*test 3*/
-    strcpy(line, "$10   , $20");
-    extractOperands(&currentPos, R_COPY, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
 
-    if (tmpReg1 != 10 || tmpReg2 != 20) {
+    /*test 3*/
+    currentPos = line;
+    strcpy(line, "$10   , $20");
+    extractOperands(&currentPos, R_COPY, &currentLineData, head,IC);
+
+    if (currentLineData.rAttributes.rs != 10 || currentLineData.rAttributes.rd != 20) {
         printf("pandas - testExtractOperands test 3 failed - saved incorrect values\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
 
     /*test 4*/
+    currentPos = line;
     strcpy(line, "$10");
-    if (extractOperands(&currentPos, R_COPY, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head)) {
+    if (!(errorTemp = extractOperands(&currentPos, R_COPY, &currentLineData, head,IC))){
         printf("pandas - testExtractOperands test 4 failed - expected register\n");
         printf("%d", errorTemp);
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
     /*test 5*/
-    tmpReg1 = -1;
-    tmpReg2 = -1;
-    tmpReg3 = -1;
+    currentPos = line;
     strcpy(line, "$10, -32, $30");
-    extractOperands(&currentPos, I_ARITHMETIC, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
+    extractOperands(&currentPos, I_ARITHMETIC, &currentLineData, head,IC);
 
-    if (tmpReg1 != 10 || tmpReg2 != 30 || tmpImmed != -32) {
+    if (currentLineData.iAttributes.rs != 10 || currentLineData.iAttributes.rt != 30 ||
+    currentLineData.iAttributes.immed != -32) {
         printf("pandas - testExtractOperands test 5 failed - saved incorrect values \n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
 
     /*test 6*/
+    currentPos = line;
     strcpy(line, "$10, -21, $22");
-    extractOperands(&currentPos, I_MEMORY_LOAD, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
-    if (tmpReg1 != 10 || tmpReg2 != 22 || tmpImmed != -21) {
+    extractOperands(&currentPos, I_MEMORY_LOAD, &currentLineData, head,IC);
+    if (currentLineData.iAttributes.rs != 10 || currentLineData.iAttributes.rt != 22 ||
+    currentLineData.iAttributes.immed != -21) {
         printf("pandas - testExtractOperands test 6 failed - saved incorrect values\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
     /*test 7*/
+    currentPos = line;
     strcpy(line, "$10, -21 $22");
-    extractOperands(&currentPos, I_MEMORY_LOAD, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
+    extractOperands(&currentPos, I_MEMORY_LOAD, &currentLineData, head,IC);
     if (errorTemp != MISSING_COMMA) {
-        printf("pandas - testExtractOperands test 7 failed - expected another error code a\n");
+        printf("pandas - testExtractOperands test 7 failed - expected another error code\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
 
     /*test 8*/
+    currentPos = line;
     strcpy(line, "$10 -21 $22");
-    if (extractOperands(&currentPos, I_MEMORY_LOAD, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    if(!extractOperands(&currentPos, I_MEMORY_LOAD, &currentLineData, head,IC))
     {
         printf("pandas - testExtractOperands test 8 failed - missing comma\n");
         printf("--------------------------------------\n");
@@ -609,9 +604,9 @@ void testExtractOperands(void *head) {
     }
 
     /*test 9*/
+    currentPos = line;
     strcpy(line, "$10# $22");
-    if (extractOperands(&currentPos, I_MEMORY_LOAD, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    if (!extractOperands(&currentPos, I_MEMORY_LOAD, &currentLineData, head,IC))
 
     {
         printf("pandas - testExtractOperands test 9 failed - not a register - illegal sign\n");
@@ -619,9 +614,9 @@ void testExtractOperands(void *head) {
         generalError = TRUE;
     }
     /*test 10*/
+    currentPos = line;
     strcpy(line, "$10, -2, $22");
-    if (extractOperands(&currentPos, R_ARITHMETIC, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    if (!extractOperands(&currentPos, R_ARITHMETIC, &currentLineData, head,IC))
 
     {
         printf("pandas - testExtractOperands test 10 failed - expected register\n");
@@ -629,9 +624,9 @@ void testExtractOperands(void *head) {
         generalError = TRUE;
     }
     /*test 11*/
+    currentPos = line;
     strcpy(line, "$10, $3,, $22");
-    if (extractOperands(&currentPos, R_ARITHMETIC, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    if (!extractOperands(&currentPos, R_ARITHMETIC, &currentLineData, head,IC))
 
     {
         printf("pandas - testExtractOperands test 11 failed - should not run\n");
@@ -639,19 +634,19 @@ void testExtractOperands(void *head) {
         generalError = TRUE;
     }
     /*test 12*/
+    currentPos = line;
     strcpy(line, "$10, $2,");
-    extractOperands(&currentPos, R_ARITHMETIC, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
-    if (errorTemp != EXPECTED_REGISTER)
+    errorTemp = extractOperands(&currentPos, R_ARITHMETIC, &currentLineData, head,IC);
+    if (errorTemp != MISSING_PARAMETER)
     {
-        printf("pandas - testExtractOperands test 12 failed - missing register\n");
+        printf("pandas - testExtractOperands test 12 failed - missing parameter\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
     /*test 13*/
+    currentPos = line;
     strcpy(line, "$10, $30, $2");
-    extractOperands(&currentPos, I_ARITHMETIC, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
+    errorTemp = extractOperands(&currentPos, I_ARITHMETIC, &currentLineData, head,IC);
     if (errorTemp != EXPECTED_NUMBER)
     {
         printf("pandas - testExtractOperands test 13 failed - missing register\n");
@@ -659,9 +654,9 @@ void testExtractOperands(void *head) {
         generalError = TRUE;
     }
     /*test 14*/
+    currentPos = line;
     strcpy(line, "10, $15, $20");
-    if (extractOperands(&currentPos, R_ARITHMETIC, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head)) {
+    if ((errorTemp = extractOperands(&currentPos, R_ARITHMETIC, &currentLineData, head,IC))) {
         if (errorTemp != EXPECTED_REGISTER) {
             printf("pandas - testExtractOperands test 14 failed - missing register\n");
             printf("--------------------------------------\n");
@@ -669,9 +664,9 @@ void testExtractOperands(void *head) {
         }
     }
     /*test 15*/
+    currentPos = line;
     strcpy(line, "New, $22");
-    if (!extractOperands(&currentPos, J_JUMP, IC, &jumpIsReg,
-                         &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    if (extractOperands(&currentPos, J_JUMP, &currentLineData, head,IC))
     {
         printf("pandas - testExtractOperands test 15 failed - label should be enough\n");
         printf("--------------------------------------\n");
@@ -679,9 +674,9 @@ void testExtractOperands(void *head) {
     }
 
     /*test 16*/
+    currentPos = line;
     strcpy(line, "New, $22");
-    if (!extractOperands(&currentPos, J_JUMP, IC, &jumpIsReg,
-                         &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    if (extractOperands(&currentPos, J_JUMP, &currentLineData, head,IC))
     {
         printf("pandas - testExtractOperands test 16 failed - missing register\n");
         printf("--------------------------------------\n");
@@ -689,18 +684,18 @@ void testExtractOperands(void *head) {
     }
 
     /*test 17*/
+    currentPos = line;
     strcpy(line, "New, $22");
-    if (extractOperands(&currentPos, R_COPY, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    if (!extractOperands(&currentPos, R_COPY, &currentLineData, head,IC))
     {
         printf("pandas - testExtractOperands test 17 failed - expected register\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
     /*test 18*/
+    currentPos = line;
     strcpy(line, "ajhasdijbhisdnflhdfusdvnsfnhsbefsesndjcjhvfhskb, $22");
-    extractOperands(&currentPos, R_COPY, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
+    errorTemp = extractOperands(&currentPos, R_COPY, &currentLineData, head,IC);
     if (errorTemp != EXPECTED_REGISTER)
     {
         printf("pandas - testExtractOperands test 18 failed - expected register\n");
@@ -708,38 +703,38 @@ void testExtractOperands(void *head) {
         generalError = TRUE;
     }
     /*test 19*/
+    currentPos = line;
     strcpy(line, "ajhflqnelnadvhsfvlskmfjsdhfndnjsnchvjdejdnw32ncndjnd, $22");
-    if (extractOperands(&currentPos, J_JUMP, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    if(!extractOperands(&currentPos, J_JUMP, &currentLineData, head,IC))
     {
         printf("pandas - testExtractOperands test 19 failed - label is too long\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
     /*test 20*/
+    currentPos = line;
     strcpy(line, "$22       ,     22");
-    if (extractOperands(&currentPos, R_COPY, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    if (!extractOperands(&currentPos, R_COPY, &currentLineData, head,IC))
     {
         printf("pandas - testExtractOperands test 20 failed - expected register\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
     /*test 21*/
+    currentPos = line;
     strcpy(line, "$21, -321,        $0");
-    extractOperands(&currentPos, I_MEMORY_LOAD, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
-    if (tmpReg1 != 21 || tmpReg2 != 0 || tmpImmed != -321 )
+    extractOperands(&currentPos, I_MEMORY_LOAD, &currentLineData, head,IC);
+    if (currentLineData.iAttributes.rs != 21 || currentLineData.iAttributes.rt != 0 ||
+    currentLineData.iAttributes.immed != -321 )
     {
         printf("pandas - testExtractOperands test 21 failed - saved incorrect values \n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
     /*test 22*/
+    currentPos = line;
     strcpy(line, "New,");
-    extractOperands(&currentPos, J_CALL_OR_LA, IC, &jumpIsReg,
-                    &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head);
-    if (errorTemp != EXPECTED_REGISTER)
+    if (extractOperands(&currentPos, J_CALL_OR_LA, &currentLineData, head,IC))
     {
         printf("pandas - testExtractOperands test 22 failed - expected register error\n");
         printf("--------------------------------------\n");
@@ -747,9 +742,9 @@ void testExtractOperands(void *head) {
     }
 
     /*test 23*/
+    currentPos = line;
     strcpy(line, "$12, $22, $30");
-    if (extractOperands(&currentPos, I_BRANCHING, IC, &jumpIsReg,
-                        &tmpReg1, &tmpReg2, &tmpReg3, &tmpImmed, &errorTemp, head))
+    if (!extractOperands(&currentPos, I_BRANCHING, &currentLineData, head,IC))
     {
         printf("pandas - testExtractOperands test 23 failed - missing label\n");
         printf("--------------------------------------\n");

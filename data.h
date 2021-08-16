@@ -44,7 +44,7 @@ typedef enum {
 }boolean;
 
 typedef enum{
-    NO_ERROR,
+    NO_ERROR = 0,
     /* labels */
     DOUBLE_LABEL_DEFINITION,
     LABEL_LOCAL_AND_EXTERN,
@@ -69,6 +69,7 @@ typedef enum{
     EXPECTED_NUMBER,
     EXPECTED_LABEL,
     EXPECTED_LABEL_OR_REGISTER,
+    REGISTER_ILLEGAL_CHAR,
     /* strings and numbers*/
     MISSING_QUOTE,
     ILLEGAL_EXPRESSION,
@@ -76,7 +77,8 @@ typedef enum{
     NOT_NUMBER,
     NOT_INTEGER,
     VALUE_OUT_OF_RANGE,
-    NOT_REG,
+    NOT_REGISTER,
+    REGISTER_OUT_OF_RANGE,
     /* parsing */
     MISSING_COMMA,
     ILLEGAL_COMMA,
@@ -206,30 +208,42 @@ typedef struct databaseRouter{
 
 /* operand managing type definitions */
 
-typedef struct rOperands{
+typedef struct rTypeData{
     unsigned char opcode;
     unsigned char rs;
     unsigned char rt;
     unsigned char rd;
     unsigned char funct;
-}rOperands;
+}rTypeData;
 
-typedef struct iOperands{
+typedef struct iTypeData{
     unsigned char opcode;
-    unsigned char reg1;
-    unsigned char reg2;
-    unsigned int immed;
-}iOperands;
+    unsigned char rs;
+    unsigned char rt;
+    int immed;
+}iTypeData;
 
-typedef struct jOperands{
+typedef struct jTypeData{
     unsigned char opcode;
     boolean isReg;
-    long address;
-}jOperands;
+    unsigned char address;
+}jTypeData;
 
 
-typedef union operands{
-    rOperands rAttributes;
-    iOperands iAttributes;
-    jOperands jAttributes;
-}operands;
+typedef union codeLineData{
+    rTypeData rAttributes;
+    iTypeData iAttributes;
+    jTypeData jAttributes;
+}codeLineData;
+
+
+
+
+typedef struct operandAttributes{
+    union operandData{
+        unsigned char*regPtr;
+        int *immedPtr;
+    }operandData;
+    char labelName[LABEL_ARRAY_SIZE];
+    boolean isLabel;
+}operandAttributes;

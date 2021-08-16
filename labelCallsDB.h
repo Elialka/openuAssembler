@@ -4,7 +4,7 @@
 
 labelCallPtr initLabelCallsDB();
 
-boolean setLabelCall(labelCallPtr head, long IC, char *labelName, operationClass commandOpType, errorCodes *lineErrorPtr);
+errorCodes setLabelCall(labelCallPtr head, long IC, char *labelName, operationClass commandOpType);
 
 boolean getLabelCall(labelCallPtr head, int index, labelCall *destination);
 

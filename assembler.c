@@ -42,7 +42,7 @@ int main(int argc, char *argv[]){
     databaseRouter databases;
     databaseRouterPtr databasesPtr = &databases;
 
-    if(argc < 2){/* no files to compile */
+    if(argc < 5){/* no files to compile *//* todo change */
         /* todo print error - quit program */
         printf("No arguments to program, argc:%d\n", argc);
     }
@@ -53,7 +53,9 @@ int main(int argc, char *argv[]){
     }
 
     /* test - delete */
+    initDataBases(databasesPtr);
     testFunctions(databasesPtr);
+    clearDatabases(databasesPtr);
     /* end of test */
 
     /* compile files */

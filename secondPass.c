@@ -96,7 +96,7 @@ static boolean updateCodeImage(codeImagePtr codeImageDatabase, labelCall current
     }
     else if(currentCall.type == J_JUMP){
         result = updateJTypeAddress(codeImageDatabase, currentCall.IC, labelAddress, callErrorPtr);
-    }
+    }/* todo add support for J_CALL_OR_LA */
     else{/* impossible scenario - only I_branching and jump commands use labels */
         *callErrorPtr = IMPOSSIBLE;
         result = FALSE;
