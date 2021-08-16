@@ -54,7 +54,7 @@ boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValu
  */
 errorCodes getStringFromLine(char **currentPosPtr, char *destination);
 
-int getNumbersFromLine(char **currentPosPtr, long *buffer, dataOps dataOpType, errorCodes *lineErrorPtr);
+int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpType, errorCodes *lineErrorPtr);
 
 
 /**
@@ -140,10 +140,11 @@ errorCodes getLabelOperand(char *token, int tokenLength, char *destination);
 /**
  * Read token, try convert string to integer
  * @param token string representing number without white characters
- * @param destination
- * @return
+ * @param destination pointer to store number if legal
+ * @param maxValue max positive value supported
+ * @return errorCodes enum value describing function success/failure
  */
-errorCodes getNumberOperand(char *token, int *destination);
+errorCodes getNumberOperand(char *token, long *destination, long maxValue);
 
 boolean checkLineTermination(char **currentPtr, errorCodes *lineErrorPtr);
 

@@ -12,7 +12,6 @@
 static boolean clearLine(char *currentPos, errorCodes *lineErrorPtr, FILE *sourceFile);
 
 /* todo left to refactor before new firstPass */
-/* pandas - isLabelDefinition, getNumbersFromLine, readComma(check line removal) */
 /* codeImageDB - refactor functions API to match new format */
 /* labelCallsDB - add support for J_CALL_OR_LA */
 /* secondPass - add support for J_CALL_OR_LA */

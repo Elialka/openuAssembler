@@ -21,6 +21,8 @@
  */
 static int countLabelNameCharacters(char *token);
 
+static long calculateMaxValue(dataOps dataOpType);
+
 
 boolean ignoreLine(char *line){
     boolean result;
@@ -77,7 +79,23 @@ static int countLabelNameCharacters(char *token){
 }
 
 
-/* todo maybe change return type to errorCodes */
+static long calculateMaxValue(dataOps dataOpType){
+    long maxValue = 0;
+
+    if(dataOpType == DB){
+        maxValue = BYTE_MAX_VALUE;
+    }
+    else if(dataOpType == DH){
+        maxValue = HALF_WORD_MAX_VALUE;
+    }
+    else if(dataOpType == DW){
+        maxValue = WORD_MAX_VALUE;
+    }
+
+    return maxValue;
+}
+
+
 errorCodes isLabelDefinition(char **currentPosPtr, char *currentLabel) {
     errorCodes encounteredError = NO_ERROR;
     char *currentPos = *currentPosPtr;
@@ -189,9 +207,48 @@ errorCodes getStringFromLine(char **currentPosPtr, char *destination) {
     return encounteredError;
 }
 
+/* todo test function */
+int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpType, errorCodes *lineErrorPtr){
+    errorCodes encounteredError = NO_ERROR;
+    int i;/* will help keep track if we are expecting a comma or a number */
+    long value;/* store each numbers value */
+    char token[TOKEN_ARRAY_SIZE];
+    int tokenLength;
+    int numbersCounter = 0;/* how many numbers read */
+    long maxValue = calculateMaxValue(dataOpType);/* max positive value */
+
+    for (i = 0 ; !encounteredError && **currentPosPtr; i++){
+        if (i % 2) {/* expecting a comma */
+            if(!readComma(currentPosPtr)){/* missing comma */
+                if(**currentPosPtr){/* line is not terminated */
+                    encounteredError = MISSING_COMMA;
+                }
+            }
+        }
+        else{/* expecting a number */
+            tokenLength = extractNextToken(currentPosPtr, token);
+            if(tokenLength){
+                /* read number */
+                encounteredError = getNumberOperand(token, &value, maxValue);
+                numbersCounter++;
+            }
+            else{/* end of line */
+                encounteredError = i ? ILLEGAL_COMMA : MISSING_PARAMETER;
+            }
+        }
+    }
+
+    if(encounteredError){
+        numbersCounter = 0;
+        *lineErrorPtr = encounteredError;
+    }
+
+    return numbersCounter;
+}
+
 
 /* todo refactor to shorter function */
-int getNumbersFromLine(char **currentPosPtr, long *buffer, dataOps dataOpType, errorCodes *lineErrorPtr) {
+int getNumbersFromLineOLD(char **currentPosPtr, long *buffer, dataOps dataOpType, errorCodes *lineErrorPtr) {
     int i;
     long value;
     char number[MAX_LINE];
@@ -293,12 +350,8 @@ errorCodes readComma(char **currentPtr) {
 
     SKIP_WHITES(*currentPtr);
 
-    if(**currentPtr != ','){
+    if(**currentPtr++ != ','){
         encounteredError = MISSING_COMMA;
-    }
-    else{/* is a comma */
-        (*currentPtr)++;
-        SKIP_WHITES(*currentPtr);/* todo maybe remove line */
     }
 
     return encounteredError;
@@ -350,7 +403,7 @@ errorCodes getSecondOperand(char **currentPosPtr, operationClass commandOpType, 
         }
     }
     else{/* need an immediate value */
-        encounteredError = getNumberOperand(token, operandAttributesPtr->operandData.immedPtr);
+        encounteredError = getNumberOperand(token, operandAttributesPtr->operandData.immedPtr, HALF_WORD_MAX_VALUE);
         if(encounteredError == NOT_NUMBER){
             encounteredError = EXPECTED_NUMBER;
         }
@@ -426,12 +479,12 @@ errorCodes getLabelOperand(char *token, int tokenLength, char *destination) {
 }
 
 
-errorCodes getNumberOperand(char *token, int *destination){
+errorCodes getNumberOperand(char *token, long *destination, long maxValue) {
     long value;
     char *nextChar;/* will point to first character after the integer in token */
     errorCodes encounteredError = NO_ERROR;
 
-    if(stringToLong(token, &value, &nextChar, HALF_WORD_MAX_VALUE)){/* number operand is in range */
+    if(stringToLong(token, &value, &nextChar, maxValue)){/* number operand is in range */
         /* validate operand is a pure integer */
         if(*nextChar == '.'){/* decimal point */
             encounteredError = NOT_INTEGER;
@@ -440,7 +493,7 @@ errorCodes getNumberOperand(char *token, int *destination){
             encounteredError = NOT_NUMBER;
         }
         else{/* valid operand */
-            *destination = (unsigned int)value;
+            *destination = (int)value;
         }
     }
     else{/* first character is not a digit */

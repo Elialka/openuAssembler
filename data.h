@@ -220,7 +220,7 @@ typedef struct iTypeData{
     unsigned char opcode;
     unsigned char rs;
     unsigned char rt;
-    int immed;
+    long immed;
 }iTypeData;
 
 typedef struct jTypeData{
@@ -242,7 +242,7 @@ typedef union codeLineData{
 typedef struct operandAttributes{
     union operandData{
         unsigned char*regPtr;
-        int *immedPtr;
+        long *immedPtr;
     }operandData;
     char labelName[LABEL_ARRAY_SIZE];
     boolean isLabel;
