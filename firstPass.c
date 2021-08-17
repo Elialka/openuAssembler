@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <fvec.h>
 
 #include "firstPass.h"
 #include "labelsDB.h"
@@ -12,10 +13,6 @@
 static boolean clearLine(char *currentPos, errorCodes *lineErrorPtr, FILE *sourceFile);
 
 /* todo left to refactor before new firstPass */
-/* codeImageDB - refactor functions API to match new format */
-/* labelCallsDB - add support for J_CALL_OR_LA */
-/* secondPass - add support for J_CALL_OR_LA */
-/* tests - maybe remake tests to work with new API */
 /* print - start to write error printing function */
 
 /* todo check memory limits 25 bits */
@@ -160,7 +157,7 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
                     /* add command to code image */
                     if(commandOpType == R_ARITHMETIC || commandOpType == R_COPY){
                         if(!addRCommand(&databasesPtr->codeImageDB,
-                                        &IC, reg1, reg2, reg3, opCode, funct)){
+                                        &IC, result)){
                             /* todo print error memory alloc */
                         }
                     }
@@ -169,13 +166,13 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
                     commandOpType == I_ARITHMETIC)
                     {
                         if(!addICommand(&databasesPtr->codeImageDB,
-                                        &IC, reg1, reg2, immed, opCode)){
+                                        &IC, result)){
                             /* todo print error memory alloc */
                         }
                     }
                     else{/* is J command */
                         if(!addJCommand(&databasesPtr->codeImageDB,
-                                        &IC, jIsReg, immed, opCode)){
+                                        &IC, result)){
                             /* todo print error memory alloc */
                         }
                     }

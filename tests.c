@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <fvec.h>
 #include "tests.h"
 #include "pandas.h"
 #include "dataImageDB.h"
@@ -829,7 +830,7 @@ void testAddingCommands(void *head){
     boolean error = FALSE;
 
     /* test 1 */
-    if(!addRCommand(head, &IC, 1, 2, 3, 0, 3)){
+    if(!addRCommand(head, &IC, result)){
         printf("addingCommands test 1 - not good\n");
         printf("--------------------------------------\n");
         error = TRUE;
@@ -843,7 +844,7 @@ void testAddingCommands(void *head){
     }
 
     /* test 2 */
-    if(!addRCommand(head, &IC, 10, 30, 0, 1, 2)){
+    if(!addRCommand(head, &IC, result)){
         printf("addingCommands test 2 - not good\n");
         printf("--------------------------------------\n");
         error = TRUE;
@@ -857,7 +858,7 @@ void testAddingCommands(void *head){
     }
 
     /* test 3 */
-    if(!addRCommand(head, &IC, 10, 5, 4, 0, 5)){
+    if(!addRCommand(head, &IC, result)){
         printf("addingCommands test 3 - not good\n");
         printf("--------------------------------------\n");
         error = TRUE;

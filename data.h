@@ -33,6 +33,7 @@
 
 /* formats */
 #define DECIMAL_BASE (10)
+#define SOURCE_FILE_EXTENSION (".as")
 #define OBJECT_FILE_EXTENSION ("ob")
 #define ENTRY_FILE_EXTENSION ("ent")
 #define EXTERN_FILE_EXTENSION ("ext")

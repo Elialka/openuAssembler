@@ -5,12 +5,11 @@
 
 codeImagePtr initCodeImage();
 
-boolean addRCommand(codeImagePtr *headPtr, long *ICPtr, int reg1, int reg2, int reg3,
-                    commandOps opcode, functValues funct);
+boolean addRCommand(codeImagePtr *headPtr, long *ICPtr, rTypeData commandData);
 
-boolean addICommand(codeImagePtr *headPtr, long *ICPtr, int reg1, int reg2, int immed, commandOps opcode);
+boolean addICommand(codeImagePtr *headPtr, long *ICPtr, iTypeData commandData);
 
-boolean addJCommand(codeImagePtr *headPtr, long *ICPtr, boolean isReg, long address, commandOps opcode);
+boolean addJCommand(codeImagePtr *headPtr, long *ICPtr, jTypeData commandData);
 
 boolean updateITypeImmed(codeImagePtr headPtr, long IC, long address, errorCodes *lineErrorPtr);
 

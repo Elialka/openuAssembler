@@ -27,7 +27,7 @@ labelCallPtr initLabelCallsDB(){
 
 
 static boolean isLabelCallsEmpty(labelCallPtr head){
-    /* check if any attributes has been set, IC is starting at non-zero value */
+    /* check if any attributes has been set, IC is starting at non-zero value - will return FALSE only if not set */
     return head && head->attributes.IC;
 }
 

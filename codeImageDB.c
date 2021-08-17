@@ -44,9 +44,7 @@ codeImagePtr initCodeImage(){
     void *head;
 
     head = calloc(IMAGE_BLOCK_SIZE, sizeof(codeLine));
-    if(!head){/* memory allocation failed */
-        /* todo print error quit */
-    }
+
     return head;
 }
 
@@ -81,44 +79,44 @@ static boolean addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeLine
 }
 
 
-boolean addRCommand(codeImagePtr *headPtr, long *ICPtr, int reg1, int reg2, int reg3,
-                    commandOps opcode, functValues funct){
+boolean addRCommand(codeImagePtr *headPtr, long *ICPtr, rTypeData commandData) {
     codeLine new;
 
-    new.R.opcode = opcode;
-    new.R.rs = reg1;
-    new.R.rt = reg2;
-    new.R.rd = reg3;
-    new.R.funct = funct;
+    new.R.opcode = commandData.opcode;
+    new.R.rs = commandData.rs;
+    new.R.rt = commandData.rt;
+    new.R.rd = commandData.rd;
+    new.R.funct = commandData.funct;
 
     return addCommandToDatabase(headPtr, ICPtr, &new);
 }
 
 
-boolean addICommand(codeImagePtr *headPtr, long *ICPtr, int reg1, int reg2, int immed, commandOps opcode){
+boolean addICommand(codeImagePtr *headPtr, long *ICPtr, iTypeData commandData) {
     codeLine new;
 
-    new.I.opcode = opcode;
-    new.I.rs = reg1;
-    new.I.rt = reg2;
-    new.I.immed = immed;
+    new.I.opcode = commandData.opcode;
+    new.I.rs = commandData.rs;
+    new.I.rt = commandData.rt;
+    new.I.immed = (int)commandData.immed;
 
     return addCommandToDatabase(headPtr, ICPtr, &new);
 }
 
 
-boolean addJCommand(codeImagePtr *headPtr, long *ICPtr, boolean isReg, long address, commandOps opcode){
+boolean addJCommand(codeImagePtr *headPtr, long *ICPtr, jTypeData commandData) {
     codeLine new;
 
-    new.J.opcode = opcode;
-    new.J.isReg = isReg;
-    new.J.address1 = address & FIRST_16_BITS_MASK;
-    new.J.address2 = address >> 16;
+    new.J.opcode = commandData.opcode;
+    new.J.isReg = commandData.isReg;
+    new.J.address1 = commandData.address & FIRST_16_BITS_MASK;
+    new.J.address2 = commandData.address >> 16;
 
     return addCommandToDatabase(headPtr, ICPtr, &new);
 }
 
 /* todo maybe handle IC out of range */
+/* todo refactor to return errorCodes type */
 boolean updateITypeImmed(codeImagePtr headPtr, long IC, long address, errorCodes *lineErrorPtr) {
     boolean result = TRUE;/* return value - if operation was successful */
     codeLine *current = headPtr;
@@ -144,6 +142,7 @@ boolean updateITypeImmed(codeImagePtr headPtr, long IC, long address, errorCodes
 
 
 /* todo maybe handle IC out of range, maybe literal number 16 */
+/* todo refactor to return errorCodes type */
 boolean updateJTypeAddress(codeImagePtr headPtr, long IC, long address, errorCodes *lineErrorPtr) {
     codeLine *current = headPtr;
     /* calculate index of code line with given IC */

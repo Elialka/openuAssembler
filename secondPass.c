@@ -15,6 +15,8 @@ static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr);
 
 static boolean locateEntryDefinitions(entryCallPtr entryCallsDatabase, labelPtr labelsDatabase, errorCodes *lineErrorPtr);
 
+/* todo refactor - ugly file */
+
 /* todo test EVERYTHING */
 boolean secondPass(databaseRouterPtr databasesPtr, long ICF) {
     boolean validPass;
@@ -37,7 +39,7 @@ boolean secondPass(databaseRouterPtr databasesPtr, long ICF) {
 }
 
 static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr){
-    int i;/* count how many label calls did we already handled */
+    int i;/* count how many label calls did we already handle */
     long labelAddress;/* store label definition address */
     labelClass labelType;/* store label type - code\data\external */
     boolean validCall;/* track if an error occurred during current call */
