@@ -6,10 +6,11 @@
 #define SIZE_OF_BYTE (1)
 #define SIZE_OF_HALF_WORD (2)
 #define SIZE_OF_WORD (4)
-#define I_TYPE_IMMED_MAX_VALUE (32767)
+#define I_TYPE_IMMED_MAX_VALUE_SIGNED (32767)
 #define I_TYPE_IMMED_MIN_VALUE (-32768)
+#define I_TYPE_IMMED_MAX_VALUE_UNSIGNED (65536)
 #define BYTE_MAX_VALUE (127)
-#define HALF_WORD_MAX_VALUE (I_TYPE_IMMED_MAX_VALUE)
+#define HALF_WORD_MAX_VALUE (I_TYPE_IMMED_MAX_VALUE_SIGNED)
 #define WORD_MAX_VALUE (2147483647)
 #define ADDRESS_MAX_VALUE (33554432)
 #define REGISTER_MIN_INDEX (0)
@@ -54,7 +55,6 @@ typedef enum{
     NO_SPACE_AFTER_LABEL,
     LABEL_IS_OPERATION,
     LABEL_TOO_LONG,
-    LABEL_DEFINITION_TOO_LONG,
     ILLEGAL_LABEL_NAME,
     ADDRESS_DISTANCE_OVER_LIMITS,
     ENTRY_IS_EXTERN,
@@ -66,31 +66,33 @@ typedef enum{
     MISSING_OPERATION_NAME,
     /* parameters */
     MISSING_PARAMETER,
-    TOO_MANY_PARAMETERS,
-    EXPECTED_REGISTER,
-    EXPECTED_NUMBER,
-    EXPECTED_LABEL,
-    EXPECTED_LABEL_OR_REGISTER,
+    EXPECTED_REGISTER_FIRST,
+    EXPECTED_REGISTER_SECOND,
+    EXPECTED_REGISTER_THIRD,
+    EXPECTED_NUMBER_SECOND,
+    EXPECTED_LABEL_FIRST,
     REGISTER_ILLEGAL_CHAR,
+    REGISTER_OUT_OF_RANGE,
     /* strings and numbers*/
     MISSING_QUOTE,
-    ILLEGAL_EXPRESSION,
-    ILLEGAL_CHARACTER,
+    NOT_PRINTABLE_CHAR,
     NOT_NUMBER,
     NOT_INTEGER,
-    VALUE_OUT_OF_RANGE,
     NOT_REGISTER,
-    REGISTER_OUT_OF_RANGE,
     /* parsing */
     MISSING_COMMA,
     ILLEGAL_COMMA,
-    /* file name */
+    /* source file name */
     FILENAME_LENGTH_NOT_SUPPORTED,
     ILLEGAL_FILE_EXTENSION,
+    NO_FILES_TO_COMPILE,
+    COULD_NOT_OPEN_FILE,
     /* other */
     EXTRANEOUS_TEXT,
+    COULD_NOT_CREATE_FILE,
     /* warnings */
     LINE_TOO_LONG,
+    DEFINED_LABEL_ENTRY_EXTERN,
     /* internal crisis */
     IMPOSSIBLE
 }errorCodes;
@@ -162,16 +164,6 @@ typedef enum{
     CODE_LABEL,
     EXTERN_LABEL
 }labelClass;
-
-typedef enum{
-    LABELS_POINTER,
-    OPERATIONS_POINTER,
-    DATA_IMAGE_POINTER,
-    CODE_IMAGE_POINTER,
-    LABEL_CALLS_POINTER,
-    ENTRY_CALLS_POINTER,
-    EXTERN_POINTER
-}pointerArrayIndex;
 
 
 typedef enum{
@@ -257,3 +249,6 @@ typedef struct operandAttributes{
     char labelName[LABEL_ARRAY_SIZE];
     boolean isLabel;
 }operandAttributes;
+
+
+void printErrorMessage(errorCodes encounteredError, long lineNumber);

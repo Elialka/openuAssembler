@@ -11,15 +11,12 @@
 #include "entryCallsDB.h"
 #include "externUsesDB.h"
 #include "print.h"
+
 #ifndef MAX_LINE
 #include "data.h"
 #endif
 
 #include "tests.h"
-
-
-/* todo add error printing */
-/* todo forgot to address LA or CALL operations to get a label */
 
 /* todo possible refactors */
 /* pandas refactor long functions/functions that receive many parameters */
@@ -84,31 +81,33 @@ int main(int argc, char *argv[]){
     long i;
     databaseRouter databases;
 
+
     if(argc < 2){/* no files to compile */
-        /* todo print error - quit program */
-        printf("No arguments to program, program parameters detected: %d\n", argc - 1);
+        printErrorMessage(NO_FILES_TO_COMPILE, 0);
     }
+    else{/* program inline parameters present */
+        /* initialize operation names database */
+        initProjectDatabases(&databases);
 
-    /* initialize operation names database */
-    initProjectDatabases(&databases);
+        /* test - delete */
+        /*
+        initFileDataBases(&databases);
+        testFunctions(&databases);
+        clearFileDatabases(&databases);
+         */
+        /* end of test */
 
-    /* test - delete */
-    /*
-    initFileDataBases(&databases);
-    testFunctions(&databases);
-    clearFileDatabases(&databases);
-     */
-    /* end of test */
-
-    /* compile files */
-    for(i = 1; i < argc; i++){
-        if(supportedFileName(argv[i])){
-            compileFile(argv[i], databases);
+        /* compile files */
+        for(i = 1; i < argc; i++){
+            if(supportedFileName(argv[i])){
+                compileFile(argv[i], databases);
+            }
         }
-    }
 
-    /* free remaining memory allocations */
-    clearProjectDatabases(&databases);
+        /* free remaining memory allocations */
+        clearProjectDatabases(&databases);
+
+    }
 
     return 0;
 }
@@ -129,7 +128,7 @@ static boolean initProjectDatabases(databaseRouterPtr databasesPtr){
     allocationSuccess = databasesPtr->operationsDB ? TRUE : FALSE;
 
     if(!allocationSuccess){
-        /* todo print error */
+        printErrorMessage(MEMORY_ALLOCATION_FAILURE, 0);
     }
 
     return allocationSuccess;
@@ -150,7 +149,7 @@ static boolean initFileDataBases(databaseRouterPtr databasesPtr){
     }
 
     if(!allocationSuccess){
-        /* todo print error */
+        printErrorMessage(MEMORY_ALLOCATION_FAILURE, 0);
     }
 
     return allocationSuccess;
@@ -181,7 +180,7 @@ static boolean supportedFileName(char *sourceFileName) {
 
     if(encounteredError){
         result = FALSE;
-        /* todo print error */
+        printErrorMessage(encounteredError, 0);
     }
 
     return result;
@@ -227,7 +226,7 @@ static boolean openFile(char *sourceFileName, FILE **sourceFilePtr){
     *sourceFilePtr = fopen(sourceFileName, "r");
 
     if(!*sourceFileName){/* could not open file */
-        /* todo print error */
+        printErrorMessage(COULD_NOT_OPEN_FILE, 0);
         result = FALSE;
     }
 

@@ -175,8 +175,17 @@ boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValu
 errorCodes getLabelFromLine(char **currentPosPtr, char *destination){
     char token[TOKEN_ARRAY_SIZE];
     int tokenLength = extractNextToken(currentPosPtr, token);
+    errorCodes encounteredError = NO_ERROR;
 
-    getLabelOperand(token, tokenLength, destination);
+    if(!tokenLength){
+        encounteredError = MISSING_PARAMETER;
+    }
+
+    if(encounteredError){
+        encounteredError = getLabelOperand(token, tokenLength, destination);
+    }
+
+    return encounteredError;
 }
 
 
@@ -197,7 +206,7 @@ errorCodes getStringFromLine(char **currentPosPtr, char *destination) {
             destination[i] = *current;
         }
         else{/* only printable characters are allowed */
-            encounteredError = ILLEGAL_CHARACTER;
+            encounteredError = NOT_PRINTABLE_CHAR;
         }
     }
 
@@ -256,86 +265,6 @@ int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpT
 }
 
 
-/* todo refactor to shorter function */
-int getNumbersFromLineOLD(char **currentPosPtr, long *buffer, dataOps dataOpType, errorCodes *lineErrorPtr) {
-    int i;
-    long value;
-    char number[MAX_LINE];
-    int numberLength;
-    int numberCounter;
-    char *current = *currentPosPtr;
-    char *endPtr;
-    int maxValue;
-
-    numberCounter = 0;
-
-    /* check maxValue */
-    if(dataOpType == DB){
-        maxValue = BYTE_MAX_VALUE;
-    }
-    else if(dataOpType == DH){
-        maxValue = HALF_WORD_MAX_VALUE;
-    }
-    else if(dataOpType == DW){
-        maxValue = WORD_MAX_VALUE;
-    }
-    else{
-        *lineErrorPtr = IMPOSSIBLE;
-        return FALSE;
-    }
-
-
-    for (i = 0 ; *current; i++) {
-        SKIP_WHITES(current);/* todo remove after readComma refactor */
-
-        if (i % 2) {/* expecting a comma */
-
-            if (!*current) /*end of line*//* todo refactor to use readComma */
-                {break;}
-                if (*current != ',') {
-                    *lineErrorPtr = ILLEGAL_EXPRESSION;
-                    return FALSE;
-                }
-                else
-                {
-                    current++;
-                }
-
-        }
-        else {/* expecting a number */
-            numberLength = extractNextToken(&current, number);
-            if(!numberLength){/* end of line */
-                if(i){/* already read some numbers */
-                    *lineErrorPtr = ILLEGAL_COMMA;
-                }
-                else{
-                    *lineErrorPtr = EXPECTED_NUMBER;
-                }
-            }
-
-            if (!stringToLong(number, &value, &endPtr, maxValue)) { /*searching for illegal chars in line */
-                *lineErrorPtr = ILLEGAL_EXPRESSION;
-                return FALSE;
-            }
-            else if (*endPtr == '.') {
-                *lineErrorPtr = NOT_INTEGER;
-                return FALSE;
-            }
-            else if (*endPtr && !(isspace(*endPtr)) && *endPtr != ',' && !(isdigit(*endPtr))){
-                *lineErrorPtr = NOT_NUMBER;
-                return FALSE;
-            }
-            else {
-                buffer[numberCounter] = value;
-                numberCounter++;
-            }
-        }
-    }
-
-    return numberCounter;
-}
-
-
 errorCodes tokenIsLabel(char *token, int tokenLength) {
     errorCodes encounteredError = NO_ERROR;
     int nameLength;
@@ -372,25 +301,25 @@ errorCodes getFirstOperand(char **currentPosPtr, operationClass commandOpType, o
     int tokenLength = extractNextToken(currentPosPtr, token);
     errorCodes encounteredError = getRegisterOperand(token, operandAttributesPtr->operandData.regPtr);
 
-    if(!tokenLength){
+    if(!tokenLength){/* end of the line */
         encounteredError = MISSING_PARAMETER;
     }
     else if(!encounteredError){/* token is register */
         operandAttributesPtr->isLabel = FALSE;
     }
-    else if(encounteredError == NOT_REGISTER){
+    else if(encounteredError == NOT_REGISTER){/* not a register */
         if (commandOpType == J_JUMP || commandOpType == J_CALL_OR_LA){/* is possibly a label */
             encounteredError = getLabelOperand(token, tokenLength, operandAttributesPtr->labelName);
             operandAttributesPtr->isLabel = TRUE;
         }
-        else{
-            encounteredError = EXPECTED_REGISTER;
+        else{/* should be a register */
+            encounteredError = EXPECTED_REGISTER_FIRST;
         }
     }
 
     if(commandOpType == J_CALL_OR_LA && !operandAttributesPtr->isLabel){
         /* this command type does not support register operands */
-        encounteredError = EXPECTED_LABEL;
+        encounteredError = EXPECTED_LABEL_FIRST;
     }
 
     return encounteredError;
@@ -408,13 +337,13 @@ errorCodes getSecondOperand(char **currentPosPtr, operationClass commandOpType, 
     else if(commandOpType != I_ARITHMETIC && commandOpType != I_MEMORY_LOAD){/* need a register */
         encounteredError = getRegisterOperand(token, operandAttributesPtr->operandData.regPtr);
         if(encounteredError == NOT_REGISTER){
-            encounteredError = EXPECTED_REGISTER;
+            encounteredError = EXPECTED_REGISTER_SECOND;
         }
     }
     else{/* need an immediate value */
         encounteredError = getNumberOperand(token, operandAttributesPtr->operandData.immedPtr, HALF_WORD_MAX_VALUE);
         if(encounteredError == NOT_NUMBER){
-            encounteredError = EXPECTED_NUMBER;
+            encounteredError = EXPECTED_NUMBER_SECOND;
         }
     }
 
@@ -433,7 +362,7 @@ errorCodes getThirdOperand(char **currentPosPtr, operationClass commandOpType, o
     else if(commandOpType != I_BRANCHING){/* need a register */
         encounteredError = getRegisterOperand(token, operandAttributesPtr->operandData.regPtr);
         if(encounteredError == NOT_REGISTER){
-            encounteredError = EXPECTED_REGISTER;
+            encounteredError = EXPECTED_REGISTER_THIRD;
         }
     }
     else{/* need a label */

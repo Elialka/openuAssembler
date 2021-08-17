@@ -11,13 +11,7 @@ typedef struct externUse{
 
 
 externUsePtr initExternUsesDB(){
-    externUsePtr head;
-
-    head = calloc(1, sizeof(externUse));
-
-    if(!head){
-        /* todo print error quit*/
-    }
+    externUsePtr head = calloc(1, sizeof(externUse));;
 
     return head;
 }

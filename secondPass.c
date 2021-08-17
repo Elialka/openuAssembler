@@ -64,7 +64,7 @@ static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr){
         }
 
         if(!validCall){/* mark error occurred */
-            /* todo print error */
+            printErrorMessage(error, 0);
             validPass = FALSE;
         }
     }
@@ -96,9 +96,9 @@ static boolean updateCodeImage(codeImagePtr codeImageDatabase, labelCall current
     if(currentCall.type == I_BRANCHING){
         result = updateITypeImmed(codeImageDatabase, currentCall.IC, labelAddress, callErrorPtr);
     }
-    else if(currentCall.type == J_JUMP){
+    else if(currentCall.type == J_JUMP || currentCall.type == J_CALL_OR_LA){
         result = updateJTypeAddress(codeImageDatabase, currentCall.IC, labelAddress, callErrorPtr);
-    }/* todo add support for J_CALL_OR_LA */
+    }
     else{/* impossible scenario - only I_branching and jump commands use labels */
         *callErrorPtr = IMPOSSIBLE;
         result = FALSE;

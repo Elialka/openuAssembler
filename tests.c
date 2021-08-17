@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "string.h"
+#include <string.h>
 #include "tests.h"
 #include "pandas.h"
 #include "dataImageDB.h"
@@ -644,7 +644,7 @@ void testExtractOperands(void *head) {
     currentPos = line;
     strcpy(line, "$10, $30, $2");
     errorTemp = extractCodeOperands(&currentPos, I_ARITHMETIC, &currentLineData, head, IC);
-    if (errorTemp != EXPECTED_NUMBER)
+    if (errorTemp != EXPECTED_NUMBER_SECOND)
     {
         printf("pandas - testExtractOperands test 13 failed - missing register\n");
         printf("--------------------------------------\n");
@@ -654,7 +654,7 @@ void testExtractOperands(void *head) {
     currentPos = line;
     strcpy(line, "10, $15, $20");
     if ((errorTemp = extractCodeOperands(&currentPos, R_ARITHMETIC, &currentLineData, head, IC))) {
-        if (errorTemp != EXPECTED_REGISTER) {
+        if (errorTemp != EXPECTED_REGISTER_FIRST) {
             printf("pandas - testExtractOperands test 14 failed - missing register\n");
             printf("--------------------------------------\n");
             generalError = TRUE;
@@ -693,7 +693,7 @@ void testExtractOperands(void *head) {
     currentPos = line;
     strcpy(line, "ajhasdijbhisdnflhdfusdvnsfnhsbefsesndjcjhvfhskb, $22");
     errorTemp = extractCodeOperands(&currentPos, R_COPY, &currentLineData, head, IC);
-    if (errorTemp != EXPECTED_REGISTER)
+    if (errorTemp != EXPECTED_REGISTER_FIRST)
     {
         printf("pandas - testExtractOperands test 18 failed - expected register\n");
         printf("--------------------------------------\n");

@@ -10,13 +10,10 @@
 #include "labelCallsDB.h"
 #include "entryCallsDB.h"
 
-/* todo left to refactor before new firstPass */
-/* print - start to write error printing function */
-
 
 typedef struct labelAttributes *labelAttributesPtr;
 
-typedef struct labelAttributes{/* todo reset flag each line */
+typedef struct labelAttributes{/* todo maybe reset flag each line */
     char labelName[LABEL_ARRAY_SIZE];/* if a new label is defined, store new name */
     boolean labelIsUsed;/* track if a label definition or call occurred */
     labelClass labelType;
@@ -190,7 +187,7 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
     *DCFPtr = DC;
 
     if(result && IC + DC > ADDRESS_MAX_VALUE){
-        /* todo print error */
+
         result = FALSE;
     }
 
@@ -208,7 +205,6 @@ static boolean encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRo
 
     for(operationData.lineCounter = 0; !feof(sourceFile);operationData.lineCounter++){
         currentPos = fgets(line, MAX_LINE, sourceFile);
-        legalLine = TRUE;
         readLine = !ignoreLine(line);
 
         if(readLine){/* line is not empty or comment */
@@ -224,7 +220,9 @@ static boolean encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRo
             }
         }
 
-        legalLine = clearLine(currentPos, sourceFile, readLine);
+        if(!clearLine(currentPos, sourceFile, readLine)){
+            legalLine = FALSE;
+        }
 
         if(!legalLine){
             result = FALSE;
@@ -281,7 +279,7 @@ static boolean encodeCodeCommand(char **currentPosPtr, operationAttributesPtr op
     }
 
     if(encounteredError){
-        /* todo print error */
+        printErrorMessage(encounteredError, operationDataPtr->lineCounter);
         result = FALSE;
     }
 
@@ -310,7 +308,7 @@ static boolean encodeDataCommand(char **currentPosPtr, operationAttributesPtr op
     }
 
     if(encounteredError){
-        /* todo print error */
+        printErrorMessage(encounteredError, operationDataPtr->lineCounter);
         result = FALSE;
     }
 
@@ -370,7 +368,7 @@ static errorCodes checkLabelDefinition(char **currentPosPtr, labelAttributesPtr 
         if(seekOp(operationsDB, definedLabelDataPtr->labelName) == NOT_FOUND){/* label name is not operation name */
             definedLabelDataPtr->labelIsUsed = TRUE;
         }
-        else{/* possibly legal label declaration */
+        else{/* label name is operation name */
             encounteredError = LABEL_IS_OPERATION;
         }
     }
@@ -412,7 +410,7 @@ static errorCodes getLineType(char **currentPosPtr, operationAttributesPtr opera
             (operationDataPtr->operationID.dataOpType == ENTRY ||
              operationDataPtr->operationID.dataOpType == EXTERN)){
         /* no need to define label for entry and extern commands */
-        /* todo print warning */
+        printErrorMessage(DEFINED_LABEL_ENTRY_EXTERN, operationDataPtr->lineCounter);
         definedLabelDataPtr->labelIsUsed = FALSE;
     }
 
@@ -538,7 +536,7 @@ boolean clearLine(char *currentPos, FILE *sourceFile, boolean readLine) {
     if(readLine){/* line was not empty\comment line */
         encounteredError = checkLineTermination(&currentPos);
         if(encounteredError){
-            /* todo print error */
+            printErrorMessage(encounteredError, 0);
             result = FALSE;
         }
     }
@@ -548,7 +546,7 @@ boolean clearLine(char *currentPos, FILE *sourceFile, boolean readLine) {
         ;
 
     if(*--currentPos != '\n'){/* source line is longer than maximum supported length */
-        /* todo print warning */
+        printErrorMessage(LINE_TOO_LONG, 0);
         for(; (currentChar = fgetc(sourceFile)) != EOF && currentChar != '\n' ; currentPos++)
             ;
     }

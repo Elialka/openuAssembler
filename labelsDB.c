@@ -19,13 +19,7 @@ static boolean isLabelsDBEmpty(labelPtr head);
 
 
 labelPtr initLabelsDB(){
-    labelPtr head;
-
-    head = calloc(1, sizeof(label));
-
-    if(!head){
-        /* todo print error quit*/
-    }
+    labelPtr head = calloc(1, sizeof(label));
 
     return head;
 }

@@ -13,9 +13,7 @@ static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC);
  * */
 dataImagePtr initDataImageDB(){
     dataImagePtr database = calloc(IMAGE_BLOCK_SIZE, sizeof(char));
-    if(!database){
-        /* todo print error quit */
-    }
+
     return database;
 }
 
@@ -28,7 +26,6 @@ static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC){
         temp = realloc(*headPtr, DC + IMAGE_BLOCK_SIZE);
         if(!temp){
             result =  FALSE;
-            /* todo free allocated memory - quit program */
         }
         *headPtr = temp;
     }

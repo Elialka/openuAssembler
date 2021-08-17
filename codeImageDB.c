@@ -41,9 +41,7 @@ static errorCodes addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeL
 
 
 codeImagePtr initCodeImage(){
-    void *head;
-
-    head = calloc(IMAGE_BLOCK_SIZE, sizeof(codeLine));
+    void *head = calloc(IMAGE_BLOCK_SIZE, sizeof(codeLine));
 
     return head;
 }
@@ -59,7 +57,6 @@ static errorCodes addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeL
         temp = realloc(*headPtr, nextFreeIndex + IMAGE_BLOCK_SIZE);
         if(!temp){
             encounteredError = MEMORY_ALLOCATION_FAILURE;
-            /* todo free allocated memory - quit program */
         }
         *headPtr = temp;
     }
@@ -128,7 +125,7 @@ boolean updateITypeImmed(codeImagePtr headPtr, long IC, long address, errorCodes
     current += index;
 
     /* verify calculated value is in range */
-    if(distance > I_TYPE_IMMED_MAX_VALUE || distance < I_TYPE_IMMED_MIN_VALUE){
+    if(distance > I_TYPE_IMMED_MAX_VALUE_SIGNED || distance < I_TYPE_IMMED_MIN_VALUE){
         *lineErrorPtr = ADDRESS_DISTANCE_OVER_LIMITS;
         result = FALSE;
     }

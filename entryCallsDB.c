@@ -14,13 +14,7 @@ typedef struct entryCall{
 
 
 entryCallPtr initEntryCallsDB(){
-    entryCallPtr head;
-
-    head = calloc(1, sizeof(entryCall));
-
-    if(!head){
-        /* todo print error quit*/
-    }
+    entryCallPtr head = calloc(1, sizeof(entryCall));
 
     return head;
 }

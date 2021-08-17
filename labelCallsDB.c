@@ -14,13 +14,7 @@ static boolean isLabelCallsEmpty(labelCallPtr head);
 
 
 labelCallPtr initLabelCallsDB(){
-    labelCallPtr head;
-
-    head = calloc(1, sizeof(labelCallNode));
-
-    if(!head){
-        /* todo print error */
-    }
+    labelCallPtr head = calloc(1, sizeof(labelCallNode));
 
     return head;
 }

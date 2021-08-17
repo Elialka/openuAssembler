@@ -108,20 +108,6 @@ errorCodes getSecondOperand(char **currentPosPtr, operationClass commandOpType, 
  */
 errorCodes getThirdOperand(char **currentPosPtr, operationClass commandOpType, operandAttributes *operandAttributesPtr);
 
-/* delete after firstPass refactor */
-boolean getFirstOperandOLD(char *token, int tokenLength, operationClass commandOpType, long IC, boolean *jIsRegPtr,
-                           int *regPtr, errorCodes *lineErrorPtr, void *labelCallsHead);
-/* delete after firstPass refactor */
-boolean getSecondOperandOLD(char *token, operationClass commandOpType, int *regPtr, long *immedPtr,
-                            errorCodes *lineErrorPtr);
-/* delete after firstPass refactor */
-boolean getThirdOperandOLD(char *token, int tokenLength, long IC, operationClass commandOpType, int *regPtr, long *immedPtr,
-                           errorCodes *lineErrorPtr, void *labelCallsHead);
-
-/* delete after firstPass refactor */
-boolean extractOperandsOLD(char **currentPosPtr, operationClass commandOpType, long IC, boolean *jIsRegPtr, int *reg1Ptr,
-                           int *reg2Ptr, int *reg3Ptr, long *immedPtr, errorCodes *lineErrorPtr, void *labelCallsHead);
-
 /**
  * Read token, try to id register number
  * @param token string representing register id without white characters
