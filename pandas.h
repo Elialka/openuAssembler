@@ -30,7 +30,7 @@ errorCodes isLabelDefinition(char **currentPosPtr, char *currentLabel);
 
 /**
  * Get command name from input line
- * @param currentPosPtr Position in line array
+ * @param currentPosPtr Pointer to position in line array
  * @param commandName Address of command name array
  * @return errorCodes enum value describing function success/failure
  */
@@ -48,11 +48,13 @@ boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValu
 
 /**
  * read string of ascii characters between enclosed quotes
- * @param currentPosPtr Position in line array
+ * @param currentPosPtr Pointer to position in line array
  * @param destination Pointer to string buffer - will store result
  * @return errorCodes enum value describing function success/failure
  */
 errorCodes getStringFromLine(char **currentPosPtr, char *destination);
+
+errorCodes getLabelFromLine(char **currentPosPtr, char *destination);
 
 int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpType, errorCodes *lineErrorPtr);
 
@@ -68,16 +70,16 @@ errorCodes tokenIsLabel(char *token, int tokenLength);
 
 /**
  * Check if a comma is present, and update line position to point after comma
- * @param currentPtr pointer to current location pointer
+ * @param currentPosPtr Pointer to position in line array
  * @return errorCodes enum value describing function success/failure
  */
-errorCodes readComma(char **currentPtr);
+errorCodes readComma(char **currentPosPtr);
 
 /**
  * Read next token in line, check if operand type matches operation type's
  * first operand specification, save relevant information about operand,
  * and increment line position
- * @param currentPosPtr position in line array
+ * @param currentPosPtr Pointer to position in line array
  * @param commandOpType type of current command
  * @param operandAttributesPtr pointer to struct to save relevant information in
  * @return errorCodes enum value describing function success/failure
@@ -88,7 +90,7 @@ errorCodes getFirstOperand(char **currentPosPtr, operationClass commandOpType, o
  * Read next token in line, check if operand type matches operation type's
  * second operand specification, save relevant information about operand,
  * and increment line position
- * @param currentPosPtr position in line array
+ * @param currentPosPtr Pointer to position in line array
  * @param commandOpType type of current command
  * @param operandAttributesPtr pointer to struct to save relevant information in
  * @return errorCodes enum value describing function success/failure
@@ -99,7 +101,7 @@ errorCodes getSecondOperand(char **currentPosPtr, operationClass commandOpType, 
  * Read next token in line, check if operand type matches operation type's
  * third operand specification, save relevant information about operand,
  * and increment line position
- * @param currentPosPtr position in line array
+ * @param currentPosPtr Pointer to position in line array
  * @param commandOpType type of current command
  * @param operandAttributesPtr pointer to struct to save relevant information in
  * @return errorCodes enum value describing function success/failure
@@ -146,6 +148,11 @@ errorCodes getLabelOperand(char *token, int tokenLength, char *destination);
  */
 errorCodes getNumberOperand(char *token, long *destination, long maxValue);
 
-boolean checkLineTermination(char **currentPtr, errorCodes *lineErrorPtr);
+/**
+ * Check if there is any extraneous text, set line position to last character
+ * @param currentPosPtr Pointer to position in line array
+ * @return errorCodes enum value describing function success/failure
+ */
+errorCodes checkLineTermination(char **currentPosPtr);
 
 

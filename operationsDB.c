@@ -15,7 +15,7 @@
 
 typedef struct operation{
     char name[OPERATION_NAME_LENGTH];
-    commandOps opcode;
+    opcodes opcode;
     functValues funct;
     operationClass commandOpType;
 }operation;
@@ -32,8 +32,8 @@ operationPtr setOperations(){
                     "addi", "subi", "andi", "ori", "nori", "bne", "beq",
                     "blt", "bgt", "lb", "sb", "lw", "sw", "lh", "sh",
                     "jmp", "la", "call", "stop"};
-    commandOps opcodes[] = {ADD, SUB,AND, OR ,NOR, MOVE, MVHI, MVLO, ADDI, SUBI, ANDI, ORI, NORI,
-                    BNE, BEQ, BLT, BGT, LB, SB, LW, SW, LH, SH, JMP, LA, CALL, STOP};
+    opcodes opcodes[] = {ADD, SUB, AND, OR , NOR, MOVE, MVHI, MVLO, ADDI, SUBI, ANDI, ORI, NORI,
+                         BNE, BEQ, BLT, BGT, LB, SB, LW, SW, LH, SH, JMP, LA, CALL, STOP};
     functValues functs[] = {ADD_FUNCT, SUB_FUNCT, AND_FUNCT, OR_FUNCT, NOR_FUNCT, MOVE_FUNCT, MVHI_FUNCT, MVLO_FUNCT};
     operationPtr current;
 
@@ -101,7 +101,7 @@ int seekOp(operationPtr head, char *str) {
  * find an operation with a name matching str
  * return opcode if found, zero otherwise
  */
-boolean getOpcode(operationPtr head, char *str, commandOps *opCodePtr, functValues *functPtr, operationClass *opTypePtr) {
+boolean getOpcode(operationPtr head, char *str, opcodes *opCodePtr, functValues *functPtr, operationClass *opTypePtr) {
     int operationIndex;
     operationPtr current;
 

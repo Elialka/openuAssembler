@@ -4,7 +4,7 @@
 
 entryCallPtr initEntryCallsDB();
 
-boolean addEntryCall(entryCallPtr head, char *labelName, errorCodes *lineErrorPtr);
+errorCodes addEntryCall(entryCallPtr head, char *labelName);
 
 entryCallPtr getNextEntryCall(entryCallPtr currentEntryPtr);
 

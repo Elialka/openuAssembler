@@ -26,37 +26,43 @@ entryCallPtr initEntryCallsDB(){
 }
 
 
-boolean addEntryCall(entryCallPtr head, char *labelName, errorCodes *lineErrorPtr){
+errorCodes addEntryCall(entryCallPtr head, char *labelName) {
     entryCallPtr current;
     entryCallPtr prev;
+    errorCodes encounteredError = NO_ERROR;
+    boolean finished = FALSE;/* flag turns on if entry name is already on database or an error occurred */
 
     current = head;
 
     if(!isEntryCallDBEmpty(head)){/* not first entry call */
         /* find next available node */
-        while(current){
+        while(!finished && current){
             if(!strcmp(labelName, current->name)){/* already added this name */
-                return TRUE;
+                finished = TRUE;
             }
             prev = current;
             current = current->next;
         }
 
-        /* allocate memory for new node call - memory for first node is allocated when database was initialized */
-        current = calloc(1, sizeof(entryCall));
-        if(!current){
-            *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
-            return FALSE;
-        }
+        if(!finished){
+            /* allocate memory for new node call - memory for first node is allocated when database was initialized */
+            current = calloc(1, sizeof(entryCall));
+            if(!current){
+                encounteredError = MEMORY_ALLOCATION_FAILURE;
+                finished = TRUE;
+            }
 
-        /* link new node to database */
-        prev->next = current;
+            /* link new node to database */
+            prev->next = current;
+        }
     }
 
-    /* add new extern use */
-    strcpy(current->name, labelName);
+    if(!finished){
+        /* add new extern use */
+        strcpy(current->name, labelName);
+    }
 
-    return TRUE;
+    return encounteredError;
 }
 
 

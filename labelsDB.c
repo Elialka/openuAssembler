@@ -55,8 +55,8 @@ boolean seekLabel(labelPtr head, char *name) {
 }
 
 /* todo split function - can remodel seekLabel */
-boolean addNewLabel(labelPtr head, char *labelName, long address, labelClass type, errorCodes *lineErrorPtr){
-    boolean result = TRUE;
+errorCodes addNewLabel(labelPtr head, char *labelName, long address, labelClass type) {
+    errorCodes encounteredError = NO_ERROR;
     labelPtr current;
     labelPtr prev;
 
@@ -68,16 +68,14 @@ boolean addNewLabel(labelPtr head, char *labelName, long address, labelClass typ
             if(!strcmp(labelName, current->name)){/* label already defined */
                 if(current->type == EXTERN_LABEL || type == EXTERN_LABEL){/* if the old or the new label is external */
                     if(current->type == EXTERN_LABEL && type == EXTERN_LABEL){/* both labels are external */
-                        result =  TRUE;/* multiple extern declarations are allowed */
+                        /* multiple extern declarations are allowed */
                     }
                     else{/* only one of them is external */
-                        *lineErrorPtr = LABEL_LOCAL_AND_EXTERN;
-                        result =  FALSE;
+                        encounteredError = LABEL_LOCAL_AND_EXTERN;
                     }
                 }
                 else{/* two local label definitions */
-                    *lineErrorPtr = DOUBLE_LABEL_DEFINITION;
-                    result =  FALSE;
+                    encounteredError = DOUBLE_LABEL_DEFINITION;
                 }
             }
             else{/* new label name is not used so far */
@@ -86,12 +84,11 @@ boolean addNewLabel(labelPtr head, char *labelName, long address, labelClass typ
             }
         }
 
-        if(result){
+        if(!encounteredError){
             /* allocate memory for new label - memory for first label is allocated when database was initialized */
             current = calloc(1, sizeof(label));
             if(!current){
-                *lineErrorPtr = MEMORY_ALLOCATION_FAILURE;
-                result =  FALSE;
+                encounteredError = MEMORY_ALLOCATION_FAILURE;
             }
         }
 
@@ -99,14 +96,14 @@ boolean addNewLabel(labelPtr head, char *labelName, long address, labelClass typ
         prev->next = current;
     }
 
-    if(result){
+    if(!encounteredError){
         /* update fields */
         strcpy(current->name, labelName);
         current->address = address;
         current->type = type;
     }
 
-    return result;
+    return encounteredError;
 }
 
 

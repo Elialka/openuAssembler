@@ -44,5 +44,3 @@ void testAddString(void *head);
 /* codeImageDB tests */
 
 void printCode(void *head, long IC);
-
-void testAddingCommands(void *head);

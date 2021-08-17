@@ -7,9 +7,9 @@ dataImagePtr initDataImageDB();
 
 boolean addNumber(dataImagePtr *headPtr, long *DCPtr, long value, int numOfBytes);
 
-boolean addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType);
+errorCodes addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType);
 
-boolean addString(dataImagePtr *headPtr, long *DCPtr, char *str);
+errorCodes addString(dataImagePtr *headPtr, long *DCPtr, char *str);
 
 unsigned char getNextDataByte(dataImagePtr headPtr, long index);
 

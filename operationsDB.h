@@ -4,7 +4,7 @@ int seekOp(operationPtr head, char *str);
 
 boolean seekDataOp(char *str, dataOps *dataOpTypePtr);
 
-boolean getOpcode(operationPtr head, char *str, commandOps *opCodePtr, functValues *functPtr, operationClass *opTypePtr);
+boolean getOpcode(operationPtr head, char *str, opcodes *opCodePtr, functValues *functPtr, operationClass *opTypePtr);
 
 boolean firstOperandFormat(operationClass commandOpType, codeLineData *currentLineDataPtr,
                            operandAttributes *currentOperandPtr);

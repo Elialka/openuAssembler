@@ -37,7 +37,7 @@ typedef union codeLine{
     }bytes;
 }codeLine;
 
-static boolean addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeLine *current);
+static errorCodes addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeLine *current);
 
 
 codeImagePtr initCodeImage(){
@@ -49,8 +49,8 @@ codeImagePtr initCodeImage(){
 }
 
 
-static boolean addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeLine *current){
-    boolean result = TRUE;
+static errorCodes addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeLine *current){
+    errorCodes encounteredError = NO_ERROR;
     long nextFreeIndex = (*ICPtr - STARTING_ADDRESS) / (long)sizeof(codeLine); /* how many code lines already saved */
     void *temp;
     codeImagePtr currentPtr;
@@ -58,13 +58,13 @@ static boolean addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeLine
     if(*ICPtr != STARTING_ADDRESS && !(nextFreeIndex % IMAGE_BLOCK_SIZE)){/* out of allocated memory */
         temp = realloc(*headPtr, nextFreeIndex + IMAGE_BLOCK_SIZE);
         if(!temp){
-            result = FALSE;
+            encounteredError = MEMORY_ALLOCATION_FAILURE;
             /* todo free allocated memory - quit program */
         }
         *headPtr = temp;
     }
 
-    if(result){
+    if(!encounteredError){
         currentPtr = *headPtr + nextFreeIndex;
 
         /* add command to database */
@@ -75,11 +75,11 @@ static boolean addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeLine
 
         *ICPtr += sizeof(codeLine);
     }
-    return result;
+    return encounteredError;
 }
 
 
-boolean addRCommand(codeImagePtr *headPtr, long *ICPtr, rTypeData commandData) {
+errorCodes addRCommand(codeImagePtr *headPtr, long *ICPtr, rTypeData commandData) {
     codeLine new;
 
     new.R.opcode = commandData.opcode;
@@ -92,7 +92,7 @@ boolean addRCommand(codeImagePtr *headPtr, long *ICPtr, rTypeData commandData) {
 }
 
 
-boolean addICommand(codeImagePtr *headPtr, long *ICPtr, iTypeData commandData) {
+errorCodes addICommand(codeImagePtr *headPtr, long *ICPtr, iTypeData commandData) {
     codeLine new;
 
     new.I.opcode = commandData.opcode;
@@ -104,7 +104,7 @@ boolean addICommand(codeImagePtr *headPtr, long *ICPtr, iTypeData commandData) {
 }
 
 
-boolean addJCommand(codeImagePtr *headPtr, long *ICPtr, jTypeData commandData) {
+errorCodes addJCommand(codeImagePtr *headPtr, long *ICPtr, jTypeData commandData) {
     codeLine new;
 
     new.J.opcode = commandData.opcode;

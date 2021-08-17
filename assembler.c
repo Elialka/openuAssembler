@@ -25,6 +25,7 @@
 /* pandas refactor long functions/functions that receive many parameters */
 /* split firstPass */
 /* for every database - extract finding end of DB\allocating additional memory to different function */
+/* for every database - check if head not NULL */
 /* in the end, make as many functions as static as possible */
 
 /**
@@ -92,9 +93,11 @@ int main(int argc, char *argv[]){
     initProjectDatabases(&databases);
 
     /* test - delete */
+    /*
     initFileDataBases(&databases);
     testFunctions(&databases);
     clearFileDatabases(&databases);
+     */
     /* end of test */
 
     /* compile files */
@@ -189,12 +192,10 @@ static void compileFile(char *sourceFileName, databaseRouter databases){
     long ICF = 0;/* will store size of code image, in bytes */
     long DCF = 0;/* will store size of data image, in bytes */
     databaseRouterPtr databasesPtr = &databases;/* pointer to databases struct */
-    boolean validFile = supportedFileName(sourceFileName);/* track if any errors occurred */
+    boolean validFile;/* track if any errors occurred */
     FILE *sourceFile = NULL;/* pointer to current file */
 
-    if(validFile){/* legal file name */
-        validFile = openFile(sourceFileName, &sourceFile);
-    }
+    validFile = openFile(sourceFileName, &sourceFile);
     
     if(validFile){/* file opened */
         validFile = initFileDataBases(databasesPtr);

@@ -15,7 +15,7 @@ labelPtr initLabelsDB();
 
 boolean seekLabel(labelPtr head, char *name);
 
-boolean addNewLabel(labelPtr head, char *labelName, long address, labelClass type, errorCodes *lineErrorPtr);
+errorCodes addNewLabel(labelPtr head, char *labelName, long address, labelClass type);
 
 boolean getLabelAttributes(labelPtr head, char *name, long *addressPtr, labelClass *typePtr);
 

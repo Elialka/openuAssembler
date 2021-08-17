@@ -27,6 +27,7 @@
 
 /* default values */
 #define STARTING_ADDRESS (100)
+#define CODE_AND_DATA_IMAGE_MARGIN (0)
 #define EXTERN_LABEL_VALUE (0)
 #define NOT_FOUND (-1)
 
@@ -142,7 +143,7 @@ typedef enum{
     LA = 31,
     CALL = 32,
     STOP = 63
-}commandOps;
+}opcodes;
 
 typedef enum{
     ADD_FUNCT = 1,
@@ -156,6 +157,7 @@ typedef enum{
 }functValues;
 
 typedef enum{
+    UNIDENTIFIED_LABEL_TYPE,
     DATA_LABEL,
     CODE_LABEL,
     EXTERN_LABEL
@@ -170,6 +172,13 @@ typedef enum{
     ENTRY_CALLS_POINTER,
     EXTERN_POINTER
 }pointerArrayIndex;
+
+
+typedef enum{
+    UNIDENTIFIED_COMMAND = 0,
+    CODE_TYPE,
+    DATA_TYPE
+}lineType;
 
 
 typedef struct{

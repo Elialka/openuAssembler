@@ -72,9 +72,10 @@ boolean addNumber(dataImagePtr *headPtr, long *DCPtr, long value, int numOfBytes
     return TRUE;
 }
 
-boolean addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType) {
+errorCodes addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType) {
     int i;
     int numOfBytes;
+    errorCodes encounteredError = NO_ERROR;
 
     /* determine how many bytes to span each value */
     switch(dataOpType){
@@ -92,32 +93,33 @@ boolean addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int amou
             break;
     }
 
-    for(i = 0; i < amountOfNumbers; i++){
+    for(i = 0; !encounteredError &&  i < amountOfNumbers; i++){
         if(!addNumber(headPtr, DCPtr, array[i], numOfBytes)){
-            return FALSE;
+            encounteredError = MEMORY_ALLOCATION_FAILURE;
         }
     }
 
-    return TRUE;
+    return encounteredError;
 }
 
 
 /*
  * this function adds a string to database
  */
-boolean addString(dataImagePtr *headPtr, long *DCPtr, char *str) {
+errorCodes addString(dataImagePtr *headPtr, long *DCPtr, char *str) {
     char *current;
     char *prev;
+    errorCodes encounteredError = NO_ERROR;
 
     /* add each character to database */
-    for(current = str, prev = current; *prev; current++, (*DCPtr)++){
+    for(current = str, prev = current; !encounteredError && *prev; current++, (*DCPtr)++){
         prev = current;
         if(!addByte(headPtr, *prev, *DCPtr)){
-            return FALSE;
+            encounteredError = MEMORY_ALLOCATION_FAILURE;
         }
     }
 
-    return TRUE;
+    return encounteredError;
 }
 
 

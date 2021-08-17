@@ -32,11 +32,11 @@ boolean ignoreLine(char *line){
 
     SKIP_WHITES(current);
 
-    if(*current){
+    if(*current){/* line is not empty */
         if(*current == ';'){/* comment line */
             result =  TRUE;
         }
-        else{/* line is not empty */
+        else{/* not comment line */
             result =  FALSE;
         }
     }
@@ -172,6 +172,14 @@ boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValu
 }
 
 
+errorCodes getLabelFromLine(char **currentPosPtr, char *destination){
+    char token[TOKEN_ARRAY_SIZE];
+    int tokenLength = extractNextToken(currentPosPtr, token);
+
+    getLabelOperand(token, tokenLength, destination);
+}
+
+
 errorCodes getStringFromLine(char **currentPosPtr, char *destination) {
     errorCodes encounteredError;
     int i;
@@ -208,6 +216,7 @@ errorCodes getStringFromLine(char **currentPosPtr, char *destination) {
 }
 
 /* todo test function */
+/* todo maybe switch return type and error pointer*/
 int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpType, errorCodes *lineErrorPtr){
     errorCodes encounteredError = NO_ERROR;
     int i;/* will help keep track if we are expecting a comma or a number */
@@ -345,12 +354,12 @@ errorCodes tokenIsLabel(char *token, int tokenLength) {
 }
 
 
-errorCodes readComma(char **currentPtr) {
+errorCodes readComma(char **currentPosPtr) {
     errorCodes encounteredError = NO_ERROR;
 
-    SKIP_WHITES(*currentPtr);
+    SKIP_WHITES(*currentPosPtr);
 
-    if(**currentPtr++ != ','){
+    if(**currentPosPtr++ != ','){
         encounteredError = MISSING_COMMA;
     }
 
@@ -504,21 +513,17 @@ errorCodes getNumberOperand(char *token, long *destination, long maxValue) {
 }
 
 
-boolean checkLineTermination(char **currentPtr, errorCodes *lineErrorPtr){
-    char *current = *currentPtr;
-    boolean extraneousText = FALSE;
+errorCodes checkLineTermination(char **currentPosPtr) {
+    char *current = *currentPosPtr;
+    errorCodes encounteredError = NO_ERROR;
 
-    for(; *current; current++){
+    for(; !encounteredError && *current; current++){
         if(!isspace(*current)){
-            extraneousText = TRUE;
+            encounteredError = EXTRANEOUS_TEXT;
         }
     }
 
-    if(extraneousText){
-        *lineErrorPtr = EXTRANEOUS_TEXT;
-    }
+    *currentPosPtr = --current;/* set pointer to last character */
 
-    *currentPtr = current - 1;/* mark last character */
-
-    return !extraneousText;
+    return encounteredError;
 }
