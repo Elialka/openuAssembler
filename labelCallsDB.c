@@ -26,7 +26,8 @@ static boolean isLabelCallsEmpty(labelCallPtr head){
 }
 
 
-errorCodes setLabelCall(labelCallPtr head, long IC, char *labelName, operationClass commandOpType) {
+errorCodes
+setLabelCall(labelCallPtr head, long IC, char *labelName, operationClass commandOpType, char *line, long lineCounter) {
     errorCodes encounteredError = NO_ERROR;
     labelCallPtr current;
     labelCallPtr prev;
@@ -52,7 +53,7 @@ errorCodes setLabelCall(labelCallPtr head, long IC, char *labelName, operationCl
     }
 
     /* impossible value */
-    if(commandOpType != I_BRANCHING && commandOpType != J_JUMP && commandOpType != J_CALL_OR_LA){
+    if(commandOpType != I_BRANCHING && commandOpType != J_JMP && commandOpType != J_CALL_OR_LA){
         encounteredError = IMPOSSIBLE;
     }
 
@@ -61,6 +62,8 @@ errorCodes setLabelCall(labelCallPtr head, long IC, char *labelName, operationCl
         current->attributes.IC = IC;
         strcpy(current->attributes.name, labelName);
         current->attributes.type = commandOpType;
+        strcpy(current->attributes.line, line);
+        current->attributes.lineCounter = lineCounter;
     }
 
     return encounteredError;
@@ -85,12 +88,11 @@ boolean getLabelCall(labelCallPtr head, int index, labelCall *destination){
 
 
 void clearLabelCallsDB(labelCallPtr head){
-    labelCallPtr current = head;
     labelCallPtr prev;
 
-    while(current){
-        prev = current;
-        current = current->next;
+    while(head){
+        prev = head;
+        head = head->next;
         free(prev);
     }
 }

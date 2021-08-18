@@ -24,24 +24,18 @@ static int countLabelNameCharacters(char *token);
 static long calculateMaxValue(dataOps dataOpType);
 
 
-boolean ignoreLine(char *line){
-    boolean result;
-    char *current;
+boolean needToReadLine(char *line){
+    boolean result = FALSE;
 
-    current = line;
+    if(line){
+        SKIP_WHITES(line);
 
-    SKIP_WHITES(current);
-
-    if(*current){/* line is not empty */
-        if(*current == ';'){/* comment line */
-            result =  TRUE;
+        /* evaluate first non-white character */
+        if(*line){/* line is not empty */
+            if(*line != ';'){/* not comment line */
+                result =  TRUE;
+            }
         }
-        else{/* not comment line */
-            result =  FALSE;
-        }
-    }
-    else{/* line is empty */
-        result =  TRUE;
     }
 
     return result;
@@ -245,7 +239,7 @@ int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpT
     for (i = 0 ; !encounteredError && !finished; i++){
         if (i % 2) {/* expecting a comma */
             if(readComma(currentPosPtr) != NO_ERROR){/* missing comma */
-                if(ignoreLine(*currentPosPtr)){/* line is terminated *//* temp */
+                if(needToReadLine(*currentPosPtr)){/* line is terminated *//* temp */
                     encounteredError = NO_ERROR;
                 }
                 finished = TRUE;
@@ -300,8 +294,9 @@ errorCodes readComma(char **currentPosPtr) {
     if(**currentPosPtr != ','){
         encounteredError = MISSING_COMMA;
     }
-
-    (*currentPosPtr)++;
+    else{
+        (*currentPosPtr)++;
+    }
 
     return encounteredError;
 }
@@ -316,7 +311,7 @@ errorCodes getFirstOperand(char **currentPosPtr, operationClass commandOpType, o
         encounteredError = MISSING_PARAMETER;
     }
     else if(encounteredError == NOT_REGISTER){/* not a register */
-        if (commandOpType == J_JUMP || commandOpType == J_CALL_OR_LA){/* is possibly a label */
+        if (commandOpType == J_JMP || commandOpType == J_CALL_OR_LA){/* is possibly a label */
             encounteredError = getLabelOperand(token, tokenLength, operandAttributesPtr->labelName);
             operandAttributesPtr->isLabel = TRUE;
         }

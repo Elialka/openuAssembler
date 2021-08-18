@@ -192,6 +192,8 @@ void printCode(void *head, long IC){
 }/* temp - delete */
 
 
-void clearCodeImageDB(codeImagePtr headPtr){
-    free(headPtr);
+void clearCodeImageDB(codeImagePtr head){
+    if(head){
+        free(head);
+    }
 }

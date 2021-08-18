@@ -7,7 +7,7 @@
  * @param line line of input
  * @return TRUE if line is empty or a comment line, FALSE otherwise
  * */
-boolean ignoreLine(char *line);
+boolean needToReadLine(char *line);
 
 /**
  * Copy next token from source to buffer, terminate buffer with '/0'

@@ -9,6 +9,8 @@
 typedef struct entryCall{
     char name[MAX_LABEL_LENGTH];
     long value;
+    char line[LINE_ARRAY_SIZE];
+    long lineCounter;
     entryCallPtr next;
 }entryCall;
 
@@ -20,7 +22,7 @@ entryCallPtr initEntryCallsDB(){
 }
 
 
-errorCodes addEntryCall(entryCallPtr head, char *labelName) {
+errorCodes addEntryCall(entryCallPtr head, char *labelName, char *line, long lineCounter) {
     entryCallPtr current;
     entryCallPtr prev;
     errorCodes encounteredError = NO_ERROR;
@@ -54,6 +56,8 @@ errorCodes addEntryCall(entryCallPtr head, char *labelName) {
     if(!finished){
         /* add new extern use */
         strcpy(current->name, labelName);
+        strcpy(current->line, line);
+        current->lineCounter = lineCounter;
     }
 
     return encounteredError;
@@ -66,7 +70,7 @@ entryCallPtr getNextEntryCall(entryCallPtr currentEntryPtr){
         nextEntryPtr = NULL;
     }
     else{
-        nextEntryPtr = ((entryCallPtr)currentEntryPtr)->next;
+        nextEntryPtr = currentEntryPtr->next;
     }
 
     return nextEntryPtr;
@@ -79,7 +83,7 @@ char * getEntryCallName(entryCallPtr currentEntryPtr){
         namePtr = NULL;
     }
     else{
-        namePtr = ((entryCallPtr)currentEntryPtr)->name;
+        namePtr = currentEntryPtr->name;
     }
 
     return namePtr;
@@ -93,16 +97,43 @@ long getEntryCallAddress(entryCallPtr currentEntryCallPtr){
         address = 0;
     }
     else{
-        address =  ((entryCallPtr)currentEntryCallPtr)->value;
+        address =  currentEntryCallPtr->value;
     }
 
     return address;
 }
 
 
+char * getEntryCallLine(entryCallPtr currentEntryPtr){
+    char *line;
+    if(!currentEntryPtr){
+        line = NULL;
+    }
+    else{
+        line = currentEntryPtr->line;
+    }
+
+    return line;
+}
+
+
+long getEntryCallLineCount(entryCallPtr currentEntryCallPtr){
+    long lineCount;
+
+    if(!currentEntryCallPtr){
+        lineCount = 0;
+    }
+    else{
+        lineCount =  currentEntryCallPtr->lineCounter;
+    }
+
+    return lineCount;
+}
+
+
 void setEntryCallValue(entryCallPtr currentEntryPtr, long address) {
     if(currentEntryPtr){
-        ((entryCallPtr)currentEntryPtr)->value = address;
+        currentEntryPtr->value = address;
     }
 }
 
@@ -111,19 +142,18 @@ boolean isEntryCallDBEmpty(entryCallPtr head){
     boolean result;
 
     /* check if first node's name is empty */
-    result = *(((entryCallPtr)head)->name) ? FALSE : TRUE;
+    result = *(head->name) ? FALSE : TRUE;
 
     return result;
 }
 
 
 void clearEntryCallsDB(entryCallPtr head){
-    entryCallPtr current = head;
     entryCallPtr prev;
 
-    while(current){
-        prev = current;
-        current = current->next;
+    while(head){
+        prev = head;
+        head = head->next;
         free(prev);
     }
 }

@@ -120,12 +120,12 @@ boolean getLabelAttributes(labelPtr head, char *name, long *addressPtr, labelCla
 }
 
 
-void updateDataLabels(labelPtr head, long ICF){
+void updateDataLabels(labelPtr head, long offset){
     labelPtr currentLabelPtr = head;
 
     while(currentLabelPtr){/* there is another label in the database */
         if(currentLabelPtr->type == DATA_LABEL){
-            currentLabelPtr->address += ICF;
+            currentLabelPtr->address += offset;
         }
 
         /* get next label */
@@ -136,6 +136,7 @@ void updateDataLabels(labelPtr head, long ICF){
 
 void clearLabels(labelPtr head) {
     labelPtr temp;
+
     while(head){
         temp = head;
         head = temp->next;

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "firstPass.h"
 #include "labelsDB.h"
@@ -22,7 +23,6 @@ typedef struct labelAttributes{/* todo maybe reset flag each line */
 typedef struct operationAttributes *operationAttributesPtr;
 
 typedef struct operationAttributes{
-    long lineCounter;
     lineType currentLineClass;/* track if current line is command or data line */
     union{
         struct{
@@ -34,6 +34,16 @@ typedef struct operationAttributes{
     }operationID;
 }operationAttributes;
 
+typedef struct lineAttributes * lineAttributesPtr;
+
+typedef struct lineAttributes{
+    long lineCounter;
+    char line[LINE_ARRAY_SIZE];
+    long *ICPtr;
+    long *DCPtr;
+}lineAttributes;
+
+
 /**
  * Read file, encode command and add relevant data to databases
  * @param sourceFile pointer to file
@@ -43,6 +53,8 @@ typedef struct operationAttributes{
  * @return TRUE if no errors occurred, FALSE otherwise
  */
 static boolean encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRouterPtr databasesPtr);
+
+static errorCodes readLine(lineAttributesPtr lineDataPtr, databaseRouterPtr databasesPtr);
 
 /**
  * Read label definition (if present) and command name, set operation attributes,
@@ -54,8 +66,9 @@ static boolean encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRo
  * @param databasesPtr pointer to databases structure
  * @return TRUE if no errors occurred, FALSE otherwise
  */
-static boolean handleLabelAndCommandName(char **currentPosPtr, operationAttributesPtr operationDataPtr, long IC, long DC,
-                                         databaseRouterPtr databasesPtr);
+static errorCodes
+handleLabelAndCommandName(char **currentPosPtr, operationAttributesPtr operationDataPtr, lineAttributesPtr lineDataPtr,
+                          databaseRouterPtr databasesPtr);
 /**
  * Handle encoding for code operation commands,  print relevant error message if encountered
  * @param currentPosPtr Pointer to position in line array
@@ -64,8 +77,9 @@ static boolean handleLabelAndCommandName(char **currentPosPtr, operationAttribut
  * @param databasesPtr pointer to databases structure
  * @return TRUE if no errors occurred, FALSE otherwise
  */
-static boolean encodeCodeCommand(char **currentPosPtr, operationAttributesPtr operationDataPtr, long *ICPtr,
-                                 databaseRouterPtr databasesPtr);
+static errorCodes
+encodeCodeCommand(char **currentPosPtr, operationAttributesPtr operationDataPtr, lineAttributesPtr lineDataPtr,
+                  databaseRouterPtr databasesPtr);
 /**
  * Handle instructions that are not code operations, print relevant error message if encountered
  * @param currentPosPtr Pointer to position in line array
@@ -74,8 +88,9 @@ static boolean encodeCodeCommand(char **currentPosPtr, operationAttributesPtr op
  * @param databasesPtr pointer to databases structure
  * @return TRUE if no errors occurred, FALSE otherwise
  */
-static boolean encodeDataCommand(char **currentPosPtr, operationAttributesPtr operationDataPtr, long *DCPtr,
-                                 databaseRouterPtr databasesPtr);
+static errorCodes
+encodeDataCommand(char **currentPosPtr, operationAttributesPtr operationDataPtr, lineAttributesPtr lineDataPtr,
+                  databaseRouterPtr databasesPtr);
 /**
  * Handle extern and entry instructions
  * @param currentPosPtr Pointer to position in line array
@@ -84,8 +99,8 @@ static boolean encodeDataCommand(char **currentPosPtr, operationAttributesPtr op
  * @param databasesPtr pointer to databases structure
  * @return errorCodes enum value describing function success/failure
  */
-static errorCodes externOrEntry(char **currentPosPtr, dataOps dataOpType, const long *DCPtr,
-                                databaseRouterPtr databasesPtr);
+static errorCodes
+externOrEntry(char **currentPosPtr, dataOps dataOpType, lineAttributesPtr lineDataPtr, databaseRouterPtr databasesPtr);
 /**
  * Handle dw, dh, and db instructions
  * @param currentPosPtr Pointer to position in line array
@@ -126,6 +141,9 @@ static errorCodes checkLabelDefinition(char **currentPosPtr, labelAttributesPtr 
 static errorCodes getLineType(char **currentPosPtr, operationAttributesPtr operationDataPtr, labelAttributesPtr definedLabelDataPtr,
                               operationPtr operationsDB);
 
+static void checkRedundantLabel(labelAttributesPtr definedLabelDataPtr, operationAttributesPtr operationDataPtr,
+                                lineAttributesPtr lineDataPtr);
+
 /**
  * Add new label to labels database
  * @param definedLabelDataPtr pointer to label attributes structure
@@ -135,6 +153,9 @@ static errorCodes getLineType(char **currentPosPtr, operationAttributesPtr opera
  * @return errorCodes enum value describing function success/failure
  */
 static errorCodes addLabel(labelAttributesPtr definedLabelDataPtr, long IC, long DC, labelPtr labelsDB);
+
+static errorCodes extractCodeOperands(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
+                               lineAttributesPtr lineDataPtr, labelCallPtr labelCallsDB);
 
 /**
  * Check if first operand is needed, and extract relevant information from it
@@ -170,13 +191,12 @@ static errorCodes handleThirdOperand(char **currentPosPtr, operationClass comman
 
 /**
  * Check for extraneous text in the end of the line, and ensure line was not longer than max supported length
- * @param currentPos Position in line array
+ * @param currentLineData Position in line array
  * @param sourceFile pointer to file
  * @return TRUE if no errors occurred, FALSE otherwise
  */
-static boolean clearLine(char *currentPos, FILE *sourceFile, boolean legalLine);
+static void flushLine(FILE *sourceFile, char *line, long lineCounter);
 
-extern long lineCounterGlobal;/* temp - delete */
 
 boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPtr databasesPtr){
 
@@ -197,36 +217,26 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
 
 
 static boolean encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRouterPtr databasesPtr){
-    char line[LINE_ARRAY_SIZE];/* store line of input to process */
-    char *currentPos = line;/* position in line array */
-    operationAttributes operationData;/* current line attributes */
-    boolean readLine;/* flag turns off when line is empty\comment\contains an error */
-    boolean legalLine;/* current line error flag - turns off error occurs */
+    lineAttributes currentLineData;
+    lineAttributesPtr lineDataPtr = &currentLineData;
     boolean result = TRUE;
+    errorCodes encounteredError = NO_ERROR;
 
-    for(lineCounterGlobal = operationData.lineCounter = 1; !feof(sourceFile);operationData.lineCounter++, lineCounterGlobal++){
-        currentPos = fgets(line, MAX_LINE, sourceFile);
-        legalLine = TRUE;
-        readLine = !ignoreLine(line);
+    lineDataPtr->ICPtr = ICPtr;
+    lineDataPtr->DCPtr = DCPtr;
 
-        if(readLine){/* line is not empty or comment */
-            legalLine = handleLabelAndCommandName(&currentPos, &operationData, *ICPtr, *DCPtr, databasesPtr);
+    for(currentLineData.lineCounter = 1;
+    fgets(currentLineData.line, MAX_LINE, sourceFile);/* todo check if maxLine + 1 */
+    currentLineData.lineCounter++){/* there is another line */
+
+        if(needToReadLine(currentLineData.line)){/* line should be analysed */
+            encounteredError = readLine(&currentLineData, databasesPtr);
         }
 
-        if(readLine && legalLine){
-            if(operationData.currentLineClass == CODE_TYPE){
-                legalLine = encodeCodeCommand(&currentPos, &operationData, ICPtr, databasesPtr);
-            }
-            else if(operationData.currentLineClass == DATA_TYPE){
-                legalLine = encodeDataCommand(&currentPos, &operationData, DCPtr, databasesPtr);
-            }
-        }
+        flushLine(sourceFile, currentLineData.line, currentLineData.lineCounter);
 
-        if(!clearLine(currentPos, sourceFile, readLine && legalLine)){
-            legalLine = FALSE;
-        }
-
-        if(!legalLine){
+        if(encounteredError){
+            printErrorMessage(encounteredError, currentLineData.line, currentLineData.lineCounter);
             result = FALSE;
         }
     }
@@ -234,10 +244,34 @@ static boolean encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRo
     return result;
 }
 
+/* todo change line to line data struct */
+static errorCodes readLine(lineAttributesPtr lineDataPtr, databaseRouterPtr databasesPtr) {
+    char *currentPos = lineDataPtr->line;/* position in line array */
+    operationAttributes operationData;/* current line attributes */
+    errorCodes encounteredError;
 
-static boolean handleLabelAndCommandName(char **currentPosPtr, operationAttributesPtr operationDataPtr, long IC, long DC,
-                                         databaseRouterPtr databasesPtr){
-    boolean result = TRUE;
+    encounteredError = handleLabelAndCommandName(&currentPos, &operationData, lineDataPtr, databasesPtr);
+
+    if(!encounteredError){
+        if(operationData.currentLineClass == CODE_TYPE){
+            encounteredError = encodeCodeCommand(&currentPos, &operationData, lineDataPtr, databasesPtr);
+        }
+        else if(operationData.currentLineClass == DATA_TYPE){
+            encounteredError = encodeDataCommand(&currentPos, &operationData, lineDataPtr, databasesPtr);
+        }
+    }
+
+    if(!encounteredError){
+        encounteredError = checkLineTermination(&currentPos);
+    }
+
+    return encounteredError;
+}
+
+
+static errorCodes
+handleLabelAndCommandName(char **currentPosPtr, operationAttributesPtr operationDataPtr, lineAttributesPtr lineDataPtr,
+                          databaseRouterPtr databasesPtr) {
     labelAttributes definedLabelData;
     errorCodes encounteredError = checkLabelDefinition(currentPosPtr, &definedLabelData, databasesPtr->operationsDB);
 
@@ -246,91 +280,81 @@ static boolean handleLabelAndCommandName(char **currentPosPtr, operationAttribut
     }
 
     if(!encounteredError){
-        encounteredError = addLabel(&definedLabelData, IC, DC, databasesPtr->labelsDB);
+        checkRedundantLabel(&definedLabelData, operationDataPtr, lineDataPtr);
     }
 
-    if(encounteredError){
-        printErrorMessage(encounteredError, operationDataPtr->lineCounter);
-        result = FALSE;
+    if(!encounteredError){
+        encounteredError = addLabel(&definedLabelData, *lineDataPtr->ICPtr, *lineDataPtr->DCPtr, databasesPtr->labelsDB);
     }
 
-    return result;
+    return encounteredError;
 }
 
 
-static boolean encodeCodeCommand(char **currentPosPtr, operationAttributesPtr operationDataPtr, long *ICPtr,
-                                 databaseRouterPtr databasesPtr){
-    boolean result = TRUE;
+static errorCodes encodeCodeCommand(char **currentPosPtr, operationAttributesPtr operationDataPtr,
+                                    lineAttributesPtr lineDataPtr, databaseRouterPtr databasesPtr) {
     operationClass commandOpType = operationDataPtr->operationID.commandOpData.class;
     codeLineData currentLineData;/* structure containing all operation data relevant for encoding */
-    errorCodes encounteredError = extractCodeOperands(currentPosPtr, commandOpType, &currentLineData,
-                                                      databasesPtr->labelCallsDB, *ICPtr);
+    errorCodes encounteredError;
+
+    encounteredError = extractCodeOperands(currentPosPtr, commandOpType, &currentLineData, lineDataPtr,
+                                           databasesPtr->labelCallsDB);
 
     if(!encounteredError){
         if(commandOpType == R_ARITHMETIC || commandOpType == R_COPY){
             /* is R type */
-            encounteredError = addRCommand(&databasesPtr->codeImageDB, ICPtr, currentLineData.rAttributes);
+            encounteredError = addRCommand(&databasesPtr->codeImageDB, lineDataPtr->ICPtr, currentLineData.rAttributes);
         }
         else if(commandOpType == I_BRANCHING || commandOpType == I_MEMORY_LOAD || commandOpType == I_ARITHMETIC){
             /* is I type */
-            encounteredError = addICommand(&databasesPtr->codeImageDB, ICPtr, currentLineData.iAttributes);
+            encounteredError = addICommand(&databasesPtr->codeImageDB, lineDataPtr->ICPtr, currentLineData.iAttributes);
         }
-        else if(commandOpType == J_JUMP || commandOpType == J_CALL_OR_LA || commandOpType == J_STOP){
+        else if(commandOpType == J_JMP || commandOpType == J_CALL_OR_LA || commandOpType == J_STOP){
             /* is J type */
-            encounteredError = addJCommand(&databasesPtr->codeImageDB, ICPtr, currentLineData.jAttributes);
+            encounteredError = addJCommand(&databasesPtr->codeImageDB, lineDataPtr->ICPtr, currentLineData.jAttributes);
         }
     }
 
-    if(encounteredError){
-        printErrorMessage(encounteredError, operationDataPtr->lineCounter);
-        result = FALSE;
-    }
-
-    return result;
+    return encounteredError;
 }
 
 
-static boolean encodeDataCommand(char **currentPosPtr, operationAttributesPtr operationDataPtr, long *DCPtr,
-                                 databaseRouterPtr databasesPtr){
-    boolean result = TRUE;
+static errorCodes
+encodeDataCommand(char **currentPosPtr, operationAttributesPtr operationDataPtr, lineAttributesPtr lineDataPtr,
+                  databaseRouterPtr databasesPtr) {
     errorCodes encounteredError;
     dataOps dataOpType = operationDataPtr->operationID.dataOpType;
 
-
     if(dataOpType == EXTERN || dataOpType == ENTRY){
-        encounteredError = externOrEntry(currentPosPtr, dataOpType, DCPtr, databasesPtr);
+        encounteredError = externOrEntry(currentPosPtr, dataOpType, lineDataPtr, databasesPtr);
     }
     else if(dataOpType == DW || dataOpType == DH || dataOpType == DB){
-        encounteredError = readNumbers(currentPosPtr, dataOpType, DCPtr, &databasesPtr->dataImageDB);
+        encounteredError = readNumbers(currentPosPtr, dataOpType, lineDataPtr->DCPtr, &databasesPtr->dataImageDB);
     }
     else if(dataOpType == ASCIZ){
-        encounteredError = readString(currentPosPtr, DCPtr, &databasesPtr->dataImageDB);
+        encounteredError = readString(currentPosPtr, lineDataPtr->DCPtr, &databasesPtr->dataImageDB);
     }
     else{
         encounteredError = IMPOSSIBLE;
     }
 
-    if(encounteredError){
-        printErrorMessage(encounteredError, operationDataPtr->lineCounter);
-        result = FALSE;
-    }
-
-    return result;
+    return encounteredError;
 }
 
 
-static errorCodes externOrEntry(char **currentPosPtr, dataOps dataOpType, const long *DCPtr,
-                                databaseRouterPtr databasesPtr){
+static errorCodes
+externOrEntry(char **currentPosPtr, dataOps dataOpType, lineAttributesPtr lineDataPtr, databaseRouterPtr databasesPtr) {
     labelAttributes definedLabelData;
     errorCodes encounteredError = getLabelFromLine(currentPosPtr, definedLabelData.labelName);
 
     if(!encounteredError){
         if(dataOpType == ENTRY){
-            encounteredError = addEntryCall(databasesPtr->entryCallsDB, definedLabelData.labelName);
+            encounteredError = addEntryCall(databasesPtr->entryCallsDB, definedLabelData.labelName,
+                                            lineDataPtr->line, lineDataPtr->lineCounter);
         }
         else{/* must be extern */
             definedLabelData.labelType = EXTERN_LABEL;
-            encounteredError = addLabel(&definedLabelData, 888, *DCPtr, databasesPtr->labelsDB);
+            encounteredError = addLabel(&definedLabelData, 888, *lineDataPtr->DCPtr, databasesPtr->labelsDB);
         }
     }
 
@@ -382,7 +406,7 @@ static errorCodes checkLabelDefinition(char **currentPosPtr, labelAttributesPtr 
     return encounteredError;
 }
 
-/* todo maybe split */
+/* todo maybe split\organize */
 static errorCodes getLineType(char **currentPosPtr, operationAttributesPtr operationDataPtr,
                               labelAttributesPtr definedLabelDataPtr, operationPtr operationsDB) {
     char command[COMMAND_ARRAY_SIZE];/* command name buffer */
@@ -407,17 +431,26 @@ static errorCodes getLineType(char **currentPosPtr, operationAttributesPtr opera
         }
     }
 
-    if (!encounteredError&&
-             operationDataPtr->currentLineClass == DATA_TYPE &&
-             definedLabelDataPtr->labelIsUsed &&
-            (operationDataPtr->operationID.dataOpType == ENTRY ||
-             operationDataPtr->operationID.dataOpType == EXTERN)){
-        /* no need to define label for entry and extern commands */
-        printErrorMessage(DEFINED_LABEL_ENTRY_EXTERN, operationDataPtr->lineCounter);
-        definedLabelDataPtr->labelIsUsed = FALSE;
-    }
-
     return encounteredError;
+}
+
+
+static void checkRedundantLabel(labelAttributesPtr definedLabelDataPtr, operationAttributesPtr operationDataPtr,
+                                      lineAttributesPtr lineDataPtr){
+    if(operationDataPtr->currentLineClass == DATA_TYPE){/* is data instruction line */
+
+        if(definedLabelDataPtr->labelIsUsed){/* label definition present */
+
+            if(operationDataPtr->operationID.dataOpType == ENTRY ||
+            operationDataPtr->operationID.dataOpType == EXTERN){
+
+                /* redundant label definition - ignore */
+                printWarningMessage(DEFINED_LABEL_ENTRY_EXTERN,
+                                    lineDataPtr->line, lineDataPtr->lineCounter);
+                definedLabelDataPtr->labelIsUsed = FALSE;
+            }
+        }
+    }
 }
 
 
@@ -443,9 +476,8 @@ static errorCodes addLabel(labelAttributesPtr definedLabelDataPtr, long IC, long
 }
 
 
-/* todo make static */
-errorCodes extractCodeOperands(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
-                               labelCallPtr labelCallsDB, long IC) {
+static errorCodes extractCodeOperands(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
+                               lineAttributesPtr lineDataPtr, labelCallPtr labelCallsDB) {
     errorCodes encounteredError;
     labelAttributes calledLabel;
     boolean mayNeedAnotherOperand;
@@ -464,9 +496,10 @@ errorCodes extractCodeOperands(char **currentPosPtr, operationClass commandOpTyp
         encounteredError = handleThirdOperand(currentPosPtr, commandOpType, currentLineDataPtr, &calledLabel);
     }
 
-
-    if(!encounteredError && calledLabel.labelIsUsed){/* a label has been used as a parameter */
-        encounteredError = setLabelCall(labelCallsDB, IC, calledLabel.labelName, commandOpType);
+    /* mark label usage */
+    if(!encounteredError && calledLabel.labelIsUsed){
+        encounteredError = setLabelCall(labelCallsDB, *lineDataPtr->ICPtr,calledLabel.labelName,
+                                        commandOpType, lineDataPtr->line, lineDataPtr->lineCounter);
     }
 
     return encounteredError;
@@ -532,34 +565,37 @@ static errorCodes handleThirdOperand(char **currentPosPtr, operationClass comman
 }
 
 
-/* todo check clearLine EOF*/
-boolean clearLine(char *currentPos, FILE *sourceFile, boolean legalLine) {
-    boolean result = TRUE;
+/* todo check flushLine EOF*/
+void flushLine(FILE *sourceFile, char *line, long lineCounter) {
+    char *currentPos = line;
     int currentChar;
-    errorCodes encounteredError;
-    boolean longLine = FALSE;
-
-    if(legalLine){/* line was not empty\comment line */
-        encounteredError = checkLineTermination(&currentPos);
-        if(encounteredError){
-            printErrorMessage(encounteredError, lineCounterGlobal);
-            result = FALSE;
-        }
-    }
+    boolean missedCharacters = FALSE;/* turns on if any non-white characters are found past supported line limits */
 
     /* find last character */
     for(; *currentPos; currentPos++)
         ;
 
-    if(*--currentPos != '\n'){/* source line is longer than maximum supported length */
+    if(*--currentPos != '\n'){/* newline character is not present in line */
+        /* flush line by reading characters until newline character or EOF */
         for(; (currentChar = fgetc(sourceFile)) != EOF && currentChar != '\n' ; currentPos++){
-            longLine = TRUE;
-        }
-        if(longLine){
-            printErrorMessage(LINE_TOO_LONG, lineCounterGlobal);
+            if(!isspace(currentChar)){
+                missedCharacters = TRUE;
+            }
         }
 
+        if(missedCharacters){/* was not end of file */
+            printWarningMessage(LINE_TOO_LONG, line, lineCounter);
+        }
     }
+}
 
-    return result;
+
+
+
+/* temp - delete - test */
+errorCodes extractCodeOperandsTest(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
+                                   long *ICPtr, labelCallPtr labelCallsDB){
+    lineAttributes lineData;
+    lineData.ICPtr = ICPtr;
+    return extractCodeOperands(currentPosPtr, commandOpType, currentLineDataPtr, &lineData,labelCallsDB);
 }

@@ -24,7 +24,6 @@
 #define NUMBERS_ARRAY_SIZE (MAX_LINE / 2)
 #define IMAGE_BLOCK_SIZE (50)
 #define COMMAND_ARRAY_SIZE (MAX_COMMAND_LENGTH + 1)
-#define DATABASE_POINTER_ARRAY_SIZE (7)
 
 /* default values */
 #define STARTING_ADDRESS (100)
@@ -45,6 +44,12 @@ typedef enum {
     FALSE = 0,
     TRUE = 1
 }boolean;
+
+typedef enum{
+    /* warnings */
+    LINE_TOO_LONG,
+    DEFINED_LABEL_ENTRY_EXTERN
+}warningCodes;
 
 typedef enum{
     NO_ERROR = 0,
@@ -90,9 +95,6 @@ typedef enum{
     /* other */
     EXTRANEOUS_TEXT,
     COULD_NOT_CREATE_FILE,
-    /* warnings */
-    LINE_TOO_LONG,
-    DEFINED_LABEL_ENTRY_EXTERN,
     /* internal crisis */
     IMPOSSIBLE
 }errorCodes;
@@ -103,7 +105,7 @@ typedef enum{
     I_ARITHMETIC,
     I_BRANCHING,
     I_MEMORY_LOAD,
-    J_JUMP,
+    J_JMP,
     J_CALL_OR_LA,
     J_STOP
 }operationClass;
@@ -177,6 +179,8 @@ typedef struct{
     long IC;
     char name[MAX_LABEL_LENGTH];
     operationClass type;
+    char line[LINE_ARRAY_SIZE];
+    long lineCounter;
 }labelCall;
 
 /* database pointer types */
@@ -251,4 +255,6 @@ typedef struct operandAttributes{
 }operandAttributes;
 
 
-void printErrorMessage(errorCodes encounteredError, long lineNumber);
+void printWarningMessage(warningCodes encounteredWarning, char *line, long lineNumber);
+
+void printErrorMessage(errorCodes encounteredError, char *line, long lineNumber);

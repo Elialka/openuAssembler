@@ -22,7 +22,7 @@ static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC){
     boolean result = TRUE;
     void *temp;
 
-    if(DC && !(DC & IMAGE_BLOCK_SIZE)){/* out of allocated memory */
+    if(DC && !(DC % IMAGE_BLOCK_SIZE)){/* out of allocated memory */
         temp = realloc(*headPtr, DC + IMAGE_BLOCK_SIZE);
         if(!temp){
             result =  FALSE;
@@ -127,8 +127,10 @@ unsigned char getNextDataByte(dataImagePtr headPtr, long index){
 
 
 
-void clearDataImageDB(dataImagePtr headPtr){
-    free(headPtr);
+void clearDataImageDB(dataImagePtr head){
+    if(head){
+        free(head);
+    }
 }
 
 
@@ -178,6 +180,6 @@ void testAddByte(void *head) {
     addByte(head, byte, DC);
     DC++;
 
-    checkDataImage(4, head, buffer);
+    checkDataImage(DC, head, buffer);
 }
 

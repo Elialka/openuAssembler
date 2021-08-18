@@ -5,5 +5,7 @@
 boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPtr databasesPtr);
 
 
-errorCodes extractCodeOperands(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
-                               labelCallPtr labelCallsDB, long IC);
+
+/* temp - delete - test */
+errorCodes extractCodeOperandsTest(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
+                                   long *ICPtr, labelCallPtr labelCallsDB);

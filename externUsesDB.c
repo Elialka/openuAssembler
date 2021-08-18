@@ -100,12 +100,11 @@ long getExternUseAddress(externUsePtr currentExternUsePtr){
 
 
 void clearExternUsesDB(externUsePtr head){
-    externUsePtr current = head;
     externUsePtr prev;
 
-    while(current){
-        prev = current;
-        current = current->next;
+    while(head){
+        prev = head;
+        head = head->next;
         free(prev);
     }
 }

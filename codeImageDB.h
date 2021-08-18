@@ -17,4 +17,4 @@ boolean updateJTypeAddress(codeImagePtr headPtr, long IC, long address, errorCod
 
 unsigned char getNextCodeByte(codeImagePtr headPtr, long index);
 
-void clearCodeImageDB(codeImagePtr headPtr);
+void clearCodeImageDB(codeImagePtr head);

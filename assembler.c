@@ -19,10 +19,11 @@
 #include "tests.h"
 
 /* todo possible refactors */
-/* reset new memory after reallocation */
-/* program does not address label definition without ':' - wrond error message */
+/* maybe reset new memory after reallocation */
+/* program does not address label definition without ':' - wrong error message */
+/* labelCallsDB, entryCallsDB - maybe add line and line counter to each node */
+/* clear databases - move NULL checking to database functions */
 /* pandas refactor long functions/functions that receive many parameters */
-/* split firstPass */
 /* for every database - extract finding end of DB\allocating additional memory to different function */
 /* for every database - check if head not NULL */
 /* in the end, make as many functions as static as possible */
@@ -81,12 +82,11 @@ static void clearProjectDatabases(databaseRouterPtr databasesPtr);
 long lineCounterGlobal = 0;/* temp - delete */
 
 int main(int argc, char *argv[]){
-    long i;
+    int i;
     databaseRouter databases;
 
-
     if(argc < 2){/* no files to compile */
-        printErrorMessage(NO_FILES_TO_COMPILE, 0);
+        printErrorMessage(NO_FILES_TO_COMPILE, NULL, 0);
     }
     else{/* program inline parameters present */
         /* initialize operation names database */
@@ -109,7 +109,6 @@ int main(int argc, char *argv[]){
 
         /* free remaining memory allocations */
         clearProjectDatabases(&databases);
-
     }
 
     return 0;
@@ -131,7 +130,7 @@ static boolean initProjectDatabases(databaseRouterPtr databasesPtr){
     allocationSuccess = databasesPtr->operationsDB ? TRUE : FALSE;
 
     if(!allocationSuccess){
-        printErrorMessage(MEMORY_ALLOCATION_FAILURE, 0);
+        printErrorMessage(MEMORY_ALLOCATION_FAILURE, NULL, 0);
     }
 
     return allocationSuccess;
@@ -152,7 +151,7 @@ static boolean initFileDataBases(databaseRouterPtr databasesPtr){
     }
 
     if(!allocationSuccess){
-        printErrorMessage(MEMORY_ALLOCATION_FAILURE, 0);
+        printErrorMessage(MEMORY_ALLOCATION_FAILURE, NULL, 0);
     }
 
     return allocationSuccess;
@@ -183,7 +182,7 @@ static boolean supportedFileName(char *sourceFileName) {
 
     if(encounteredError){
         result = FALSE;
-        printErrorMessage(encounteredError, 0);
+        printErrorMessage(encounteredError, NULL, 0);
     }
 
     return result;
@@ -215,7 +214,7 @@ static void compileFile(char *sourceFileName, databaseRouter databases){
         writeFiles(databases, sourceFileName, ICF, DCF);
     }
 
-    if(sourceFile){/* file has been opened */
+    if(sourceFile){/* the file was opened */
         fclose(sourceFile);/* todo check if need to use returned value */
     }
 
@@ -229,7 +228,7 @@ static boolean openFile(char *sourceFileName, FILE **sourceFilePtr){
     *sourceFilePtr = fopen(sourceFileName, "r");
 
     if(!*sourceFileName){/* could not open file */
-        printErrorMessage(COULD_NOT_OPEN_FILE, 0);
+        printErrorMessage(COULD_NOT_OPEN_FILE, "", 0);
         result = FALSE;
     }
 
@@ -239,43 +238,29 @@ static boolean openFile(char *sourceFileName, FILE **sourceFilePtr){
 
 static void clearFileDatabases(databaseRouterPtr databasesPtr){
 
-    if(databasesPtr->codeImageDB){/* memory needs to be freed */
-        clearCodeImageDB(databasesPtr->codeImageDB);
-        databasesPtr->codeImageDB = NULL;
-    }
+    clearCodeImageDB(databasesPtr->codeImageDB);
+    databasesPtr->codeImageDB = NULL;
 
-    if(databasesPtr->dataImageDB){/* memory needs to be freed */
-        clearDataImageDB(databasesPtr->dataImageDB);
-        databasesPtr->dataImageDB = NULL;
-    }
+    clearDataImageDB(databasesPtr->dataImageDB);
+    databasesPtr->dataImageDB = NULL;
 
-    if(databasesPtr->entryCallsDB){/* memory needs to be freed */
-        clearEntryCallsDB(databasesPtr->entryCallsDB);
-        databasesPtr->entryCallsDB = NULL;
-    }
+    clearEntryCallsDB(databasesPtr->entryCallsDB);
+    databasesPtr->entryCallsDB = NULL;
 
-    if(databasesPtr->externUsesDB){/* memory needs to be freed */
-        clearExternUsesDB(databasesPtr->externUsesDB);
-        databasesPtr->externUsesDB = NULL;
-    }
+    clearExternUsesDB(databasesPtr->externUsesDB);
+    databasesPtr->externUsesDB = NULL;
 
-    if(databasesPtr->labelCallsDB){/* memory needs to be freed */
-        clearLabelCallsDB(databasesPtr->labelCallsDB);
-        databasesPtr->labelCallsDB = NULL;
-    }
+    clearLabelCallsDB(databasesPtr->labelCallsDB);
+    databasesPtr->labelCallsDB = NULL;
 
-    if(databasesPtr->labelsDB){/* memory needs to be freed */
-        clearLabels(databasesPtr->labelsDB);
-        databasesPtr->labelsDB = NULL;
-    }
+    clearLabels(databasesPtr->labelsDB);
+    databasesPtr->labelsDB = NULL;
 }
 
 
 static void clearProjectDatabases(databaseRouterPtr databasesPtr){
     /* free static database */
-    if(databasesPtr->operationsDB){/* memory needs to be freed */
-        clearOperationDB(databasesPtr->operationsDB);
-        databasesPtr->operationsDB = NULL;
-    }
+    clearOperationDB(databasesPtr->operationsDB);
+    databasesPtr->operationsDB = NULL;
 }
 

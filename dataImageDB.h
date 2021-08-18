@@ -13,4 +13,4 @@ errorCodes addString(dataImagePtr *headPtr, long *DCPtr, char *str);
 
 unsigned char getNextDataByte(dataImagePtr headPtr, long index);
 
-void clearDataImageDB(dataImagePtr headPtr);
+void clearDataImageDB(dataImagePtr head);

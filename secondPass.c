@@ -16,6 +16,7 @@ static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr);
 static boolean locateEntryDefinitions(entryCallPtr entryCallsDatabase, labelPtr labelsDatabase, errorCodes *lineErrorPtr);
 
 /* todo refactor - ugly file */
+/* change inner functions return value to error codes */
 
 /* todo test EVERYTHING */
 boolean secondPass(databaseRouterPtr databasesPtr, long ICF) {
@@ -64,7 +65,7 @@ static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr){
         }
 
         if(!validCall){/* mark error occurred */
-            printErrorMessage(error, 0);
+            printErrorMessage(error, currentCall.line, currentCall.lineCounter);
             validPass = FALSE;
         }
     }
@@ -96,10 +97,10 @@ static boolean updateCodeImage(codeImagePtr codeImageDatabase, labelCall current
     if(currentCall.type == I_BRANCHING){
         result = updateITypeImmed(codeImageDatabase, currentCall.IC, labelAddress, callErrorPtr);
     }
-    else if(currentCall.type == J_JUMP || currentCall.type == J_CALL_OR_LA){
+    else if(currentCall.type == J_JMP || currentCall.type == J_CALL_OR_LA){
         result = updateJTypeAddress(codeImageDatabase, currentCall.IC, labelAddress, callErrorPtr);
     }
-    else{/* impossible scenario - only I_branching and jump commands use labels */
+    else{/* impossible scenario - only I_branching, call, la and jmp commands use labels */
         *callErrorPtr = IMPOSSIBLE;
         result = FALSE;
     }
@@ -110,7 +111,7 @@ static boolean updateCodeImage(codeImagePtr codeImageDatabase, labelCall current
 
 static boolean locateEntryDefinitions(entryCallPtr entryCallsDatabase, labelPtr labelsDatabase, errorCodes *lineErrorPtr) {
     boolean validOp = TRUE;/* reset error flag */
-    entryCallPtr currentEntryCall = getNextEntryCall(entryCallsDatabase);/* get first entry call */
+    entryCallPtr currentEntryCall = entryCallsDatabase;/* get first entry call */
     char *currentEntryName;/* point to string representing current entry call name */
     labelClass labelType;/* current label type */
     long labelAddress;/* address where label was defined */
@@ -123,7 +124,8 @@ static boolean locateEntryDefinitions(entryCallPtr entryCallsDatabase, labelPtr 
             validOp = getLabelAttributes(labelsDatabase, currentEntryName, &labelAddress, &labelType);
         }
         else{/* entry name doesn't exist*/
-            /* todo handle */
+            printErrorMessage(ENTRY_NOT_DEFINED, getEntryCallLine(currentEntryCall),
+                              getEntryCallLineCount(currentEntryCall));
         }
 
         if(validOp){/* label exists */
@@ -136,7 +138,7 @@ static boolean locateEntryDefinitions(entryCallPtr entryCallsDatabase, labelPtr 
             }
         }
         else{/* label does not exist */
-            *lineErrorPtr = ENTRY_NOT_DEFINED;
+            *lineErrorPtr = ENTRY_NOT_DEFINED;/* redundant */
             validOp = FALSE;
         }
 

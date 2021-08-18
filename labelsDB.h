@@ -19,7 +19,7 @@ errorCodes addNewLabel(labelPtr head, char *labelName, long address, labelClass 
 
 boolean getLabelAttributes(labelPtr head, char *name, long *addressPtr, labelClass *typePtr);
 
-void updateDataLabels(labelPtr head, long ICF);
+void updateDataLabels(labelPtr head, long offset);
 
 void clearLabels(labelPtr head);
 

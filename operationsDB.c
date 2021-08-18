@@ -66,7 +66,7 @@ operationPtr setOperations(){
             current->commandOpType = I_MEMORY_LOAD;
         }
         else if(current->opcode == JMP){
-            current->commandOpType = J_JUMP;
+            current->commandOpType = J_JMP;
         }
         else if(current->opcode <= CALL){
             current->commandOpType = J_CALL_OR_LA;
@@ -180,7 +180,7 @@ boolean secondOperandFormat(operationClass commandOpType, codeLineData *currentL
                             operandAttributes *currentOperandPtr) {
     boolean needMoreOperands = TRUE;
 
-    if(commandOpType >= J_JUMP){/* is J type */
+    if(commandOpType >= J_JMP){/* is J type */
         needMoreOperands = FALSE;
     }
     else if(commandOpType == R_ARITHMETIC){
@@ -203,7 +203,7 @@ boolean thirdOperandFormat(operationClass commandOpType, codeLineData *currentLi
                            operandAttributes *currentOperandPtr){
     boolean needMoreOperands = TRUE;
 
-    if(commandOpType >= J_JUMP || commandOpType == R_COPY){/* is J type or R_COPY */
+    if(commandOpType >= J_JMP || commandOpType == R_COPY){/* is J type or R_COPY */
         needMoreOperands = FALSE;
     }
     else if(commandOpType == R_ARITHMETIC){
@@ -218,5 +218,7 @@ boolean thirdOperandFormat(operationClass commandOpType, codeLineData *currentLi
 
 
 void clearOperationDB(operationPtr head){
-    free(head);
+    if(head){
+        free(head);
+    }
 }
