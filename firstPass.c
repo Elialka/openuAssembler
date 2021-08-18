@@ -303,20 +303,28 @@ static errorCodes encodeCodeCommand(char **currentPosPtr, operationAttributesPtr
     if(!encounteredError){
         if(commandOpType == R_ARITHMETIC || commandOpType == R_COPY){
             /* is R type */
+            currentLineData.rAttributes.opcode = operationDataPtr->operationID.commandOpData.opcode;
+            currentLineData.rAttributes.funct = operationDataPtr->operationID.commandOpData.funct;
             encounteredError = addRCommand(&databasesPtr->codeImageDB, lineDataPtr->ICPtr, currentLineData.rAttributes);
         }
         else if(commandOpType == I_BRANCHING || commandOpType == I_MEMORY_LOAD || commandOpType == I_ARITHMETIC){
             /* is I type */
+            currentLineData.iAttributes.opcode = operationDataPtr->operationID.commandOpData.opcode;
             encounteredError = addICommand(&databasesPtr->codeImageDB, lineDataPtr->ICPtr, currentLineData.iAttributes);
         }
         else if(commandOpType == J_JMP || commandOpType == J_CALL_OR_LA || commandOpType == J_STOP){
             /* is J type */
+            currentLineData.jAttributes.opcode = operationDataPtr->operationID.commandOpData.opcode;
             encounteredError = addJCommand(&databasesPtr->codeImageDB, lineDataPtr->ICPtr, currentLineData.jAttributes);
+        }
+        else{/* impossible scenario */
+            encounteredError = IMPOSSIBLE;
         }
     }
 
     return encounteredError;
 }
+
 
 
 static errorCodes

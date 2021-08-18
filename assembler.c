@@ -19,6 +19,7 @@
 #include "tests.h"
 
 /* todo possible refactors */
+/* check label uses updates value in second pass */
 /* maybe reset new memory after reallocation */
 /* program does not address label definition without ':' - wrong error message */
 /* labelCallsDB, entryCallsDB - maybe add line and line counter to each node */
