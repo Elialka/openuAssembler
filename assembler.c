@@ -19,6 +19,7 @@
 #include "tests.h"
 
 /* todo possible refactors */
+/* reset new memory after reallocation */
 /* program does not address label definition without ':' - wrond error message */
 /* pandas refactor long functions/functions that receive many parameters */
 /* split firstPass */

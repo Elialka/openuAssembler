@@ -247,8 +247,8 @@ int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpT
             if(readComma(currentPosPtr) != NO_ERROR){/* missing comma */
                 if(ignoreLine(*currentPosPtr)){/* line is terminated *//* temp */
                     encounteredError = NO_ERROR;
-                    finished = TRUE;
                 }
+                finished = TRUE;
             }
         }
         else{/* expecting a number */

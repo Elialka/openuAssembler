@@ -58,9 +58,7 @@ static void replaceExtension(char *sourceFileName, char *newExtension, char *des
 
     /* copy source file name without the extension */
     strncpy(destination, sourceFileName, length);
-
-    /* add dot */
-    strcat(destination, ".");
+    destination[length] = '\0';
 
     /* add extension */
     strcat(destination, newExtension);
@@ -101,8 +99,8 @@ static void printObjectFile(databaseRouter databases, char *sourceFileName, long
 
     /* print data image */
     for(dataCounter = 0; dataCounter < DCF; dataCounter++, imageCounter++){
-        if(!imageCounter % BYTES_IN_ROW){/* print in new line + print current address */
-            fprintf(objectFile, "\n%03ld", imageCounter + STARTING_ADDRESS);
+        if(!(imageCounter % BYTES_IN_ROW)){/* print in new line + print current address */
+            fprintf(objectFile, "\n%04ld", imageCounter + STARTING_ADDRESS);
         }
         nextByte = getNextDataByte(databases.dataImageDB, dataCounter);
         fprintf(objectFile, " %02X", nextByte);
