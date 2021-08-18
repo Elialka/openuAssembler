@@ -96,8 +96,9 @@ static long calculateMaxValue(dataOps dataOpType){
 }
 
 
-errorCodes isLabelDefinition(char **currentPosPtr, char *currentLabel) {
+boolean isLabelDefinition(char **currentPosPtr, char *currentLabel, errorCodes *errorPtr) {
     errorCodes encounteredError = NO_ERROR;
+    boolean result = FALSE;
     char *currentPos = *currentPosPtr;
     char *definitionEnd;/* point to the end of the definition */
     char token[TOKEN_ARRAY_SIZE];/* store token to examine it */
@@ -113,6 +114,7 @@ errorCodes isLabelDefinition(char **currentPosPtr, char *currentLabel) {
             if(isspace(*currentPos)){/* legal label declaration */
                 strcpy(currentLabel, token);/* save label name */
                 *currentPosPtr = currentPos;/* update line position */
+                result = TRUE;
             }
             else{/* no white character after label definition */
                 encounteredError = NO_SPACE_AFTER_LABEL;
@@ -120,7 +122,11 @@ errorCodes isLabelDefinition(char **currentPosPtr, char *currentLabel) {
         }
     }
 
-    return encounteredError;
+    if(encounteredError){
+        *errorPtr = encounteredError;
+    }
+
+    return result;
 }
 
 
@@ -181,7 +187,7 @@ errorCodes getLabelFromLine(char **currentPosPtr, char *destination){
         encounteredError = MISSING_PARAMETER;
     }
 
-    if(encounteredError){
+    if(!encounteredError){
         encounteredError = getLabelOperand(token, tokenLength, destination);
     }
 
@@ -234,12 +240,14 @@ int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpT
     int tokenLength;
     int numbersCounter = 0;/* how many numbers read */
     long maxValue = calculateMaxValue(dataOpType);/* max positive value */
+    boolean finished = FALSE;
 
-    for (i = 0 ; !encounteredError && **currentPosPtr; i++){
+    for (i = 0 ; !encounteredError && !finished; i++){
         if (i % 2) {/* expecting a comma */
-            if(!readComma(currentPosPtr)){/* missing comma */
-                if(**currentPosPtr){/* line is not terminated */
-                    encounteredError = MISSING_COMMA;
+            if(readComma(currentPosPtr) != NO_ERROR){/* missing comma */
+                if(ignoreLine(*currentPosPtr)){/* line is terminated *//* temp */
+                    encounteredError = NO_ERROR;
+                    finished = TRUE;
                 }
             }
         }
@@ -248,6 +256,7 @@ int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpT
             if(tokenLength){
                 /* read number */
                 encounteredError = getNumberOperand(token, &value, maxValue);
+                numbersArray[i / 2] = value;
                 numbersCounter++;
             }
             else{/* end of line */
@@ -288,9 +297,11 @@ errorCodes readComma(char **currentPosPtr) {
 
     SKIP_WHITES(*currentPosPtr);
 
-    if(**currentPosPtr++ != ','){
+    if(**currentPosPtr != ','){
         encounteredError = MISSING_COMMA;
     }
+
+    (*currentPosPtr)++;
 
     return encounteredError;
 }
@@ -303,9 +314,6 @@ errorCodes getFirstOperand(char **currentPosPtr, operationClass commandOpType, o
 
     if(!tokenLength){/* end of the line */
         encounteredError = MISSING_PARAMETER;
-    }
-    else if(!encounteredError){/* token is register */
-        operandAttributesPtr->isLabel = FALSE;
     }
     else if(encounteredError == NOT_REGISTER){/* not a register */
         if (commandOpType == J_JUMP || commandOpType == J_CALL_OR_LA){/* is possibly a label */

@@ -174,8 +174,9 @@ static errorCodes handleThirdOperand(char **currentPosPtr, operationClass comman
  * @param sourceFile pointer to file
  * @return TRUE if no errors occurred, FALSE otherwise
  */
-static boolean clearLine(char *currentPos, FILE *sourceFile, boolean readLine);
+static boolean clearLine(char *currentPos, FILE *sourceFile, boolean legalLine);
 
+extern long lineCounterGlobal;/* temp - delete */
 
 boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPtr databasesPtr){
 
@@ -203,8 +204,9 @@ static boolean encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRo
     boolean legalLine;/* current line error flag - turns off error occurs */
     boolean result = TRUE;
 
-    for(operationData.lineCounter = 0; !feof(sourceFile);operationData.lineCounter++){
+    for(lineCounterGlobal = operationData.lineCounter = 1; !feof(sourceFile);operationData.lineCounter++, lineCounterGlobal++){
         currentPos = fgets(line, MAX_LINE, sourceFile);
+        legalLine = TRUE;
         readLine = !ignoreLine(line);
 
         if(readLine){/* line is not empty or comment */
@@ -220,7 +222,7 @@ static boolean encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRo
             }
         }
 
-        if(!clearLine(currentPos, sourceFile, readLine)){
+        if(!clearLine(currentPos, sourceFile, readLine && legalLine)){
             legalLine = FALSE;
         }
 
@@ -248,6 +250,7 @@ static boolean handleLabelAndCommandName(char **currentPosPtr, operationAttribut
     }
 
     if(encounteredError){
+        printErrorMessage(encounteredError, operationDataPtr->lineCounter);
         result = FALSE;
     }
 
@@ -364,7 +367,7 @@ static errorCodes readString(char **currentPosPtr, long *DCPtr, dataImagePtr *da
 static errorCodes checkLabelDefinition(char **currentPosPtr, labelAttributesPtr definedLabelDataPtr, operationPtr operationsDB) {
     errorCodes encounteredError = NO_ERROR;
 
-    if(isLabelDefinition(currentPosPtr, definedLabelDataPtr->labelName)){/* label is defined */
+    if(isLabelDefinition(currentPosPtr, definedLabelDataPtr->labelName, &encounteredError)){/* label is defined */
         if(seekOp(operationsDB, definedLabelDataPtr->labelName) == NOT_FOUND){/* label name is not operation name */
             definedLabelDataPtr->labelIsUsed = TRUE;
         }
@@ -476,6 +479,8 @@ static errorCodes handleFirstOperand(char **currentPosPtr, operationClass comman
     operandAttributes currentOperand;
     boolean operandIsNeeded = firstOperandFormat(commandOpType, currentLineDataPtr, &currentOperand);
 
+    currentOperand.isLabel = FALSE;/* reset parameter is label flag */
+
     if(operandIsNeeded){
         encounteredError = getFirstOperand(currentPosPtr, commandOpType, &currentOperand);
     }
@@ -528,15 +533,16 @@ static errorCodes handleThirdOperand(char **currentPosPtr, operationClass comman
 
 
 /* todo check clearLine EOF*/
-boolean clearLine(char *currentPos, FILE *sourceFile, boolean readLine) {
+boolean clearLine(char *currentPos, FILE *sourceFile, boolean legalLine) {
     boolean result = TRUE;
     int currentChar;
     errorCodes encounteredError;
+    boolean longLine = FALSE;
 
-    if(readLine){/* line was not empty\comment line */
+    if(legalLine){/* line was not empty\comment line */
         encounteredError = checkLineTermination(&currentPos);
         if(encounteredError){
-            printErrorMessage(encounteredError, 0);
+            printErrorMessage(encounteredError, lineCounterGlobal);
             result = FALSE;
         }
     }
@@ -546,9 +552,13 @@ boolean clearLine(char *currentPos, FILE *sourceFile, boolean readLine) {
         ;
 
     if(*--currentPos != '\n'){/* source line is longer than maximum supported length */
-        printErrorMessage(LINE_TOO_LONG, 0);
-        for(; (currentChar = fgetc(sourceFile)) != EOF && currentChar != '\n' ; currentPos++)
-            ;
+        for(; (currentChar = fgetc(sourceFile)) != EOF && currentChar != '\n' ; currentPos++){
+            longLine = TRUE;
+        }
+        if(longLine){
+            printErrorMessage(LINE_TOO_LONG, lineCounterGlobal);
+        }
+
     }
 
     return result;

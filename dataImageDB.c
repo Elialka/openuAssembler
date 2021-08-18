@@ -7,7 +7,7 @@
 
 static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC);
 
-
+/* todo make typedef char * or something */
 /*
  * initialize database - allocate first block
  * */

@@ -40,7 +40,7 @@ void testIsLabelDefinition()
 
     /* test 1*/
     currentPos = "  	hELLO: ";
-    if (isLabelDefinition(&currentPos, currentLabel))
+    if (isLabelDefinition(&currentPos, currentLabel, NULL))
     {
         printf("isLabelDefinition test 1 failed - return value\n");
         printf("-------------------------\n");
@@ -59,7 +59,7 @@ void testIsLabelDefinition()
 
     /* test 2*/
     currentPos = "asdf: ";
-    if (isLabelDefinition(&currentPos, currentLabel))
+    if (isLabelDefinition(&currentPos, currentLabel, NULL))
     {
         printf("isLabelDefinition test 2 failed - return value\n");
         printf("-------------------------\n");
@@ -79,7 +79,7 @@ void testIsLabelDefinition()
 
     /* test 3*/
     currentPos = "asdd2: ";
-    if (isLabelDefinition(&currentPos, currentLabel))
+    if (isLabelDefinition(&currentPos, currentLabel, NULL))
     {
         printf("isLabelDefinition test 3 failed - return value\n");
         printf("-------------------------\n");
@@ -99,7 +99,7 @@ void testIsLabelDefinition()
     /* test 4*/
     currentPos = "  2asd2: ";
     temp = currentPos;
-    if(!isLabelDefinition(&currentPos, currentLabel)){
+    if(!isLabelDefinition(&currentPos, currentLabel, NULL)){
         generalError = TRUE;
         printf("isLabelDefinition test 4 failed - return value\n");
         printf("-------------------------\n");

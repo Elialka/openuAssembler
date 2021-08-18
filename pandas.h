@@ -26,7 +26,7 @@ int extractNextToken(char **sourcePtr, char *buffer);
  * @param lineErrorPtr Pointer to line error code enum
  * @return TRUE if label is defined here, FALSE otherwise
  */
-errorCodes isLabelDefinition(char **currentPosPtr, char *currentLabel);
+boolean isLabelDefinition(char **currentPosPtr, char *currentLabel, errorCodes *errorPtr);
 
 /**
  * Get command name from input line

@@ -19,6 +19,7 @@
 #include "tests.h"
 
 /* todo possible refactors */
+/* program does not address label definition without ':' - wrond error message */
 /* pandas refactor long functions/functions that receive many parameters */
 /* split firstPass */
 /* for every database - extract finding end of DB\allocating additional memory to different function */
@@ -76,6 +77,7 @@ static void clearFileDatabases(databaseRouterPtr databasesPtr);
  */
 static void clearProjectDatabases(databaseRouterPtr databasesPtr);
 
+long lineCounterGlobal = 0;/* temp - delete */
 
 int main(int argc, char *argv[]){
     long i;
