@@ -157,6 +157,8 @@ static errorCodes addLabel(labelAttributesPtr definedLabelDataPtr, long IC, long
 static errorCodes extractCodeOperands(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
                                lineAttributesPtr lineDataPtr, labelCallPtr labelCallsDB);
 
+static void resetCodeLineAttributes(codeLineData *currentLineDataPtr, operationClass commandOpType);
+
 /**
  * Check if first operand is needed, and extract relevant information from it
  * @param currentPosPtr Pointer to position in line array
@@ -276,6 +278,7 @@ handleLabelAndCommandName(char **currentPosPtr, operationAttributesPtr operation
     errorCodes encounteredError = checkLabelDefinition(currentPosPtr, &definedLabelData, databasesPtr->operationsDB);
 
     if(!encounteredError){
+
         encounteredError = getLineType(currentPosPtr, operationDataPtr, &definedLabelData, databasesPtr->operationsDB);
     }
 
@@ -296,6 +299,8 @@ static errorCodes encodeCodeCommand(char **currentPosPtr, operationAttributesPtr
     operationClass commandOpType = operationDataPtr->operationID.commandOpData.class;
     codeLineData currentLineData;/* structure containing all operation data relevant for encoding */
     errorCodes encounteredError;
+
+    resetCodeLineAttributes(&currentLineData, commandOpType);
 
     encounteredError = extractCodeOperands(currentPosPtr, commandOpType, &currentLineData, lineDataPtr,
                                            databasesPtr->labelCallsDB);
@@ -500,7 +505,7 @@ static errorCodes extractCodeOperands(char **currentPosPtr, operationClass comma
                                                &mayNeedAnotherOperand);
     }
 
-    if(!encounteredError && mayNeedAnotherOperand){/* first operand read successfully */
+    if(!encounteredError && mayNeedAnotherOperand){/* second operand read successfully */
         encounteredError = handleThirdOperand(currentPosPtr, commandOpType, currentLineDataPtr, &calledLabel);
     }
 
@@ -511,6 +516,19 @@ static errorCodes extractCodeOperands(char **currentPosPtr, operationClass comma
     }
 
     return encounteredError;
+}
+
+
+static void resetCodeLineAttributes(codeLineData *currentLineDataPtr, operationClass commandOpType) {
+    /* reset attributes that won't necessarily be assigned to default value */
+    if(commandOpType == I_ARITHMETIC || commandOpType == I_BRANCHING || commandOpType == I_MEMORY_LOAD){
+        currentLineDataPtr->iAttributes.immed = 0;
+    }
+    else if(commandOpType == J_JMP || commandOpType == J_CALL_OR_LA || commandOpType == J_STOP){
+
+        currentLineDataPtr->jAttributes.isReg = FALSE;
+        currentLineDataPtr->jAttributes.address = 0;
+    }
 }
 
 
@@ -528,6 +546,9 @@ static errorCodes handleFirstOperand(char **currentPosPtr, operationClass comman
 
     if((calledLabelPtr->labelIsUsed = currentOperand.isLabel)){/* label is used */
         strcpy(calledLabelPtr->labelName, currentOperand.labelName);
+    }
+    else if(commandOpType == J_JMP){/* register is used with jmp command */
+        currentLineDataPtr->jAttributes.isReg = TRUE;
     }
 
     *needAnotherPtr = operandIsNeeded;

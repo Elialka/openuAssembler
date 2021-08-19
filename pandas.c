@@ -370,6 +370,7 @@ errorCodes getThirdOperand(char **currentPosPtr, operationClass commandOpType, o
     }
     else{/* need a label */
         encounteredError = getLabelOperand(token, tokenLength, operandAttributesPtr->labelName);
+        operandAttributesPtr->isLabel = TRUE;
     }
 
     return encounteredError;
