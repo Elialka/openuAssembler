@@ -96,7 +96,10 @@ typedef enum{
     EXTRANEOUS_TEXT,
     COULD_NOT_CREATE_FILE,
     /* internal crisis */
-    IMPOSSIBLE
+    IMPOSSIBLE_UPDATE_CODE_IMAGE,
+    IMPOSSIBLE_ENCODE_CODE,
+    IMPOSSIBLE_ENCODE_DATA,
+    IMPOSSIBLE_SET_LABEL_CALL
 }errorCodes;
 
 typedef enum{

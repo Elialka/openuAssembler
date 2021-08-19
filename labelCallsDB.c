@@ -54,7 +54,7 @@ setLabelCall(labelCallPtr head, long IC, char *labelName, operationClass command
 
     /* impossible value */
     if(commandOpType != I_BRANCHING && commandOpType != J_JMP && commandOpType != J_CALL_OR_LA){
-        encounteredError = IMPOSSIBLE;
+        encounteredError = IMPOSSIBLE_SET_LABEL_CALL;
     }
 
     if(!encounteredError){

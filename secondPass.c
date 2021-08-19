@@ -101,7 +101,7 @@ static boolean updateCodeImage(codeImagePtr codeImageDatabase, labelCall current
         result = updateJTypeAddress(codeImageDatabase, currentCall.IC, labelAddress, callErrorPtr);
     }
     else{/* impossible scenario - only I_branching, call, la and jmp commands use labels */
-        *callErrorPtr = IMPOSSIBLE;
+        *callErrorPtr = IMPOSSIBLE_UPDATE_CODE_IMAGE;
         result = FALSE;
     }
 

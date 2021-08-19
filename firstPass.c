@@ -323,7 +323,7 @@ static errorCodes encodeCodeCommand(char **currentPosPtr, operationAttributesPtr
             encounteredError = addJCommand(&databasesPtr->codeImageDB, lineDataPtr->ICPtr, currentLineData.jAttributes);
         }
         else{/* impossible scenario */
-            encounteredError = IMPOSSIBLE;
+            encounteredError = IMPOSSIBLE_ENCODE_CODE;
         }
     }
 
@@ -348,7 +348,7 @@ encodeDataCommand(char **currentPosPtr, operationAttributesPtr operationDataPtr,
         encounteredError = readString(currentPosPtr, lineDataPtr->DCPtr, &databasesPtr->dataImageDB);
     }
     else{
-        encounteredError = IMPOSSIBLE;
+        encounteredError = IMPOSSIBLE_ENCODE_DATA;
     }
 
     return encounteredError;

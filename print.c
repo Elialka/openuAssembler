@@ -312,8 +312,17 @@ void printErrorMessage(errorCodes encounteredError, char *line, long lineNumber)
         case COULD_NOT_CREATE_FILE:
             printf("ERROR! Cannot create output file!\n");
             break;
-        case IMPOSSIBLE:
-            printf("INTERNAL ERROR! Impossible scenario detected!\n");
+        case IMPOSSIBLE_UPDATE_CODE_IMAGE:
+            printf("INTERNAL ERROR! Impossible update code image scenario detected!\n");
+            break;
+        case IMPOSSIBLE_ENCODE_CODE:
+            printf("INTERNAL ERROR! IMPOSSIBLE_ENCODE_CODE scenario detected!\n");
+            break;
+        case IMPOSSIBLE_ENCODE_DATA:
+            printf("INTERNAL ERROR! IMPOSSIBLE_ENCODE_DATA scenario detected!\n");
+            break;
+        case IMPOSSIBLE_SET_LABEL_CALL:
+            printf("INTERNAL ERROR! IMPOSSIBLE_SET_LABEL_CALL scenario detected!\n");
             break;
         default:
             printf("INTERNAL ERROR! Reached impossible scenario in printWarningMessage !\n");
