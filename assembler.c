@@ -19,11 +19,10 @@
 #include "tests.h"
 
 /* todo possible refactors */
-/* check label uses updates value in second pass */
-/* maybe reset new memory after reallocation */
+/* wrong error for .dh number out of range */
+/* linux test does not work */
+/* error printing: handle file headline + mark end of file */
 /* program does not address label definition without ':' - wrong error message */
-/* labelCallsDB, entryCallsDB - maybe add line and line counter to each node */
-/* clear databases - move NULL checking to database functions */
 /* pandas refactor long functions/functions that receive many parameters */
 /* for every database - extract finding end of DB\allocating additional memory to different function */
 /* for every database - check if head not NULL */
