@@ -578,6 +578,8 @@ static errorCodes handleThirdOperand(char **currentPosPtr, operationClass comman
     operandAttributes currentOperand;
     boolean operandIsNeeded = thirdOperandFormat(commandOpType, currentLineDataPtr, &currentOperand);
 
+    currentOperand.isLabel = FALSE;/* reset flag */
+
     if(operandIsNeeded){
         encounteredError = readComma(currentPosPtr);
         if(!encounteredError){/* comma read successfully */
