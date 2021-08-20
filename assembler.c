@@ -20,7 +20,7 @@
 
 /* todo possible refactors */
 /* wrong error for .dh number out of range */
-/* linux test does not work */
+/* linux generates different outputs */
 /* error printing: handle file headline + mark end of file */
 /* program does not address label definition without ':' - wrong error message */
 /* pandas refactor long functions/functions that receive many parameters */

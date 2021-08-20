@@ -520,13 +520,26 @@ static errorCodes extractCodeOperands(char **currentPosPtr, operationClass comma
 
 
 static void resetCodeLineAttributes(codeLineData *currentLineDataPtr, operationClass commandOpType) {
-    /* reset attributes that won't necessarily be assigned to default value */
-    if(commandOpType == I_ARITHMETIC || commandOpType == I_BRANCHING || commandOpType == I_MEMORY_LOAD){
+    /* reset structure attributes */
+    if(commandOpType == R_ARITHMETIC || commandOpType == R_COPY){
+        /* is R type */
+        currentLineDataPtr->rAttributes.opcode = 0;
+        currentLineDataPtr->rAttributes.rt = 0;
+        currentLineDataPtr->rAttributes.rs = 0;
+        currentLineDataPtr->rAttributes.rd = 0;
+        currentLineDataPtr->rAttributes.funct = 0;
+    }
+    else if(commandOpType == I_ARITHMETIC || commandOpType == I_BRANCHING || commandOpType == I_MEMORY_LOAD){
+        /* is I type */
         currentLineDataPtr->iAttributes.immed = 0;
+        currentLineDataPtr->iAttributes.rs = 0;
+        currentLineDataPtr->iAttributes.rt = 0;
+        currentLineDataPtr->iAttributes.opcode = 0;
     }
     else if(commandOpType == J_JMP || commandOpType == J_CALL_OR_LA || commandOpType == J_STOP){
-
+        /* is J type */
         currentLineDataPtr->jAttributes.isReg = FALSE;
+        currentLineDataPtr->jAttributes.opcode = 0;
         currentLineDataPtr->jAttributes.address = 0;
     }
 }
