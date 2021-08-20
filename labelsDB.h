@@ -3,14 +3,6 @@
 #endif
 
 
-typedef enum{
-    IS_EXTERN = 'X',
-    IS_ENTRY = 'N',
-    DATA = 'D',
-    CODE = 'C'
-}attribs;
-
-
 labelPtr initLabelsDB();
 
 boolean seekLabel(labelPtr head, char *name);

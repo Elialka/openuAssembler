@@ -8,7 +8,7 @@
 
 /* todo refactor addition function parameters */
 
-typedef union codeLine{
+typedef union encodedCommand{
     struct{
         unsigned int :6;
         unsigned int funct:5;
@@ -35,21 +35,21 @@ typedef union codeLine{
         unsigned char third;
         unsigned char fourth;
     }bytes;
-}codeLine;
+}encodedCommand;
 
-static errorCodes addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeLine *current);
+static errorCodes addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, encodedCommand *current);
 
-static void resetCodeLine(codeLine *newPtr);
+static void resetCodeLine(encodedCommand *newPtr);
 
 
 codeImagePtr initCodeImage(){
-    void *head = calloc(IMAGE_BLOCK_SIZE, sizeof(codeLine));
+    void *head = calloc(IMAGE_BLOCK_SIZE, sizeof(encodedCommand));
 
     return head;
 }
 
 
-static void resetCodeLine(codeLine *newPtr){
+static void resetCodeLine(encodedCommand *newPtr){
     newPtr->bytes.first = 0;
     newPtr->bytes.second = 0;
     newPtr->bytes.third = 0;
@@ -57,9 +57,9 @@ static void resetCodeLine(codeLine *newPtr){
 }
 
 
-static errorCodes addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeLine *current){
+static errorCodes addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, encodedCommand *current){
     errorCodes encounteredError = NO_ERROR;
-    long nextFreeIndex = (*ICPtr - STARTING_ADDRESS) / (long)sizeof(codeLine); /* how many code lines already saved */
+    long nextFreeIndex = (*ICPtr - STARTING_ADDRESS) / (long)sizeof(encodedCommand); /* how many code lines already saved */
     void *temp;
     codeImagePtr currentPtr;
 
@@ -80,14 +80,14 @@ static errorCodes addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeL
         currentPtr->bytes.third = current->bytes.third;
         currentPtr->bytes.fourth = current->bytes.fourth;
 
-        *ICPtr += sizeof(codeLine);
+        *ICPtr += sizeof(encodedCommand);
     }
     return encounteredError;
 }
 
 
 errorCodes addRCommand(codeImagePtr *headPtr, long *ICPtr, rTypeData commandData) {
-    codeLine new;
+    encodedCommand new;
 
     resetCodeLine(&new);
 
@@ -102,7 +102,7 @@ errorCodes addRCommand(codeImagePtr *headPtr, long *ICPtr, rTypeData commandData
 
 
 errorCodes addICommand(codeImagePtr *headPtr, long *ICPtr, iTypeData commandData) {
-    codeLine new;
+    encodedCommand new;
 
     resetCodeLine(&new);
 
@@ -116,7 +116,7 @@ errorCodes addICommand(codeImagePtr *headPtr, long *ICPtr, iTypeData commandData
 
 
 errorCodes addJCommand(codeImagePtr *headPtr, long *ICPtr, jTypeData commandData) {
-    codeLine new;
+    encodedCommand new;
 
     resetCodeLine(&new);
 
@@ -132,10 +132,10 @@ errorCodes addJCommand(codeImagePtr *headPtr, long *ICPtr, jTypeData commandData
 /* todo refactor to return errorCodes type */
 boolean updateITypeImmed(codeImagePtr headPtr, long IC, long address, errorCodes *lineErrorPtr) {
     boolean result = TRUE;/* return value - if operation was successful */
-    codeLine *current = headPtr;
+    encodedCommand *current = headPtr;
     long distance = address - IC;
     /* calculate index of code line with given IC */
-    long index = (long)((IC - STARTING_ADDRESS) / sizeof(codeLine));
+    long index = (long)((IC - STARTING_ADDRESS) / sizeof(encodedCommand));
 
     /* append current to relevant code line */
     current += index;
@@ -157,9 +157,9 @@ boolean updateITypeImmed(codeImagePtr headPtr, long IC, long address, errorCodes
 /* todo maybe handle IC out of range, maybe literal number 16 */
 /* todo refactor to return errorCodes type */
 boolean updateJTypeAddress(codeImagePtr headPtr, long IC, long address, errorCodes *lineErrorPtr) {
-    codeLine *current = headPtr;
+    encodedCommand *current = headPtr;
     /* calculate index of code line with given IC */
-    long index = (long)((IC - STARTING_ADDRESS) / sizeof(codeLine));
+    long index = (long)((IC - STARTING_ADDRESS) / sizeof(encodedCommand));
 
     /* append current to relevant code line */
     current += index;
@@ -181,7 +181,7 @@ unsigned char getNextCodeByte(codeImagePtr headPtr, long index) {
 
 void printCode(void *head, long IC){
     int i, j;
-    codeLine *current;
+    encodedCommand *current;
 
     current = head;
 

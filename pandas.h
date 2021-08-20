@@ -140,5 +140,3 @@ errorCodes getNumberOperand(char *token, long *destination, long maxValue);
  * @return errorCodes enum value describing function success/failure
  */
 errorCodes checkLineTermination(char **currentPosPtr);
-
-

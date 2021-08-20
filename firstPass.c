@@ -157,8 +157,6 @@ static errorCodes addLabel(labelAttributesPtr definedLabelDataPtr, long IC, long
 static errorCodes extractCodeOperands(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
                                lineAttributesPtr lineDataPtr, labelCallPtr labelCallsDB);
 
-static void resetCodeLineAttributes(codeLineData *currentLineDataPtr, operationClass commandOpType);
-
 /**
  * Check if first operand is needed, and extract relevant information from it
  * @param currentPosPtr Pointer to position in line array
@@ -255,10 +253,10 @@ static errorCodes readLine(lineAttributesPtr lineDataPtr, databaseRouterPtr data
     encounteredError = handleLabelAndCommandName(&currentPos, &operationData, lineDataPtr, databasesPtr);
 
     if(!encounteredError){
-        if(operationData.currentLineClass == CODE_TYPE){
+        if(operationData.currentLineClass == CODE_LINE){
             encounteredError = encodeCodeCommand(&currentPos, &operationData, lineDataPtr, databasesPtr);
         }
-        else if(operationData.currentLineClass == DATA_TYPE){
+        else if(operationData.currentLineClass == DATA_LINE){
             encounteredError = encodeDataCommand(&currentPos, &operationData, lineDataPtr, databasesPtr);
         }
     }
@@ -297,10 +295,8 @@ handleLabelAndCommandName(char **currentPosPtr, operationAttributesPtr operation
 static errorCodes encodeCodeCommand(char **currentPosPtr, operationAttributesPtr operationDataPtr,
                                     lineAttributesPtr lineDataPtr, databaseRouterPtr databasesPtr) {
     operationClass commandOpType = operationDataPtr->operationID.commandOpData.class;
-    codeLineData currentLineData;/* structure containing all operation data relevant for encoding */
+    codeLineData currentLineData = {0};/* structure containing all operation data relevant for encoding */
     errorCodes encounteredError;
-
-    resetCodeLineAttributes(&currentLineData, commandOpType);
 
     encounteredError = extractCodeOperands(currentPosPtr, commandOpType, &currentLineData, lineDataPtr,
                                            databasesPtr->labelCallsDB);
@@ -430,11 +426,11 @@ static errorCodes getLineType(char **currentPosPtr, operationAttributesPtr opera
 
     if(!encounteredError){/* extracted command name */
         if(getOpcode(operationsDB, command, opcodePtr, functPtr, classPtr)){/* is code line */
-            operationDataPtr->currentLineClass = CODE_TYPE;
+            operationDataPtr->currentLineClass = CODE_LINE;
             definedLabelDataPtr->labelType = CODE_LABEL;
         }
         else if(seekDataOp(command, &operationDataPtr->operationID.dataOpType)){/* is data line */
-            operationDataPtr->currentLineClass = DATA_TYPE;
+            operationDataPtr->currentLineClass = DATA_LINE;
             definedLabelDataPtr->labelType = DATA_LABEL;
         }
         else{/* unidentified line type */
@@ -450,7 +446,7 @@ static errorCodes getLineType(char **currentPosPtr, operationAttributesPtr opera
 
 static void checkRedundantLabel(labelAttributesPtr definedLabelDataPtr, operationAttributesPtr operationDataPtr,
                                       lineAttributesPtr lineDataPtr){
-    if(operationDataPtr->currentLineClass == DATA_TYPE){/* is data instruction line */
+    if(operationDataPtr->currentLineClass == DATA_LINE){/* is data instruction line */
 
         if(definedLabelDataPtr->labelIsUsed){/* label definition present */
 
@@ -516,32 +512,6 @@ static errorCodes extractCodeOperands(char **currentPosPtr, operationClass comma
     }
 
     return encounteredError;
-}
-
-
-static void resetCodeLineAttributes(codeLineData *currentLineDataPtr, operationClass commandOpType) {
-    /* reset structure attributes */
-    if(commandOpType == R_ARITHMETIC || commandOpType == R_COPY){
-        /* is R type */
-        currentLineDataPtr->rAttributes.opcode = 0;
-        currentLineDataPtr->rAttributes.rt = 0;
-        currentLineDataPtr->rAttributes.rs = 0;
-        currentLineDataPtr->rAttributes.rd = 0;
-        currentLineDataPtr->rAttributes.funct = 0;
-    }
-    else if(commandOpType == I_ARITHMETIC || commandOpType == I_BRANCHING || commandOpType == I_MEMORY_LOAD){
-        /* is I type */
-        currentLineDataPtr->iAttributes.immed = 0;
-        currentLineDataPtr->iAttributes.rs = 0;
-        currentLineDataPtr->iAttributes.rt = 0;
-        currentLineDataPtr->iAttributes.opcode = 0;
-    }
-    else if(commandOpType == J_JMP || commandOpType == J_CALL_OR_LA || commandOpType == J_STOP){
-        /* is J type */
-        currentLineDataPtr->jAttributes.isReg = FALSE;
-        currentLineDataPtr->jAttributes.opcode = 0;
-        currentLineDataPtr->jAttributes.address = 0;
-    }
 }
 
 

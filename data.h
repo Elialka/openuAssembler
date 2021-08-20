@@ -46,7 +46,6 @@ typedef enum {
 }boolean;
 
 typedef enum{
-    /* warnings */
     LINE_TOO_LONG,
     DEFINED_LABEL_ENTRY_EXTERN
 }warningCodes;
@@ -173,8 +172,8 @@ typedef enum{
 
 typedef enum{
     UNIDENTIFIED_COMMAND = 0,
-    CODE_TYPE,
-    DATA_TYPE
+    CODE_LINE,
+    DATA_LINE
 }lineType;
 
 
@@ -188,7 +187,7 @@ typedef struct{
 
 /* database pointer types */
 
-typedef union codeLine *codeImagePtr;
+typedef union encodedCommand *codeImagePtr;
 
 typedef char *dataImagePtr;
 

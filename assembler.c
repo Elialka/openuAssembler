@@ -19,10 +19,14 @@
 #include "tests.h"
 
 /* todo possible refactors */
-/* add reset functions for EACH structure */
+/* remake second pass to use abstract functions from labelCallsDB */
+/* new typedef of only char in dataImageDB - for abstraction */
+/* add reset EACH structure occurrence */
+/* add NULL checking */
+/* check all strcmp */
+/* operationsDB.h - check no data.h include in header file + maybe remove from databases struct */
 /* wrong error for .dh number out of range */
-/* linux generates different outputs */
-/* error printing: handle file headline + mark end of file */
+/* error printing: handle file headline + mark end of file  - error printing database */
 /* program does not address label definition without ':' - wrong error message */
 /* pandas refactor long functions/functions that receive many parameters */
 /* for every database - extract finding end of DB\allocating additional memory to different function */
@@ -80,7 +84,6 @@ static void clearFileDatabases(databaseRouterPtr databasesPtr);
  */
 static void clearProjectDatabases(databaseRouterPtr databasesPtr);
 
-long lineCounterGlobal = 0;/* temp - delete */
 
 int main(int argc, char *argv[]){
     int i;
