@@ -39,11 +39,21 @@ typedef union codeLine{
 
 static errorCodes addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeLine *current);
 
+static void resetCodeLine(codeLine *newPtr);
+
 
 codeImagePtr initCodeImage(){
     void *head = calloc(IMAGE_BLOCK_SIZE, sizeof(codeLine));
 
     return head;
+}
+
+
+static void resetCodeLine(codeLine *newPtr){
+    newPtr->bytes.first = 0;
+    newPtr->bytes.second = 0;
+    newPtr->bytes.third = 0;
+    newPtr->bytes.fourth = 0;
 }
 
 
@@ -79,6 +89,8 @@ static errorCodes addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, codeL
 errorCodes addRCommand(codeImagePtr *headPtr, long *ICPtr, rTypeData commandData) {
     codeLine new;
 
+    resetCodeLine(&new);
+
     new.R.opcode = commandData.opcode;
     new.R.rs = commandData.rs;
     new.R.rt = commandData.rt;
@@ -92,6 +104,8 @@ errorCodes addRCommand(codeImagePtr *headPtr, long *ICPtr, rTypeData commandData
 errorCodes addICommand(codeImagePtr *headPtr, long *ICPtr, iTypeData commandData) {
     codeLine new;
 
+    resetCodeLine(&new);
+
     new.I.opcode = commandData.opcode;
     new.I.rs = commandData.rs;
     new.I.rt = commandData.rt;
@@ -103,6 +117,8 @@ errorCodes addICommand(codeImagePtr *headPtr, long *ICPtr, iTypeData commandData
 
 errorCodes addJCommand(codeImagePtr *headPtr, long *ICPtr, jTypeData commandData) {
     codeLine new;
+
+    resetCodeLine(&new);
 
     new.J.opcode = commandData.opcode;
     new.J.isReg = commandData.isReg;

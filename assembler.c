@@ -19,6 +19,7 @@
 #include "tests.h"
 
 /* todo possible refactors */
+/* add reset functions for EACH structure */
 /* wrong error for .dh number out of range */
 /* linux generates different outputs */
 /* error printing: handle file headline + mark end of file */
