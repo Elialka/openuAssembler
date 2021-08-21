@@ -13,7 +13,7 @@
 #define OPERATION_NAME_LENGTH (5)
 
 
-typedef struct operation{
+typedef struct operationsDB{
     char name[OPERATION_NAME_LENGTH];
     opcodes opcode;
     functValues funct;
@@ -25,9 +25,9 @@ typedef struct operation{
  * This function is used to set a database, containing operation names, types and OpCodes
  * Return value is TRUE if memory allocation succeeded, FALSE otherwise
  */
-operationPtr setOperations(){
+operationsDBPtr setOperations(){
     int i;
-    operationPtr head;
+    operationsDBPtr head;
     char *names[] = {"add", "sub", "and", "or", "nor", "move", "mvhi", "mvlo",
                     "addi", "subi", "andi", "ori", "nori", "bne", "beq",
                     "blt", "bgt", "lb", "sb", "lw", "sw", "lh", "sh",
@@ -35,7 +35,7 @@ operationPtr setOperations(){
     opcodes opcodes[] = {ADD, SUB, AND, OR , NOR, MOVE, MVHI, MVLO, ADDI, SUBI, ANDI, ORI, NORI,
                          BNE, BEQ, BLT, BGT, LB, SB, LW, SW, LH, SH, JMP, LA, CALL, STOP};
     functValues functs[] = {ADD_FUNCT, SUB_FUNCT, AND_FUNCT, OR_FUNCT, NOR_FUNCT, MOVE_FUNCT, MVHI_FUNCT, MVLO_FUNCT};
-    operationPtr current;
+    operationsDBPtr current;
 
     head = calloc(NUM_OF_OPERATIONS, sizeof(operation));
     if(!head){/* memory allocation failed */
@@ -84,9 +84,9 @@ operationPtr setOperations(){
  * return its position in the database (non-zero) if found
  * return zero if not found
  */
-int seekOp(operationPtr head, char *str) {
+int seekOp(operationsDBPtr head, char *str) {
     int i;
-    operationPtr current = head;
+    operationsDBPtr current = head;
     for (i = 0; i <= NUM_OF_OPERATIONS; i++, current++){
         if (!strcmp(str, current->name))
         {
@@ -101,15 +101,15 @@ int seekOp(operationPtr head, char *str) {
  * find an operation with a name matching str
  * return opcode if found, zero otherwise
  */
-boolean getOpcode(operationPtr head, char *str, opcodes *opCodePtr, functValues *functPtr, operationClass *opTypePtr) {
+boolean getOpcode(operationsDBPtr head, char *str, opcodes *opCodePtr, functValues *functPtr, operationClass *opTypePtr) {
     int operationIndex;
-    operationPtr current;
+    operationsDBPtr current;
 
     current = head;
 
     if((operationIndex = seekOp(head, str)) != NOT_FOUND)
     {
-        /* go to correct operation node */
+        /* go to correct operation labelCallNode */
         current += operationIndex;
         *opCodePtr = current->opcode;
         *functPtr = current->funct;
@@ -163,13 +163,13 @@ boolean firstOperandFormat(operationClass commandOpType, codeLineData *currentLi
         needMoreOperands = FALSE;
     }
     else if(commandOpType <= R_COPY){/* is R type *//* todo check if r copy is same or reverse order */
-        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->rAttributes.rs;
+        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->rAttributes.rs;
     }
     else if(commandOpType <= I_MEMORY_LOAD){/* is I type */
-        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->iAttributes.rs;
+        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->iAttributes.rs;
     }
     else{/* is J type - not stop */
-        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->jAttributes.address;
+        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->jAttributes.address;
     }
 
     return needMoreOperands;
@@ -184,16 +184,16 @@ boolean secondOperandFormat(operationClass commandOpType, codeLineData *currentL
         needMoreOperands = FALSE;
     }
     else if(commandOpType == R_ARITHMETIC){
-        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->rAttributes.rt;
+        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->rAttributes.rt;
     }
     else if(commandOpType == R_COPY){
-        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->rAttributes.rd;
+        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->rAttributes.rd;
     }
     else if(commandOpType == I_ARITHMETIC || commandOpType == I_MEMORY_LOAD){
-        currentOperandPtr->operandData.immedPtr = &currentLineDataPtr->iAttributes.immed;
+        currentOperandPtr->valuePointer.immedPtr = &currentLineDataPtr->iAttributes.immed;
     }
     else if(commandOpType == I_BRANCHING){
-        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->iAttributes.rt;
+        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->iAttributes.rt;
     }
 
     return needMoreOperands;
@@ -207,17 +207,17 @@ boolean thirdOperandFormat(operationClass commandOpType, codeLineData *currentLi
         needMoreOperands = FALSE;
     }
     else if(commandOpType == R_ARITHMETIC){
-        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->rAttributes.rd;
+        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->rAttributes.rd;
     }
     else if(commandOpType == I_ARITHMETIC || commandOpType == I_MEMORY_LOAD){
-        currentOperandPtr->operandData.regPtr = &currentLineDataPtr->iAttributes.rt;
+        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->iAttributes.rt;
     }
 
     return needMoreOperands;
 }
 
 
-void clearOperationDB(operationPtr head){
+void clearOperationDB(operationsDBPtr head){
     if(head){
         free(head);
     }

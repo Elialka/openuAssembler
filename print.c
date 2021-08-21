@@ -211,19 +211,19 @@ void printErrorMessage(errorCodes encounteredError, char *line, long lineNumber)
             printf("INTERNAL ERROR - NO_ERROR reached print error message!\n");
             break;
         case DOUBLE_LABEL_DEFINITION:
-            printf("ERROR! A label cannot be defined twice!\n");
+            printf("ERROR! A labelsDB cannot be defined twice!\n");
             break;
         case LABEL_LOCAL_AND_EXTERN:
-            printf("ERROR! A label cannot be defined locally and declared as external!\n");
+            printf("ERROR! A labelsDB cannot be defined locally and declared as external!\n");
             break;
         case LABEL_NOT_FOUND:
-            printf("ERROR! The label does not exist!\n");
+            printf("ERROR! The labelsDB does not exist!\n");
             break;
         case NO_SPACE_AFTER_LABEL:
-            printf("ERROR! A white character after label definition is mandatory!\n");
+            printf("ERROR! A white character after labelsDB definition is mandatory!\n");
             break;
         case LABEL_IS_OPERATION:
-            printf("ERROR! Cannot define label - saved word!\n");
+            printf("ERROR! Cannot define labelsDB - saved word!\n");
             break;
         case LABEL_TOO_LONG:
             printf("ERROR! Label is longer than max length supported for labels: %d characters!\n",
@@ -236,10 +236,10 @@ void printErrorMessage(errorCodes encounteredError, char *line, long lineNumber)
             printf("ERROR! Distance between labels cannot exceed %d bytes!\n", I_TYPE_IMMED_MAX_VALUE_UNSIGNED);
             break;
         case ENTRY_IS_EXTERN:
-            printf("ERROR! Cannot declare label as both entry and extern!\n");
+            printf("ERROR! Cannot declare labelsDB as both entry and extern!\n");
             break;
         case ENTRY_NOT_DEFINED:
-            printf("ERROR! Cannot declare not locally defined label as entry\n");
+            printf("ERROR! Cannot declare not locally defined labelsDB as entry\n");
             break;
         case MEMORY_ALLOCATION_FAILURE:
             printf("FATAL ERROR! Memory allocation failure!\n");

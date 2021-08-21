@@ -5,7 +5,6 @@
 
 
 #include "pandas.h"
-#include "labelsDB.h"
 #include "operationsDB.h"
 #include "dataImageDB.h"
 #include "labelCallsDB.h"
@@ -15,7 +14,7 @@
 
 
 /**
- * Count legal label characters
+ * Count legal labelsDB characters
  * @param token Name string
  * @return How many characters read until string ended, or until illegal character encountered
  */
@@ -99,18 +98,18 @@ boolean isLabelDefinition(char **currentPosPtr, char *currentLabel, errorCodes *
     int tokenLength = extractNextToken(&currentPos, token);
 
 
-    if((definitionEnd = strchr(token, ':'))){/* a label is defined */
+    if((definitionEnd = strchr(token, ':'))){/* a labelsDB is defined */
         *definitionEnd = '\0';/* delete ':' from token */
         tokenLength--;/* update new token length */
         encounteredError = tokenIsLabel(token, tokenLength);/* check if possibly legal name */
 
         if(!encounteredError){/* possibly legal */
-            if(isspace(*currentPos)){/* legal label declaration */
-                strcpy(currentLabel, token);/* save label name */
+            if(isspace(*currentPos)){/* legal labelsDB declaration */
+                strcpy(currentLabel, token);/* save labelsDB name */
                 *currentPosPtr = currentPos;/* update line position */
                 result = TRUE;
             }
-            else{/* no white character after label definition */
+            else{/* no white character after labelsDB definition */
                 encounteredError = NO_SPACE_AFTER_LABEL;
             }
         }
@@ -305,13 +304,13 @@ errorCodes readComma(char **currentPosPtr) {
 errorCodes getFirstOperand(char **currentPosPtr, operationClass commandOpType, operandAttributes *operandAttributesPtr){
     char token[TOKEN_ARRAY_SIZE];
     int tokenLength = extractNextToken(currentPosPtr, token);
-    errorCodes encounteredError = getRegisterOperand(token, operandAttributesPtr->operandData.regPtr);
+    errorCodes encounteredError = getRegisterOperand(token, operandAttributesPtr->valuePointer.regPtr);
 
     if(!tokenLength){/* end of the line */
         encounteredError = MISSING_PARAMETER;
     }
     else if(encounteredError == NOT_REGISTER){/* not a register */
-        if (commandOpType == J_JMP || commandOpType == J_CALL_OR_LA){/* is possibly a label */
+        if (commandOpType == J_JMP || commandOpType == J_CALL_OR_LA){/* is possibly a labelsDB */
             encounteredError = getLabelOperand(token, tokenLength, operandAttributesPtr->labelName);
             operandAttributesPtr->isLabel = TRUE;
         }
@@ -338,13 +337,13 @@ errorCodes getSecondOperand(char **currentPosPtr, operationClass commandOpType, 
         encounteredError = MISSING_PARAMETER;
     }
     else if(commandOpType != I_ARITHMETIC && commandOpType != I_MEMORY_LOAD){/* need a register */
-        encounteredError = getRegisterOperand(token, operandAttributesPtr->operandData.regPtr);
+        encounteredError = getRegisterOperand(token, operandAttributesPtr->valuePointer.regPtr);
         if(encounteredError == NOT_REGISTER){
             encounteredError = EXPECTED_REGISTER_SECOND;
         }
     }
     else{/* need an immediate value */
-        encounteredError = getNumberOperand(token, operandAttributesPtr->operandData.immedPtr, HALF_WORD_MAX_VALUE);
+        encounteredError = getNumberOperand(token, operandAttributesPtr->valuePointer.immedPtr, HALF_WORD_MAX_VALUE);
         if(encounteredError == NOT_NUMBER){
             encounteredError = EXPECTED_NUMBER_SECOND;
         }
@@ -363,12 +362,12 @@ errorCodes getThirdOperand(char **currentPosPtr, operationClass commandOpType, o
         encounteredError = MISSING_PARAMETER;
     }
     else if(commandOpType != I_BRANCHING){/* need a register */
-        encounteredError = getRegisterOperand(token, operandAttributesPtr->operandData.regPtr);
+        encounteredError = getRegisterOperand(token, operandAttributesPtr->valuePointer.regPtr);
         if(encounteredError == NOT_REGISTER){
             encounteredError = EXPECTED_REGISTER_THIRD;
         }
     }
-    else{/* need a label */
+    else{/* need a labelsDB */
         encounteredError = getLabelOperand(token, tokenLength, operandAttributesPtr->labelName);
         operandAttributesPtr->isLabel = TRUE;
     }
@@ -413,7 +412,7 @@ errorCodes getRegisterOperand(char *token, unsigned char *regPtr){
 errorCodes getLabelOperand(char *token, int tokenLength, char *destination) {
     errorCodes encounteredError = tokenIsLabel(token, tokenLength);
 
-    if(!encounteredError){/* legal label name */
+    if(!encounteredError){/* legal labelsDB name */
         strcpy(destination, token);
     }
 

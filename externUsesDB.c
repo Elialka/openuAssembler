@@ -3,104 +3,102 @@
 
 #include "externUsesDB.h"
 
-typedef struct externUse{
-    char name[MAX_LABEL_LENGTH];
-    long IC;
-    externUsePtr next;
-}externUse;
+typedef struct externUsesDB{
+    labelID labelId;
+    externUsesDBPtr next;
+}externUseNode;
 
 
-externUsePtr initExternUsesDB(){
-    externUsePtr head = calloc(1, sizeof(externUse));;
+externUsesDBPtr initExternUsesDB(){
+    externUsesDBPtr head = calloc(1, sizeof(externUseNode));;
 
     return head;
 }
 
 
-boolean addExternUse(externUsePtr head, char *labelName, long IC, errorCodes *errorPtr){
-    externUsePtr current = head;
-    externUsePtr prev;
-    boolean result = TRUE;
+errorCodes addExternUse(externUsesDBPtr head, char *labelName, long IC) {
+    externUsesDBPtr current = head;
+    externUsesDBPtr prev;
+    errorCodes encounteredError = NO_ERROR;
 
     if(!isExternDBEmpty(head)){/* not first extern use */
-        /* find next available node */
+        /* find next available labelCallNode */
         while(current){
             prev = current;
             current = current->next;
         }
 
-        /* allocate memory for new node - memory for first node is allocated when database was initialized */
-        current = calloc(1, sizeof(externUse));
+        /* allocate memory for new labelCallNode - memory for first labelCallNode is allocated when database was initialized */
+        current = calloc(1, sizeof(externUseNode));
         if(!current){/* memory allocation failed */
-            *errorPtr = MEMORY_ALLOCATION_FAILURE;
-            result =  FALSE;
+            encounteredError = MEMORY_ALLOCATION_FAILURE;
         }
 
-        /* link new node to database */
+        /* link new labelCallNode to database */
         prev->next = current;
     }
 
     /* add new extern use */
-    strcpy(current->name, labelName);
-    current->IC = IC;
+    strcpy(current->labelId.name, labelName);
+    current->labelId.address = IC;
 
-    return result;
+    return encounteredError;
 }
 
 
-boolean isExternDBEmpty(externUsePtr head){
+boolean isExternDBEmpty(externUsesDBPtr head){
     boolean result;
 
-    /* check if first node was used */
-    result = ((externUsePtr)head)->IC ? FALSE : TRUE;
+    /* check if first labelCallNode was used */
+    result = ((externUsesDBPtr)head)->labelId.address ? FALSE : TRUE;
 
     return result;
 }
 
 
-externUsePtr getNextExternUse(externUsePtr currentExternUsePtr){
+externUsesDBPtr getNextExternUse(externUsesDBPtr currentExternUsePtr){
     void *nextExternUsePtr;
     if(!currentExternUsePtr){
         nextExternUsePtr = NULL;
     }
     else{
-        nextExternUsePtr = ((externUsePtr)currentExternUsePtr)->next;
+        nextExternUsePtr = ((externUsesDBPtr)currentExternUsePtr)->next;
     }
 
     return nextExternUsePtr;
 }
 
 
-char * getExternUseName(externUsePtr currentExternUsePtr){
+char * getExternUseName(externUsesDBPtr currentExternUsePtr){
     char *namePtr;
 
     if(!currentExternUsePtr){
         namePtr = NULL;
     }
     else{
-        namePtr = ((externUsePtr)currentExternUsePtr)->name;
+        namePtr = ((externUsesDBPtr)currentExternUsePtr)->labelId.name;
     }
 
     return namePtr;
 }
 
 
-long getExternUseAddress(externUsePtr currentExternUsePtr){
+long getExternUseAddress(externUsesDBPtr currentExternUsePtr){
     long address;
 
     if(!currentExternUsePtr){
         address = 0;
     }
     else{
-        address = ((externUsePtr)currentExternUsePtr)->IC;
+        address = ((externUsesDBPtr)currentExternUsePtr)->labelId.address;
     }
 
     return address;
 }
 
 
-void clearExternUsesDB(externUsePtr head){
-    externUsePtr prev;
+void clearExternUsesDB(externUsesDBPtr head){
+    externUsesDBPtr prev;
 
     while(head){
         prev = head;

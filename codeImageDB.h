@@ -3,18 +3,18 @@
 #endif
 
 
-codeImagePtr initCodeImage();
+codeImageDBPtr initCodeImage();
 
-errorCodes addRCommand(codeImagePtr *headPtr, long *ICPtr, rTypeData commandData);
+errorCodes addRCommand(codeImageDBPtr *headPtr, long *ICPtr, rTypeData commandData);
 
-errorCodes addICommand(codeImagePtr *headPtr, long *ICPtr, iTypeData commandData);
+errorCodes addICommand(codeImageDBPtr *headPtr, long *ICPtr, iTypeData commandData);
 
-errorCodes addJCommand(codeImagePtr *headPtr, long *ICPtr, jTypeData commandData);
+errorCodes addJCommand(codeImageDBPtr *headPtr, long *ICPtr, jTypeData commandData);
 
-boolean updateITypeImmed(codeImagePtr headPtr, long IC, long address, errorCodes *lineErrorPtr);
+errorCodes updateITypeImmed(codeImageDBPtr headPtr, long IC, long address);
 
-boolean updateJTypeAddress(codeImagePtr headPtr, long IC, long address, errorCodes *lineErrorPtr);
+void updateJTypeAddress(codeImageDBPtr headPtr, long IC, long address);
 
-unsigned char getNextCodeByte(codeImagePtr headPtr, long index);
+unsigned char getNextCodeByte(codeImageDBPtr headPtr, long index);
 
-void clearCodeImageDB(codeImagePtr head);
+void clearCodeImageDB(codeImageDBPtr head);

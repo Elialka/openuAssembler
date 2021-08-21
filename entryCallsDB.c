@@ -3,37 +3,34 @@
 
 #include "entryCallsDB.h"
 
-/* todo check if corresponding label already exists, ignore */
+/* todo check if corresponding labelsDB already exists, ignore */
 
 
-typedef struct entryCall{
-    char name[MAX_LABEL_LENGTH];
-    long value;
-    char line[LINE_ARRAY_SIZE];
-    long lineCounter;
-    entryCallPtr next;
-}entryCall;
+typedef struct entryCallsDB{
+    entryCall data;
+    entryCallsDBPtr next;
+}entryCallNode;
 
 
-entryCallPtr initEntryCallsDB(){
-    entryCallPtr head = calloc(1, sizeof(entryCall));
+entryCallsDBPtr initEntryCallsDB(){
+    entryCallsDBPtr head = calloc(1, sizeof(entryCallNode));
 
     return head;
 }
 
 
-errorCodes addEntryCall(entryCallPtr head, char *labelName, char *line, long lineCounter) {
-    entryCallPtr current;
-    entryCallPtr prev;
+errorCodes addEntryCall(entryCallsDBPtr head, char *labelName, char *line, long lineCounter) {
+    entryCallsDBPtr current;
+    entryCallsDBPtr prev;
     errorCodes encounteredError = NO_ERROR;
     boolean finished = FALSE;/* flag turns on if entry name is already on database or an error occurred */
 
     current = head;
 
     if(!isEntryCallDBEmpty(head)){/* not first entry call */
-        /* find next available node */
+        /* find next available labelCallNode */
         while(!finished && current){
-            if(!strcmp(labelName, current->name)){/* already added this name */
+            if(!strcmp(labelName, current->data.labelId.name)){/* already added this name */
                 finished = TRUE;
             }
             prev = current;
@@ -41,31 +38,31 @@ errorCodes addEntryCall(entryCallPtr head, char *labelName, char *line, long lin
         }
 
         if(!finished){
-            /* allocate memory for new node call - memory for first node is allocated when database was initialized */
-            current = calloc(1, sizeof(entryCall));
+            /* allocate memory for new labelCallNode call - memory for first labelCallNode is allocated when database was initialized */
+            current = calloc(1, sizeof(entryCallNode));
             if(!current){
                 encounteredError = MEMORY_ALLOCATION_FAILURE;
                 finished = TRUE;
             }
 
-            /* link new node to database */
+            /* link new labelCallNode to database */
             prev->next = current;
         }
     }
 
     if(!finished){
         /* add new extern use */
-        strcpy(current->name, labelName);
-        strcpy(current->line, line);
-        current->lineCounter = lineCounter;
+        strcpy(current->data.labelId.name, labelName);
+        strcpy(current->data.lineId.line, line);
+        current->data.lineId.count = lineCounter;
     }
 
     return encounteredError;
 }
 
 
-entryCallPtr getNextEntryCall(entryCallPtr currentEntryPtr){
-    entryCallPtr nextEntryPtr;
+entryCallsDBPtr getNextEntryCall(entryCallsDBPtr currentEntryPtr){
+    entryCallsDBPtr nextEntryPtr;
     if(currentEntryPtr == NULL){
         nextEntryPtr = NULL;
     }
@@ -77,79 +74,79 @@ entryCallPtr getNextEntryCall(entryCallPtr currentEntryPtr){
 }
 
 
-char * getEntryCallName(entryCallPtr currentEntryPtr){
+char * getEntryCallName(entryCallsDBPtr currentEntryPtr){
     char *namePtr;
     if(!currentEntryPtr){
         namePtr = NULL;
     }
     else{
-        namePtr = currentEntryPtr->name;
+        namePtr = currentEntryPtr->data.labelId.name;
     }
 
     return namePtr;
 }
 
 
-long getEntryCallAddress(entryCallPtr currentEntryCallPtr){
+long getEntryCallAddress(entryCallsDBPtr currentEntryCallPtr){
     long address;
 
     if(!currentEntryCallPtr){
         address = 0;
     }
     else{
-        address =  currentEntryCallPtr->value;
+        address =  currentEntryCallPtr->data.labelId.address;
     }
 
     return address;
 }
 
 
-char * getEntryCallLine(entryCallPtr currentEntryPtr){
+char * getEntryCallLine(entryCallsDBPtr currentEntryPtr){
     char *line;
     if(!currentEntryPtr){
         line = NULL;
     }
     else{
-        line = currentEntryPtr->line;
+        line = currentEntryPtr->data.lineId.line;
     }
 
     return line;
 }
 
 
-long getEntryCallLineCount(entryCallPtr currentEntryCallPtr){
+long getEntryCallLineCount(entryCallsDBPtr currentEntryCallPtr){
     long lineCount;
 
     if(!currentEntryCallPtr){
         lineCount = 0;
     }
     else{
-        lineCount =  currentEntryCallPtr->lineCounter;
+        lineCount =  currentEntryCallPtr->data.lineId.count;
     }
 
     return lineCount;
 }
 
 
-void setEntryCallValue(entryCallPtr currentEntryPtr, long address) {
+void setEntryCallValue(entryCallsDBPtr currentEntryPtr, long address) {
     if(currentEntryPtr){
-        currentEntryPtr->value = address;
+        currentEntryPtr->data.labelId.address = address;
     }
 }
 
 
-boolean isEntryCallDBEmpty(entryCallPtr head){
+boolean isEntryCallDBEmpty(entryCallsDBPtr head){
     boolean result;
 
-    /* check if first node's name is empty */
-    result = *(head->name) ? FALSE : TRUE;
+    /* check if first labelCallNode's name is empty */
+    result = *(head->data.labelId.name) ? FALSE : TRUE;
 
     return result;
 }
 
 
-void clearEntryCallsDB(entryCallPtr head){
-    entryCallPtr prev;
+void clearEntryCallsDB(entryCallsDBPtr head){
+    entryCallsDBPtr prev;
 
     while(head){
         prev = head;

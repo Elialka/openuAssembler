@@ -2,11 +2,17 @@
 #include "data.h"
 #endif
 
-labelCallPtr initLabelCallsDB();
+typedef struct{
+    labelID labelId;
+    operationClass type;
+    lineID lineId;
+}labelCall;
+
+labelCallsDBPtr initLabelCallsDB();
 
 errorCodes
-setLabelCall(labelCallPtr head, long IC, char *labelName, operationClass commandOpType, char *line, long lineCounter);
+setLabelCall(labelCallsDBPtr head, long IC, char *labelName, operationClass commandOpType, char *line, long lineCounter);
 
-boolean getLabelCall(labelCallPtr head, int index, labelCall *destination);
+boolean getLabelCall(labelCallsDBPtr head, int index, labelCall *destination);
 
-void clearLabelCallsDB(labelCallPtr head);
+void clearLabelCallsDB(labelCallsDBPtr head);

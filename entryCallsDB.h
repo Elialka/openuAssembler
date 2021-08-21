@@ -2,22 +2,27 @@
 #include "data.h"
 #endif
 
-entryCallPtr initEntryCallsDB();
+typedef struct{
+    labelID labelId;
+    lineID lineId;
+}entryCall;
 
-errorCodes addEntryCall(entryCallPtr head, char *labelName, char *line, long lineCounter);
+entryCallsDBPtr initEntryCallsDB();
 
-entryCallPtr getNextEntryCall(entryCallPtr currentEntryPtr);
+errorCodes addEntryCall(entryCallsDBPtr head, char *labelName, char *line, long lineCounter);
 
-char * getEntryCallName(entryCallPtr currentEntryPtr);
+entryCallsDBPtr getNextEntryCall(entryCallsDBPtr currentEntryPtr);
 
-long getEntryCallAddress(entryCallPtr currentEntryCallPtr);
+char * getEntryCallName(entryCallsDBPtr currentEntryPtr);
 
-char * getEntryCallLine(entryCallPtr currentEntryPtr);
+long getEntryCallAddress(entryCallsDBPtr currentEntryCallPtr);
 
-long getEntryCallLineCount(entryCallPtr currentEntryCallPtr);
+char * getEntryCallLine(entryCallsDBPtr currentEntryPtr);
 
-void setEntryCallValue(entryCallPtr currentEntryPtr, long address);
+long getEntryCallLineCount(entryCallsDBPtr currentEntryCallPtr);
 
-boolean isEntryCallDBEmpty(entryCallPtr head);
+void setEntryCallValue(entryCallsDBPtr currentEntryPtr, long address);
 
-void clearEntryCallsDB(entryCallPtr head);
+boolean isEntryCallDBEmpty(entryCallsDBPtr head);
+
+void clearEntryCallsDB(entryCallsDBPtr head);

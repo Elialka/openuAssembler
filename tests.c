@@ -665,7 +665,7 @@ void testExtractOperands(void *head) {
     strcpy(line, "New, $22");
     if (extractCodeOperandsTest(&currentPos, J_JMP, &currentLineData, &IC, head))
     {
-        printf("pandas - testExtractOperands test 15 failed - label should be enough\n");
+        printf("pandas - testExtractOperands test 15 failed - labelsDB should be enough\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
@@ -704,7 +704,7 @@ void testExtractOperands(void *head) {
     strcpy(line, "ajhflqnelnadvhsfvlskmfjsdhfndnjsnchvjdejdnw32ncndjnd, $22");
     if(!extractCodeOperandsTest(&currentPos, J_JMP, &currentLineData, &IC, head))
     {
-        printf("pandas - testExtractOperands test 19 failed - label is too long\n");
+        printf("pandas - testExtractOperands test 19 failed - labelsDB is too long\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }
@@ -743,7 +743,7 @@ void testExtractOperands(void *head) {
     strcpy(line, "$12, $22, $30");
     if (!extractCodeOperandsTest(&currentPos, I_BRANCHING, &currentLineData, &IC, head))
     {
-        printf("pandas - testExtractOperands test 23 failed - missing label\n");
+        printf("pandas - testExtractOperands test 23 failed - missing labelsDB\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
     }

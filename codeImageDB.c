@@ -8,7 +8,7 @@
 
 /* todo refactor addition function parameters */
 
-typedef union encodedCommand{
+typedef union codeImageDB{
     struct{
         unsigned int :6;
         unsigned int funct:5;
@@ -37,12 +37,12 @@ typedef union encodedCommand{
     }bytes;
 }encodedCommand;
 
-static errorCodes addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, encodedCommand *current);
+static errorCodes addCommandToDatabase(codeImageDBPtr *headPtr, long *ICPtr, encodedCommand *current);
 
 static void resetCodeLine(encodedCommand *newPtr);
 
 
-codeImagePtr initCodeImage(){
+codeImageDBPtr initCodeImage(){
     void *head = calloc(IMAGE_BLOCK_SIZE, sizeof(encodedCommand));
 
     return head;
@@ -57,11 +57,11 @@ static void resetCodeLine(encodedCommand *newPtr){
 }
 
 
-static errorCodes addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, encodedCommand *current){
+static errorCodes addCommandToDatabase(codeImageDBPtr *headPtr, long *ICPtr, encodedCommand *current){
     errorCodes encounteredError = NO_ERROR;
     long nextFreeIndex = (*ICPtr - STARTING_ADDRESS) / (long)sizeof(encodedCommand); /* how many code lines already saved */
     void *temp;
-    codeImagePtr currentPtr;
+    codeImageDBPtr currentPtr;
 
     if(*ICPtr != STARTING_ADDRESS && !(nextFreeIndex % IMAGE_BLOCK_SIZE)){/* out of allocated memory */
         temp = realloc(*headPtr, nextFreeIndex + IMAGE_BLOCK_SIZE);
@@ -86,7 +86,7 @@ static errorCodes addCommandToDatabase(codeImagePtr *headPtr, long *ICPtr, encod
 }
 
 
-errorCodes addRCommand(codeImagePtr *headPtr, long *ICPtr, rTypeData commandData) {
+errorCodes addRCommand(codeImageDBPtr *headPtr, long *ICPtr, rTypeData commandData) {
     encodedCommand new;
 
     resetCodeLine(&new);
@@ -101,7 +101,7 @@ errorCodes addRCommand(codeImagePtr *headPtr, long *ICPtr, rTypeData commandData
 }
 
 
-errorCodes addICommand(codeImagePtr *headPtr, long *ICPtr, iTypeData commandData) {
+errorCodes addICommand(codeImageDBPtr *headPtr, long *ICPtr, iTypeData commandData) {
     encodedCommand new;
 
     resetCodeLine(&new);
@@ -115,7 +115,7 @@ errorCodes addICommand(codeImagePtr *headPtr, long *ICPtr, iTypeData commandData
 }
 
 
-errorCodes addJCommand(codeImagePtr *headPtr, long *ICPtr, jTypeData commandData) {
+errorCodes addJCommand(codeImageDBPtr *headPtr, long *ICPtr, jTypeData commandData) {
     encodedCommand new;
 
     resetCodeLine(&new);
@@ -129,9 +129,8 @@ errorCodes addJCommand(codeImagePtr *headPtr, long *ICPtr, jTypeData commandData
 }
 
 /* todo maybe handle IC out of range */
-/* todo refactor to return errorCodes type */
-boolean updateITypeImmed(codeImagePtr headPtr, long IC, long address, errorCodes *lineErrorPtr) {
-    boolean result = TRUE;/* return value - if operation was successful */
+errorCodes updateITypeImmed(codeImageDBPtr headPtr, long IC, long address) {
+    errorCodes encounteredError = NO_ERROR;
     encodedCommand *current = headPtr;
     long distance = address - IC;
     /* calculate index of code line with given IC */
@@ -142,21 +141,19 @@ boolean updateITypeImmed(codeImagePtr headPtr, long IC, long address, errorCodes
 
     /* verify calculated value is in range */
     if(distance > I_TYPE_IMMED_MAX_VALUE_SIGNED || distance < I_TYPE_IMMED_MIN_VALUE){
-        *lineErrorPtr = ADDRESS_DISTANCE_OVER_LIMITS;
-        result = FALSE;
+        encounteredError = ADDRESS_DISTANCE_OVER_LIMITS;
     }
     else{
         /* update value */
         current->I.immed = distance;
     }
 
-    return result;
+    return encounteredError;
 }
 
 
 /* todo maybe handle IC out of range, maybe literal number 16 */
-/* todo refactor to return errorCodes type */
-boolean updateJTypeAddress(codeImagePtr headPtr, long IC, long address, errorCodes *lineErrorPtr) {
+void updateJTypeAddress(codeImageDBPtr headPtr, long IC, long address) {
     encodedCommand *current = headPtr;
     /* calculate index of code line with given IC */
     long index = (long)((IC - STARTING_ADDRESS) / sizeof(encodedCommand));
@@ -168,12 +165,11 @@ boolean updateJTypeAddress(codeImagePtr headPtr, long IC, long address, errorCod
     current->J.address1 = address & FIRST_16_BITS_MASK;
     current->J.address2 = address >> 16;
 
-    *lineErrorPtr = NO_ERROR;/* temp - delete */
-    return TRUE;
+
 }
 
 
-unsigned char getNextCodeByte(codeImagePtr headPtr, long index) {
+unsigned char getNextCodeByte(codeImageDBPtr headPtr, long index) {
 
     return ((char *)headPtr)[index];
 }
@@ -208,7 +204,7 @@ void printCode(void *head, long IC){
 }/* temp - delete */
 
 
-void clearCodeImageDB(codeImagePtr head){
+void clearCodeImageDB(codeImageDBPtr head){
     if(head){
         free(head);
     }

@@ -18,7 +18,7 @@
 
 
 /* array types sizes */
-#define LABEL_ARRAY_SIZE (MAX_LABEL_LENGTH + 1) /* label length including '\0' character */
+#define LABEL_ARRAY_SIZE (MAX_LABEL_LENGTH + 1) /* labelsDB length including '\0' character */
 #define LINE_ARRAY_SIZE (MAX_LINE + 2)/* including '\n' and '\0' */
 #define TOKEN_ARRAY_SIZE (MAX_LINE)
 #define NUMBERS_ARRAY_SIZE (MAX_LINE / 2)
@@ -63,6 +63,7 @@ typedef enum{
     ADDRESS_DISTANCE_OVER_LIMITS,
     ENTRY_IS_EXTERN,
     ENTRY_NOT_DEFINED,
+    CANNOT_BE_EXTERN,
     /* memory */
     MEMORY_ALLOCATION_FAILURE,
     /* operation names */
@@ -164,53 +165,55 @@ typedef enum{
 
 typedef enum{
     UNIDENTIFIED_LABEL_TYPE,
-    DATA_LABEL,
     CODE_LABEL,
+    DATA_LABEL,
     EXTERN_LABEL
-}labelClass;
-
+}labelType;
 
 typedef enum{
     UNIDENTIFIED_COMMAND = 0,
-    CODE_LINE,
-    DATA_LINE
-}lineType;
+    OPERATION_LINE,
+    INSTRUCTION_LINE
+}commandType;
 
 
-typedef struct{
-    long IC;
-    char name[MAX_LABEL_LENGTH];
-    operationClass type;
-    char line[LINE_ARRAY_SIZE];
-    long lineCounter;
-}labelCall;
+typedef struct lineID{
+    char line[LINE_ARRAY_SIZE];/* the line exactly as read from input file */
+    long count;/* number of line in input file */
+}lineID;
+
+typedef struct labelID{
+    char name[LABEL_ARRAY_SIZE];/* name of labelsDB */
+    long address;/* based on context - address defined or address called as operand */
+}labelID;
+
 
 /* database pointer types */
 
-typedef union encodedCommand *codeImagePtr;
+typedef union codeImageDB *codeImageDBPtr;
 
-typedef char *dataImagePtr;
+typedef char *dataImagePtr;/* todo change terminology */
 
-typedef struct entryCall *entryCallPtr;
+typedef struct entryCallsDB *entryCallsDBPtr;
 
-typedef struct externUse *externUsePtr;
+typedef struct externUsesDB *externUsesDBPtr;
 
-typedef struct call *labelCallPtr;
+typedef struct labelCallsDB *labelCallsDBPtr;
 
-typedef struct label *labelPtr;
+typedef struct labelsDB *labelsDBPtr;
 
-typedef struct operation *operationPtr;
+typedef struct operationsDB *operationsDBPtr;
 
 typedef struct databaseRouter *databaseRouterPtr;
 
 typedef struct databaseRouter{
-    codeImagePtr codeImageDB;
+    codeImageDBPtr codeImageDB;
     dataImagePtr dataImageDB;
-    entryCallPtr entryCallsDB;
-    externUsePtr externUsesDB;
-    labelCallPtr labelCallsDB;
-    labelPtr labelsDB;
-    operationPtr operationsDB;
+    entryCallsDBPtr entryCallsDB;
+    externUsesDBPtr externUsesDB;
+    labelCallsDBPtr labelCallsDB;
+    labelsDBPtr labelsDB;
+    operationsDBPtr operationsDB;
 }databaseRouter;
 
 
@@ -248,13 +251,14 @@ typedef union codeLineData{
 
 
 typedef struct operandAttributes{
-    union operandData{
+    union valuePointer{
         unsigned char*regPtr;
         long *immedPtr;
-    }operandData;
+    }valuePointer;
     char labelName[LABEL_ARRAY_SIZE];
     boolean isLabel;
 }operandAttributes;
+
 
 
 void printWarningMessage(warningCodes encounteredWarning, char *line, long lineNumber);

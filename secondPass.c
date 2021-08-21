@@ -5,141 +5,141 @@
 #include "entryCallsDB.h"
 #include "externUsesDB.h"
 
-static boolean
-validateExternalUsage(externUsePtr externDatabase, labelCall currentCall, labelClass labelType, errorCodes *errorPtr);
+static errorCodes
+validateExternalUsage(externUsesDBPtr externDatabase, labelCall currentCall, labelType labelType);
 
-static boolean
-updateCodeImage(codeImagePtr codeImageDatabase, labelCall currentCall, long labelAddress, errorCodes *callErrorPtr);
+static errorCodes
+updateCodeImage(codeImageDBPtr codeImageDatabase, labelCall currentCall, long labelAddress);
 
 static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr);
 
-static boolean locateEntryDefinitions(entryCallPtr entryCallsDatabase, labelPtr labelsDatabase, errorCodes *lineErrorPtr);
+static boolean locateEntryDefinitions(entryCallsDBPtr entryCallsDatabase, labelsDBPtr labelsDatabase);
 
 /* todo refactor - ugly file */
 /* change inner functions return value to error codes */
 
 /* todo test EVERYTHING */
 boolean secondPass(databaseRouterPtr databasesPtr, long ICF) {
-    boolean validPass;
-    errorCodes lineError = NO_ERROR;
+    boolean result;
 
     /* update data-type labels' addresses, to appear after code image */
     updateDataLabels(databasesPtr->labelsDB, ICF + STARTING_ADDRESS);
 
     /* handle labels as operators usages */
-    validPass = fillMissingLabelAddresses(databasesPtr);
+    result = fillMissingLabelAddresses(databasesPtr);
 
-    if(validPass){/* no errors */
+    if(result){/* no errors */
         /*  */
-        validPass = locateEntryDefinitions(databasesPtr->entryCallsDB,
-                                           databasesPtr->labelsDB,
-                                           &lineError);
+        result = locateEntryDefinitions(databasesPtr->entryCallsDB, databasesPtr->labelsDB);
     }
 
-    return validPass;
+    return result;
 }
 
 static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr){
-    int i;/* count how many label calls did we already handle */
-    long labelAddress;/* store label definition address */
-    labelClass labelType;/* store label type - code\data\external */
-    boolean validCall;/* track if an error occurred during current call */
-    boolean validPass = TRUE;/* track whether any errors occurred during second pass */
-    errorCodes error = NO_ERROR;/* if errors occur, track error code */
-    labelCall currentCall;/* pointer to next label call in database */
+    int i;/* count how many labelsDB calls did we already handle */
+    long labelAddress;/* store labelsDB definition address */
+    labelType labelType;/* store labelsDB type - code\data\external */
+    boolean result = TRUE;/* track whether any errors occurred during second pass */
+    errorCodes encounteredError = NO_ERROR;/* if errors occur, track encounteredError code */
+    labelCall currentCall;/* pointer to next labelsDB call in database */
 
-    /* resolve each label call not handle in first pass */
+    /* resolve each labelsDB call not handle in first pass */
     for(i = 0; getLabelCall(databasesPtr->labelCallsDB, i, &currentCall); i++){
-        /* get label value */
-        validCall = getLabelAttributes(databasesPtr->labelsDB,
-                                       currentCall.name, &labelAddress, &labelType);
+        /* get labelsDB value */
+        encounteredError = getLabelAttributes(databasesPtr->labelsDB,
+                                              currentCall.labelId.name, &labelAddress, &labelType);
 
-        /* validate legality of label type with command type */
-        if(validCall){/* found label */
-            validCall = validateExternalUsage(databasesPtr->externUsesDB, currentCall, labelType, &error);
+        /* validate legality of labelsDB type with command type */
+        if(encounteredError){/* found labelsDB */
+            encounteredError = validateExternalUsage(databasesPtr->externUsesDB, currentCall, labelType);
         }
 
         /* update code image */
-        if(validCall){/* label is of legal type for command type */
-            validCall = updateCodeImage(databasesPtr->codeImageDB, currentCall, labelAddress, &error);
+        if(encounteredError){/* labelsDB is of legal type for command type */
+            encounteredError = updateCodeImage(databasesPtr->codeImageDB, currentCall, labelAddress);
         }
 
-        if(!validCall){/* mark error occurred */
-            printErrorMessage(error, currentCall.line, currentCall.lineCounter);
-            validPass = FALSE;
+        if(encounteredError){/* mark encounteredError occurred */
+            printErrorMessage(encounteredError, currentCall.lineId.line, currentCall.lineId.count);
+            result = FALSE;
         }
     }
 
-    return validPass;
+    return result;
 }
 
 
-static boolean validateExternalUsage(externUsePtr externDatabase, labelCall currentCall,
-                                     labelClass labelType, errorCodes *errorPtr) {
-    boolean result = TRUE;
+static errorCodes validateExternalUsage(externUsesDBPtr externDatabase, labelCall currentCall, labelType labelType) {
+    errorCodes encounteredError = NO_ERROR;
 
     if(labelType == EXTERN_LABEL){
         if(currentCall.type == I_BRANCHING){/* illegal - I_branching commands cannot use external labels */
-            result = FALSE;
+            encounteredError = CANNOT_BE_EXTERN;
         }
         else{/* add extern use to database */
-            addExternUse(externDatabase, currentCall.name, currentCall.IC, errorPtr);
+            encounteredError = addExternUse(externDatabase, currentCall.labelId.name, currentCall.labelId.address);
         }
     }
 
-    return result;
+    return encounteredError;
 }
 
 
-static boolean updateCodeImage(codeImagePtr codeImageDatabase, labelCall currentCall, long labelAddress, errorCodes *callErrorPtr){
-    boolean result;
+static errorCodes updateCodeImage(codeImageDBPtr codeImageDatabase, labelCall currentCall, long labelAddress) {
+    errorCodes encounteredError = NO_ERROR;
 
     if(currentCall.type == I_BRANCHING){
-        result = updateITypeImmed(codeImageDatabase, currentCall.IC, labelAddress, callErrorPtr);
+        encounteredError = updateITypeImmed(codeImageDatabase, currentCall.labelId.address, labelAddress);
     }
     else if(currentCall.type == J_JMP || currentCall.type == J_CALL_OR_LA){
-        result = updateJTypeAddress(codeImageDatabase, currentCall.IC, labelAddress, callErrorPtr);
+        updateJTypeAddress(codeImageDatabase, currentCall.labelId.address, labelAddress);
     }
     else{/* impossible scenario - only I_branching, call, la and jmp commands use labels */
-        *callErrorPtr = IMPOSSIBLE_UPDATE_CODE_IMAGE;
-        result = FALSE;
+        encounteredError = IMPOSSIBLE_UPDATE_CODE_IMAGE;
     }
 
-    return result;
+    return encounteredError;
 }
 
 
-static boolean locateEntryDefinitions(entryCallPtr entryCallsDatabase, labelPtr labelsDatabase, errorCodes *lineErrorPtr) {
+static boolean locateEntryDefinitions(entryCallsDBPtr entryCallsDatabase, labelsDBPtr labelsDatabase) {
     boolean validOp = TRUE;/* reset error flag */
-    entryCallPtr currentEntryCall = entryCallsDatabase;/* get first entry call */
+    errorCodes encounteredError = NO_ERROR;
+    entryCallsDBPtr currentEntryCall = entryCallsDatabase;/* get first entry call */
     char *currentEntryName;/* point to string representing current entry call name */
-    labelClass labelType;/* current label type */
-    long labelAddress;/* address where label was defined */
+    labelType labelType;/* current labelsDB type */
+    long labelAddress;/* address where labelsDB was defined */
 
-    /* validate each label declared as entry is defined in current .as file */
+    /* validate each labelsDB declared as entry is defined in current .as file */
     while(currentEntryCall){
         /* get entry name */
         if((currentEntryName = getEntryCallName(currentEntryCall))){
-            /* get label type */
-            validOp = getLabelAttributes(labelsDatabase, currentEntryName, &labelAddress, &labelType);
+            /* get labelsDB type */
+            encounteredError = getLabelAttributes(labelsDatabase, currentEntryName, &labelAddress, &labelType);
         }
         else{/* entry name doesn't exist*/
             printErrorMessage(ENTRY_NOT_DEFINED, getEntryCallLine(currentEntryCall),
                               getEntryCallLineCount(currentEntryCall));
         }
 
-        if(validOp){/* label exists */
-            if(labelType != EXTERN_LABEL){/* label is locally defined */
+        if(validOp){/* labelsDB exists */
+            if(labelType != EXTERN_LABEL){/* labelsDB is locally defined */
                 setEntryCallValue(currentEntryCall, labelAddress);/* update definition location */
             }
-            else{/* cannot declare entry with external label */
-                *lineErrorPtr = ENTRY_IS_EXTERN;
+            else{/* cannot declare entry with external labelsDB */
+                encounteredError = ENTRY_IS_EXTERN;
                 validOp = FALSE;
             }
         }
-        else{/* label does not exist */
-            *lineErrorPtr = ENTRY_NOT_DEFINED;/* redundant */
+        else{/* labelsDB does not exist */
+            encounteredError = ENTRY_NOT_DEFINED;/* redundant */
             validOp = FALSE;
+        }
+
+        if(encounteredError){
+            printErrorMessage(encounteredError, getEntryCallLine(currentEntryCall),
+                              getEntryCallLineCount(currentEntryCall));
         }
 
         currentEntryCall = getNextEntryCall(currentEntryCall);

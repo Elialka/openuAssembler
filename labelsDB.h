@@ -2,16 +2,21 @@
 #include "data.h"
 #endif
 
+typedef struct definedLabel{
+    labelID labelId;
+    labelType type;
+}definedLabel;
 
-labelPtr initLabelsDB();
 
-boolean seekLabel(labelPtr head, char *name);
+labelsDBPtr initLabelsDB();
 
-errorCodes addNewLabel(labelPtr head, char *labelName, long address, labelClass type);
+boolean seekLabel(labelsDBPtr head, char *name);
 
-boolean getLabelAttributes(labelPtr head, char *name, long *addressPtr, labelClass *typePtr);
+errorCodes addNewLabel(labelsDBPtr head, char *labelName, long address, labelType type);
 
-void updateDataLabels(labelPtr head, long offset);
+errorCodes getLabelAttributes(labelsDBPtr head, char *name, long *addressPtr, labelType *typePtr);
 
-void clearLabels(labelPtr head);
+void updateDataLabels(labelsDBPtr head, long offset);
+
+void clearLabels(labelsDBPtr head);
 

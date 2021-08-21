@@ -8,4 +8,4 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
 
 /* temp - delete - test */
 errorCodes extractCodeOperandsTest(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
-                                   long *ICPtr, labelCallPtr labelCallsDB);
+                                   long *ICPtr, labelCallsDBPtr labelCallsDB);

@@ -19,12 +19,12 @@ boolean needToReadLine(char *line);
 int extractNextToken(char **sourcePtr, char *buffer);
 
 /**
- * If a label is defined in current line, copy it's name
+ * If a labelsDB is defined in current line, copy it's name
  * If input is faulty, update error code
  * @param currentPosPtr Pointer to position in line array
- * @param currentLabel Address of label name array
+ * @param currentLabel Address of labelsDB name array
  * @param lineErrorPtr Pointer to line error code enum
- * @return TRUE if label is defined here, FALSE otherwise
+ * @return TRUE if labelsDB is defined here, FALSE otherwise
  */
 boolean isLabelDefinition(char **currentPosPtr, char *currentLabel, errorCodes *errorPtr);
 
@@ -60,7 +60,7 @@ int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpT
 
 
 /**
- * Check if token syntax matches label name as parameter
+ * Check if token syntax matches labelsDB name as parameter
  * @param token The name
  * @param tokenLength Total token length
  * @param lineErrorPtr Pointer to line error code enum
@@ -117,8 +117,8 @@ errorCodes getThirdOperand(char **currentPosPtr, operationClass commandOpType, o
 errorCodes getRegisterOperand(char *token, unsigned char *regPtr);
 
 /**
- * Read token, check if possible label name and copy to destination
- * @param token string representing label name without white characters
+ * Read token, check if possible labelsDB name and copy to destination
+ * @param token string representing labelsDB name without white characters
  * @param tokenLength number of characters in token
  * @param destination pointer to store name if legal
  * @return errorCodes enum value describing function success/failure

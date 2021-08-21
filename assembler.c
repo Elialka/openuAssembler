@@ -20,14 +20,16 @@
 
 /* todo possible refactors */
 /* remake second pass to use abstract functions from labelCallsDB */
+/* address long labelsDB definition before entry or extern */
 /* new typedef of only char in dataImageDB - for abstraction */
 /* add reset EACH structure occurrence */
 /* add NULL checking */
 /* check all strcmp */
+/* complete struct renaming terminology throughout project */
 /* operationsDB.h - check no data.h include in header file + maybe remove from databases struct */
 /* wrong error for .dh number out of range */
 /* error printing: handle file headline + mark end of file  - error printing database */
-/* program does not address label definition without ':' - wrong error message */
+/* program does not address labelsDB definition without ':' - wrong error message */
 /* pandas refactor long functions/functions that receive many parameters */
 /* for every database - extract finding end of DB\allocating additional memory to different function */
 /* for every database - check if head not NULL */
