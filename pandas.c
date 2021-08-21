@@ -89,7 +89,7 @@ static long calculateMaxValue(dataOps dataOpType){
 }
 
 
-boolean isLabelDefinition(char **currentPosPtr, char *currentLabel, errorCodes *errorPtr) {
+boolean isLabelDefinition(char **currentPosPtr, char *currentLabel, errorCodes *errorPtr){
     errorCodes encounteredError = NO_ERROR;
     boolean result = FALSE;
     char *currentPos = *currentPosPtr;
@@ -123,7 +123,7 @@ boolean isLabelDefinition(char **currentPosPtr, char *currentLabel, errorCodes *
 }
 
 
-errorCodes extractCommandName(char **currentPosPtr, char *commandName) {
+errorCodes extractCommandName(char **currentPosPtr, char *commandName){
     errorCodes encounteredError = NO_ERROR;
     char *currentPos = *currentPosPtr;
     char buffer[TOKEN_ARRAY_SIZE];
@@ -144,7 +144,7 @@ errorCodes extractCommandName(char **currentPosPtr, char *commandName) {
 }
 
 
-boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValue) {
+boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValue){
     boolean result = TRUE;
     long value;
     long minValue;/* negative border for number of bits used */
@@ -188,7 +188,7 @@ errorCodes getLabelFromLine(char **currentPosPtr, char *destination){
 }
 
 
-errorCodes getStringFromLine(char **currentPosPtr, char *destination) {
+errorCodes getStringFromLine(char **currentPosPtr, char *destination){
     errorCodes encounteredError;
     int i;
     char *current = *currentPosPtr;
@@ -236,7 +236,7 @@ int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpT
     boolean finished = FALSE;
 
     for (i = 0 ; !encounteredError && !finished; i++){
-        if (i % 2) {/* expecting a comma */
+        if (i % 2){/* expecting a comma */
             if(readComma(currentPosPtr) != NO_ERROR){/* missing comma */
                 if(needToReadLine(*currentPosPtr)){/* line is terminated *//* temp */
                     encounteredError = NO_ERROR;
@@ -267,7 +267,7 @@ int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpT
 }
 
 
-errorCodes tokenIsLabel(char *token, int tokenLength) {
+errorCodes tokenIsLabel(char *token, int tokenLength){
     errorCodes encounteredError = NO_ERROR;
     int nameLength;
 
@@ -285,7 +285,7 @@ errorCodes tokenIsLabel(char *token, int tokenLength) {
 }
 
 
-errorCodes readComma(char **currentPosPtr) {
+errorCodes readComma(char **currentPosPtr){
     errorCodes encounteredError = NO_ERROR;
 
     SKIP_WHITES(*currentPosPtr);
@@ -381,7 +381,7 @@ errorCodes getRegisterOperand(char *token, unsigned char *regPtr){
     errorCodes encounteredError = NO_ERROR;
     char *currentPos = token;
 
-    if (*currentPos++ != '$') {/* register token must begin with '$' */
+    if (*currentPos++ != '$'){/* register token must begin with '$' */
         encounteredError = NOT_REGISTER;
     }
 
@@ -409,7 +409,7 @@ errorCodes getRegisterOperand(char *token, unsigned char *regPtr){
 }
 
 
-errorCodes getLabelOperand(char *token, int tokenLength, char *destination) {
+errorCodes getLabelOperand(char *token, int tokenLength, char *destination){
     errorCodes encounteredError = tokenIsLabel(token, tokenLength);
 
     if(!encounteredError){/* legal labelsDB name */
@@ -420,7 +420,7 @@ errorCodes getLabelOperand(char *token, int tokenLength, char *destination) {
 }
 
 
-errorCodes getNumberOperand(char *token, long *destination, long maxValue) {
+errorCodes getNumberOperand(char *token, long *destination, long maxValue){
     long value;
     char *nextChar;/* will point to first character after the integer in token */
     errorCodes encounteredError = NO_ERROR;
@@ -445,7 +445,7 @@ errorCodes getNumberOperand(char *token, long *destination, long maxValue) {
 }
 
 
-errorCodes checkLineTermination(char **currentPosPtr) {
+errorCodes checkLineTermination(char **currentPosPtr){
     char *current = *currentPosPtr;
     errorCodes encounteredError = NO_ERROR;
 

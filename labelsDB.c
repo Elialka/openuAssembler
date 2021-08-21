@@ -33,7 +33,7 @@ static boolean isLabelsDBEmpty(labelsDBPtr head){
  * todo may be redundant
  * return if labelsDB with matching name already exists in database
  */
-boolean seekLabel(labelsDBPtr head, char *name) {
+boolean seekLabel(labelsDBPtr head, char *name){
     labelsDBPtr curr;
 
     curr = head;
@@ -46,8 +46,8 @@ boolean seekLabel(labelsDBPtr head, char *name) {
     return FALSE;
 }
 
-/* todo split function - can remodel seekLabel */
-errorCodes addNewLabel(labelsDBPtr head, char *labelName, long address, labelType type) {
+/* todo split function to 3 - can remodel seekLabel */
+errorCodes addNewLabel(labelsDBPtr head, definedLabel *labelDataPtr) {
     errorCodes encounteredError = NO_ERROR;
     labelsDBPtr current;
     labelsDBPtr prev;
@@ -57,9 +57,9 @@ errorCodes addNewLabel(labelsDBPtr head, char *labelName, long address, labelTyp
     if(!isLabelsDBEmpty(head)){/* not first labelsDB */
         /* find last defined labelsDB, in the process look for new name in defined labels */
         while(current){
-            if(!strcmp(labelName, current->data.labelId.name)){/* labelsDB already defined */
-                if(current->data.type == EXTERN_LABEL || type == EXTERN_LABEL){/* if the old or the new labelsDB is external */
-                    if(current->data.type == EXTERN_LABEL && type == EXTERN_LABEL){/* both labels are external */
+            if(!strcmp(labelDataPtr->labelId.name, current->data.labelId.name)){/* labelsDB already defined */
+                if(current->data.type == EXTERN_LABEL || labelDataPtr->type == EXTERN_LABEL){/* if the old or the new labelsDB is external */
+                    if(current->data.type == EXTERN_LABEL && labelDataPtr->type == EXTERN_LABEL){/* both labels are external */
                         /* multiple extern declarations are allowed */
                     }
                     else{/* only one of them is external */
@@ -90,28 +90,27 @@ errorCodes addNewLabel(labelsDBPtr head, char *labelName, long address, labelTyp
 
     if(!encounteredError){
         /* update fields */
-        strcpy(current->data.labelId.name, labelName);
-        current->data.labelId.address = address;
-        current->data.type = type;
+        strcpy(current->data.labelId.name, labelDataPtr->labelId.name);
+        current->data.labelId.address = labelDataPtr->labelId.address;
+        current->data.type = labelDataPtr->type;
     }
 
     return encounteredError;
 }
 
 
-errorCodes getLabelAttributes(labelsDBPtr head, char *name, long *addressPtr, labelType *typePtr) {
-    labelsDBPtr current = head;
-    errorCodes encounteredError = LABEL_NOT_FOUND;
+errorCodes getLabelAttributes(labelsDBPtr head, char *name, definedLabel **destinationPtr) {
+    labelsDBPtr currentNode = head;
+    errorCodes encounteredError =LABEL_NOT_FOUND;
 
-    while(current){
-        if(!strcmp(current->data.labelId.name, name)){/* found match */
-            *addressPtr = current->data.labelId.address;
-            *typePtr = current->data.type;
-            current = NULL;/* terminate loop */
+    while(currentNode){
+        if(!strcmp(currentNode->data.labelId.name, name)){/* found match */
+            *destinationPtr = &currentNode->data;
+            currentNode = NULL;/* terminate loop */
             encounteredError = NO_ERROR;
         }
         else{/* keep searching */
-            current = current->next;
+            currentNode = currentNode->next;
         }
     }
 
@@ -133,7 +132,7 @@ void updateDataLabels(labelsDBPtr head, long offset){
 }
 
 
-void clearLabels(labelsDBPtr head) {
+void clearLabels(labelsDBPtr head){
     labelsDBPtr temp;
 
     while(head){

@@ -3,14 +3,32 @@
 #include "string.h"
 
 #define BITS_IN_BYTE (8)
+#define FIRST_BYTE_MASK (0xFF)
 
-
-static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC);
 
 /* todo make typedef char * or something */
-/*
- * initialize database - allocate first block
- * */
+
+
+/**
+ * Add a byte to the database
+ * @param headPtr pointer to database
+ * @param byte the byte to be added
+ * @param DC value of DC counter
+ * @return TRUE if added successfully, FALSE otherwise
+ */
+static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC);
+
+/**
+ * Add a number to the database, update DC counter
+ * @param headPtr pointer to database
+ * @param DCPtr pointer to DC counter
+ * @param value value of the number
+ * @param numOfBytes how many bytes should the number span across
+ * @return TRUE if added successfully, FALSE otherwise
+ */
+static boolean addNumber(dataImagePtr *headPtr, long *DCPtr, long value, int numOfBytes);
+
+
 dataImagePtr initDataImageDB(){
     dataImagePtr database = calloc(IMAGE_BLOCK_SIZE, sizeof(char));
 
@@ -34,21 +52,18 @@ static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC){
     if(result){
         memcpy(*headPtr + DC, &byte, sizeof(char));
     }
+
     return result;
 }
 
 
-/*
- * this function adds number to database
- */
-/* todo add error pointer, check overall + negative numbers */
-/* todo maybe make static */
-boolean addNumber(dataImagePtr *headPtr, long *DCPtr, long value, int numOfBytes){
+static boolean addNumber(dataImagePtr *headPtr, long *DCPtr, long value, int numOfBytes){
+    boolean result = TRUE;
     int i, offset;
     unsigned long mask;
     unsigned long formattedNumber;
 
-    mask = 0xFF;
+    mask = FIRST_BYTE_MASK;
 
     /* implement two's complement */
     if(value < 0){
@@ -59,22 +74,23 @@ boolean addNumber(dataImagePtr *headPtr, long *DCPtr, long value, int numOfBytes
         formattedNumber = value;
     }
 
-    for(i = 0; i < numOfBytes; i++, (*DCPtr)++){
+    /* add the number byte by byte using masks */
+    for(i = 0; result && i < numOfBytes; i++, (*DCPtr)++){
         offset = i * BITS_IN_BYTE;
         if(!addByte(headPtr, (formattedNumber & (mask << offset)) >> offset, *DCPtr)){
-            return FALSE;
+            result = FALSE;
         }
     }
 
-    return TRUE;
+    return result;
 }
 
-errorCodes addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType) {
+
+errorCodes addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType){
     int i;
-    int numOfBytes;
+    int numOfBytes;/* how many bytes should the number span */
     errorCodes encounteredError = NO_ERROR;
 
-    /* determine how many bytes to span each value */
     switch(dataOpType){
         case DB:
             numOfBytes = SIZE_OF_BYTE;
@@ -86,10 +102,11 @@ errorCodes addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int a
             numOfBytes = SIZE_OF_WORD;
             break;
         default:
-            /*  */
+            encounteredError = IMPOSSIBLE_ENCODE_DATA;
             break;
     }
 
+    /* add each number in the array */
     for(i = 0; !encounteredError &&  i < amountOfNumbers; i++){
         if(!addNumber(headPtr, DCPtr, array[i], numOfBytes)){
             encounteredError = MEMORY_ALLOCATION_FAILURE;
@@ -100,18 +117,15 @@ errorCodes addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int a
 }
 
 
-/*
- * this function adds a string to database
- */
-errorCodes addString(dataImagePtr *headPtr, long *DCPtr, char *str) {
-    char *current;
-    char *prev;
+errorCodes addString(dataImagePtr *headPtr, long *DCPtr, char *str){
+    char *next;/* pointer to next character in string */
+    char *current;/* pointer to current character being added */
     errorCodes encounteredError = NO_ERROR;
 
-    /* add each character to database */
-    for(current = str, prev = current; !encounteredError && *prev; current++, (*DCPtr)++){
-        prev = current;
-        if(!addByte(headPtr, *prev, *DCPtr)){
+    /* add each character to database, including '\0' */
+    for(next = str, current = next; !encounteredError && *current; next++, (*DCPtr)++){
+        current = next;
+        if(!addByte(headPtr, *current, *DCPtr)){
             encounteredError = MEMORY_ALLOCATION_FAILURE;
         }
     }
@@ -120,11 +134,10 @@ errorCodes addString(dataImagePtr *headPtr, long *DCPtr, char *str) {
 }
 
 
-unsigned char getNextDataByte(dataImagePtr headPtr, long index){
+unsigned char getNextDataByte(void *headPtr, long index){
 
-    return (headPtr)[index];
+    return ((char *)headPtr)[index];
 }
-
 
 
 void clearDataImageDB(dataImagePtr head){
@@ -147,7 +160,7 @@ void clearDataImageDB(dataImagePtr head){
 /* delete - test */
 
 
-boolean checkDataImage(long DC, unsigned char *head, unsigned char *buffer) {
+boolean checkDataImage(long DC, unsigned char *head, unsigned char *buffer){
     int i;
 
     for(i = 0; i < DC; i++){
@@ -159,7 +172,7 @@ boolean checkDataImage(long DC, unsigned char *head, unsigned char *buffer) {
 }
 
 
-void testAddByte(void *head) {
+void testAddByte(void *head){
     unsigned char byte;
     long DC = 0;
     unsigned char buffer[] = {3, 253, 100, 156};

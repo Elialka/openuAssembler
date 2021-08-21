@@ -84,7 +84,7 @@ operationsDBPtr setOperations(){
  * return its position in the database (non-zero) if found
  * return zero if not found
  */
-int seekOp(operationsDBPtr head, char *str) {
+int seekOp(operationsDBPtr head, char *str){
     int i;
     operationsDBPtr current = head;
     for (i = 0; i <= NUM_OF_OPERATIONS; i++, current++){
@@ -101,7 +101,7 @@ int seekOp(operationsDBPtr head, char *str) {
  * find an operation with a name matching str
  * return opcode if found, zero otherwise
  */
-boolean getOpcode(operationsDBPtr head, char *str, opcodes *opCodePtr, functValues *functPtr, operationClass *opTypePtr) {
+boolean getOpcode(operationsDBPtr head, char *str, opcodes *opCodePtr, functValues *functPtr, operationClass *opTypePtr){
     int operationIndex;
     operationsDBPtr current;
 
@@ -155,7 +155,7 @@ boolean seekDataOp(char *str, dataOps *dataOpTypePtr){
 
 
 boolean firstOperandFormat(operationClass commandOpType, codeLineData *currentLineDataPtr,
-                           operandAttributes *currentOperandPtr) {
+                           operandAttributes *currentOperandPtr){
     boolean needMoreOperands = TRUE;
 
     /* set relevant pointer to correct attribute's address */
@@ -177,7 +177,7 @@ boolean firstOperandFormat(operationClass commandOpType, codeLineData *currentLi
 
 
 boolean secondOperandFormat(operationClass commandOpType, codeLineData *currentLineDataPtr,
-                            operandAttributes *currentOperandPtr) {
+                            operandAttributes *currentOperandPtr){
     boolean needMoreOperands = TRUE;
 
     if(commandOpType >= J_JMP){/* is J type */

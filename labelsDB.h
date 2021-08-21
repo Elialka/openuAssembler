@@ -8,15 +8,23 @@ typedef struct definedLabel{
 }definedLabel;
 
 
+/**
+ * Initialize labels database
+ * @return pointer to the database
+ */
 labelsDBPtr initLabelsDB();
 
 boolean seekLabel(labelsDBPtr head, char *name);
 
-errorCodes addNewLabel(labelsDBPtr head, char *labelName, long address, labelType type);
+errorCodes addNewLabel(labelsDBPtr head, definedLabel *labelDataPtr);
 
-errorCodes getLabelAttributes(labelsDBPtr head, char *name, long *addressPtr, labelType *typePtr);
+errorCodes getLabelAttributes(labelsDBPtr head, char *name, definedLabel **destinationPtr);
 
 void updateDataLabels(labelsDBPtr head, long offset);
 
+/**
+ * Free any memory allocated by the database
+ * @param head pointer to the database
+ */
 void clearLabels(labelsDBPtr head);
 

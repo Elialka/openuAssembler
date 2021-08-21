@@ -30,8 +30,6 @@ void testAddNewLabel(void *head);
 
 /* dataImageDB tests */
 
-void testAddNumber(void *head);
-
 void testAddByte(void *head); /* in dataImageDB */
 
 boolean checkDataImage(long DC, unsigned char *head, unsigned char *buffer);/* in dataImageDB */

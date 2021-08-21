@@ -16,7 +16,7 @@ externUsesDBPtr initExternUsesDB(){
 }
 
 
-errorCodes addExternUse(externUsesDBPtr head, char *labelName, long IC) {
+errorCodes addExternUse(externUsesDBPtr head, char *labelName, long IC){
     externUsesDBPtr current = head;
     externUsesDBPtr prev;
     errorCodes encounteredError = NO_ERROR;

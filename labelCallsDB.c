@@ -9,7 +9,19 @@ typedef struct labelCallsDB{
     labelCallsDBPtr next;
 }labelCallNode;
 
+/**
+ * Find address to store new label call node, allocate memory or update error code enum if necessary
+ * @param head pointer to the database
+ * @param errorPtr pointer to error enum
+ * @return pointer containing address of new node
+ */
+static labelCallsDBPtr newLabelCallNode(labelCallsDBPtr head, errorCodes *errorPtr);
 
+/**
+ * Check if database has been used
+ * @param head pointer to database
+ * @return TRUE if any data has been added, FALSE otherwise
+ */
 static boolean isLabelCallsEmpty(labelCallsDBPtr head);
 
 
@@ -20,56 +32,60 @@ labelCallsDBPtr initLabelCallsDB(){
 }
 
 
-static boolean isLabelCallsEmpty(labelCallsDBPtr head){
-    /* check if name has been set - empty name is impossible */
-    return head && !*head->data.labelId.name;
-}
+static labelCallsDBPtr newLabelCallNode(labelCallsDBPtr head, errorCodes *errorPtr){
+    labelCallsDBPtr current = head;/* current node being examined */
+    labelCallsDBPtr prev = current;/* pointer to previous node */
 
-
-errorCodes
-setLabelCall(labelCallsDBPtr head, long IC, char *labelName, operationClass commandOpType, char *line, long lineCounter){
-    errorCodes encounteredError = NO_ERROR;
-    labelCallsDBPtr current;
-    labelCallsDBPtr prev;
-
-    current = head;
-
-    if(!isLabelCallsEmpty(head)){/* not first labelsDB call */
+    if(!isLabelCallsEmpty(head)){/* not first label call in database - need to allocate memory */
         /* find last labelsDB call record */
         while(current){
             prev = current;
             current = current->next;
         }
 
-        /* allocate memory for new labelsDB - memory for first labelsDB is allocated when database was initialized */
+        /* allocate memory for new label call node */
         current = calloc(1, sizeof(labelCallNode));
         if(!current){
-             encounteredError = MEMORY_ALLOCATION_FAILURE;
-            /* todo handle error - free all allocated memory, quit program */
+            *errorPtr = MEMORY_ALLOCATION_FAILURE;
         }
 
-        /* link new labelCallNode to database */
+        /* link new node to database */
         prev->next = current;
     }
 
+    return current;
+}
+
+
+errorCodes addLabelCall(labelCallsDBPtr head, labelCall *newCallPtr) {
+    errorCodes encounteredError = NO_ERROR;
+    labelCallsDBPtr current = NULL;/* pointer to new node */
+
+    if(!head){
+        encounteredError = IMPOSSIBLE_SET_LABEL_CALL;
+    }
+    else{
+        current = newLabelCallNode(head, &encounteredError);
+    }
+
     /* impossible value */
-    if(commandOpType != I_BRANCHING && commandOpType != J_JMP && commandOpType != J_CALL_OR_LA){
+    if(newCallPtr->type != I_BRANCHING && newCallPtr->type != J_JMP && newCallPtr->type != J_CALL_OR_LA){
         encounteredError = IMPOSSIBLE_SET_LABEL_CALL;
     }
 
     if(!encounteredError){
         /* update fields */
-        strcpy(current->data.labelId.name, labelName);
-        current->data.labelId.address = IC;
-        current->data.type = commandOpType;
-        strcpy(current->data.lineId.line, line);
-        current->data.lineId.count = lineCounter;
+        strcpy(current->data.labelId.name, newCallPtr->labelId.name);
+        current->data.labelId.address = newCallPtr->labelId.address;
+        current->data.type = newCallPtr->type;
+        strcpy(current->data.lineId.line, newCallPtr->lineId.line);
+        current->data.lineId.count = newCallPtr->lineId.count;
     }
 
     return encounteredError;
 }
 
-
+/*temp - delete
 boolean getLabelCall(labelCallsDBPtr head, int index, labelCall *destination){
     int i;
     labelCallsDBPtr current = head;
@@ -77,13 +93,47 @@ boolean getLabelCall(labelCallsDBPtr head, int index, labelCall *destination){
     for(i = 0; current && i < index; current = current->next, i++)
         ;
 
-    if(current){/* labelsDB call in given index exists */
+    if(current){ labelsDB call in given index exists
         *destination = current->data;
         return TRUE;
     }
     else{
         return FALSE;
     }
+}
+*/
+
+labelCall * getLabelCallData(labelCallsDBPtr labelCallPtr){
+    labelCall *data = NULL;
+
+    if(labelCallPtr){
+        data = &labelCallPtr->data;
+    }
+
+    return data;
+}
+
+
+labelCallsDBPtr getNextLabelCall(labelCallsDBPtr labelCallPtr){
+    labelCallsDBPtr data = NULL;
+
+    if(labelCallPtr){
+        data = labelCallPtr->next;
+    }
+
+    return data;
+}
+
+
+static boolean isLabelCallsEmpty(labelCallsDBPtr head){
+    boolean result = TRUE;
+
+    if(head){
+        /* check if first node's name is empty */
+        result = *(head->data.labelId.name) ? FALSE : TRUE;
+    }
+
+    return result;
 }
 
 

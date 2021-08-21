@@ -14,7 +14,7 @@ boolean needToReadLine(char *line);
  * Stops copying at white character/end of string/comma
  * @param sourcePtr where to copy from
  * @param buffer where to copy to
- * @return amout of characters copied
+ * @return amount of characters copied
  */
 int extractNextToken(char **sourcePtr, char *buffer);
 

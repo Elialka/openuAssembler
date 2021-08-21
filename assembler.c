@@ -33,6 +33,7 @@
 /* pandas refactor long functions/functions that receive many parameters */
 /* for every database - extract finding end of DB\allocating additional memory to different function */
 /* for every database - check if head not NULL */
+/* test reallocation codeImageDB, dataImageDB */
 /* in the end, make as many functions as static as possible */
 
 /**
@@ -165,7 +166,7 @@ static boolean initFileDataBases(databaseRouterPtr databasesPtr){
 
 
 /* TODO test function */
-static boolean supportedFileName(char *sourceFileName) {
+static boolean supportedFileName(char *sourceFileName){
     char *currentChar = sourceFileName;
     boolean result = TRUE;
     errorCodes encounteredError = NO_ERROR;

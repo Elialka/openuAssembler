@@ -3,13 +3,27 @@
 
 #include "entryCallsDB.h"
 
-/* todo check if corresponding labelsDB already exists, ignore */
-
 
 typedef struct entryCallsDB{
     entryCall data;
     entryCallsDBPtr next;
 }entryCallNode;
+/**
+ * Find address to store new label call node, allocate memory or update error code enum if necessary
+ * @param head pointer to the database
+ * @param errorPtr pointer to error enum
+ * @return pointer containing address of new node
+ */
+
+/**
+ * Find address to store new entry call node, allocate memory or update error code enum if necessary
+ * If identical name already exists in the database, return NULL pointer
+ * @param head pointer to the database
+ * @param labelName name of new entry call
+ * @param errorPtr pointer to error enum
+ * @return pointer containing address of new node or NULL if already registered
+ */
+static entryCallNode *newEntryCallNode(entryCallsDBPtr head, char *labelName, errorCodes *errorPtr);
 
 
 entryCallsDBPtr initEntryCallsDB(){
@@ -19,61 +33,87 @@ entryCallsDBPtr initEntryCallsDB(){
 }
 
 
-errorCodes addEntryCall(entryCallsDBPtr head, char *labelName, char *line, long lineCounter) {
-    entryCallsDBPtr current;
-    entryCallsDBPtr prev;
-    errorCodes encounteredError = NO_ERROR;
-    boolean finished = FALSE;/* flag turns on if entry name is already on database or an error occurred */
+static entryCallNode *newEntryCallNode(entryCallsDBPtr head, char *labelName, errorCodes *errorPtr) {
+    entryCallNode *current = head;/* current node being examined */
+    entryCallNode *prev = NULL;/* pointer to previous node */
+    boolean alreadyExists = FALSE;
 
-    current = head;
-
-    if(!isEntryCallDBEmpty(head)){/* not first entry call */
-        /* find next available labelCallNode */
-        while(!finished && current){
+    if(!isEntryCallsDBEmpty(head)){/* not first entry call in database - need to allocate memory */
+        /* go through database, check if entry call already registered */
+        while(!alreadyExists && current){
             if(!strcmp(labelName, current->data.labelId.name)){/* already added this name */
-                finished = TRUE;
+                alreadyExists = TRUE;
             }
             prev = current;
             current = current->next;
         }
 
-        if(!finished){
-            /* allocate memory for new labelCallNode call - memory for first labelCallNode is allocated when database was initialized */
+        if(!alreadyExists){
+            /* allocate memory for new entry call node */
             current = calloc(1, sizeof(entryCallNode));
             if(!current){
-                encounteredError = MEMORY_ALLOCATION_FAILURE;
-                finished = TRUE;
+                *errorPtr = MEMORY_ALLOCATION_FAILURE;
             }
 
-            /* link new labelCallNode to database */
+            /* link new node to database */
             prev->next = current;
+        }
+        else{/* entry call already exists */
+            current = NULL;
         }
     }
 
-    if(!finished){
-        /* add new extern use */
+    return current;
+}
+
+
+errorCodes addEntryCall(entryCallsDBPtr head, char *labelName, lineID lineId) {
+    errorCodes encounteredError = NO_ERROR;
+    entryCallNode *current = NULL;/* pointer to new node */
+
+    if(!head){
+        encounteredError = IMPOSSIBLE_ENCODE_DATA;
+    }
+    else{
+        current = newEntryCallNode(head, labelName, &encounteredError);
+    }
+
+    if(current){
+        /* add new entry call */
         strcpy(current->data.labelId.name, labelName);
-        strcpy(current->data.lineId.line, line);
-        current->data.lineId.count = lineCounter;
+        strcpy(current->data.lineId.line, lineId.line);
+        current->data.lineId.count = lineId.count;
     }
 
     return encounteredError;
 }
 
 
-entryCallsDBPtr getNextEntryCall(entryCallsDBPtr currentEntryPtr){
-    entryCallsDBPtr nextEntryPtr;
-    if(currentEntryPtr == NULL){
-        nextEntryPtr = NULL;
+/* todo try const return value */
+entryCall * getEntryCallData(entryCallsDBPtr entryCallPtr){
+    entryCallNode *current = entryCallPtr;
+    entryCall *data = NULL;
+
+    if(current){
+        data = &current->data;
     }
-    else{
-        nextEntryPtr = currentEntryPtr->next;
+
+    return data;
+}
+
+
+entryCallsDBPtr getNextEntryCall(entryCallsDBPtr entryCallPtr){
+    entryCallNode *current = entryCallPtr;
+    entryCallsDBPtr nextEntryPtr = NULL;
+
+    if(current){
+        nextEntryPtr = current->next;
     }
 
     return nextEntryPtr;
 }
 
-
+/* temp - delete
 char * getEntryCallName(entryCallsDBPtr currentEntryPtr){
     char *namePtr;
     if(!currentEntryPtr){
@@ -126,20 +166,22 @@ long getEntryCallLineCount(entryCallsDBPtr currentEntryCallPtr){
 
     return lineCount;
 }
+*/
 
-
-void setEntryCallValue(entryCallsDBPtr currentEntryPtr, long address) {
-    if(currentEntryPtr){
-        currentEntryPtr->data.labelId.address = address;
+void setEntryCallValue(entryCallsDBPtr entryCallPtr, long address){
+    if(entryCallPtr){
+        entryCallPtr->data.labelId.address = address;
     }
 }
 
 
-boolean isEntryCallDBEmpty(entryCallsDBPtr head){
-    boolean result;
+boolean isEntryCallsDBEmpty(entryCallsDBPtr head){
+    boolean result = TRUE;
 
-    /* check if first labelCallNode's name is empty */
-    result = *(head->data.labelId.name) ? FALSE : TRUE;
+    if(head){
+        /* check if first node's name is empty */
+        result = *(head->data.labelId.name) ? FALSE : TRUE;
+    }
 
     return result;
 }

@@ -22,7 +22,6 @@ void testFunctions(databaseRouterPtr databasesPtr){
     testAddNewLabel(databasesPtr->labelsDB);
 
     /* dataImageDB tests */
-    testAddNumber(&databasesPtr->dataImageDB);
     testAddByte(&databasesPtr->dataImageDB);
     testAddString(&databasesPtr->dataImageDB);
 }
@@ -378,7 +377,7 @@ void testGetNumbersFromLine(){
 
     /* test 1 */
     strcpy(line, "12, 34, 56");
-    if (getNumbersFromLine(&currentPos, numbers, DW, &errorTemp) != 3) {
+    if (getNumbersFromLine(&currentPos, numbers, DW, &errorTemp) != 3){
         printf("pandas - testGetNumberFromLine test 1 failed - returned FALSE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -508,7 +507,7 @@ void testIdRegister()
 
 }
 
-void testExtractOperands(void *head) {
+void testExtractOperands(void *head){
     boolean generalError;
     errorCodes errorTemp;
     long IC = 100;
@@ -519,7 +518,7 @@ void testExtractOperands(void *head) {
 
     /*test 1*/
     strcpy(line, "$10, $20, $30");
-    if (extractCodeOperandsTest(&currentPos, R_ARITHMETIC, &currentLineData, &IC, head)) {
+    if (extractCodeOperandsTest(&currentPos, R_ARITHMETIC, &currentLineData, &IC, head)){
         printf("pandas - testExtractOperands test 1 failed - returned FALSE\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -532,7 +531,7 @@ void testExtractOperands(void *head) {
     extractCodeOperandsTest(&currentPos, R_ARITHMETIC, &currentLineData, &IC, head);
 
     if (currentLineData.rAttributes.rs != 10 || currentLineData.rAttributes.rt != 20 ||
-        currentLineData.rAttributes.rd != 30) {
+        currentLineData.rAttributes.rd != 30){
         printf("pandas - testExtractOperands test 2 failed - saved incorrect values\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -543,7 +542,7 @@ void testExtractOperands(void *head) {
     strcpy(line, "$10   , $20");
     extractCodeOperandsTest(&currentPos, R_COPY, &currentLineData, &IC, head);
 
-    if (currentLineData.rAttributes.rs != 10 || currentLineData.rAttributes.rd != 20) {
+    if (currentLineData.rAttributes.rs != 10 || currentLineData.rAttributes.rd != 20){
         printf("pandas - testExtractOperands test 3 failed - saved incorrect values\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -564,7 +563,7 @@ void testExtractOperands(void *head) {
     extractCodeOperandsTest(&currentPos, I_ARITHMETIC, &currentLineData, &IC, head);
 
     if (currentLineData.iAttributes.rs != 10 || currentLineData.iAttributes.rt != 30 ||
-    currentLineData.iAttributes.immed != -32) {
+    currentLineData.iAttributes.immed != -32){
         printf("pandas - testExtractOperands test 5 failed - saved incorrect values \n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -575,7 +574,7 @@ void testExtractOperands(void *head) {
     strcpy(line, "$10, -21, $22");
     extractCodeOperandsTest(&currentPos, I_MEMORY_LOAD, &currentLineData, &IC, head);
     if (currentLineData.iAttributes.rs != 10 || currentLineData.iAttributes.rt != 22 ||
-    currentLineData.iAttributes.immed != -21) {
+    currentLineData.iAttributes.immed != -21){
         printf("pandas - testExtractOperands test 6 failed - saved incorrect values\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -584,7 +583,7 @@ void testExtractOperands(void *head) {
     currentPos = line;
     strcpy(line, "$10, -21 $22");
     extractCodeOperandsTest(&currentPos, I_MEMORY_LOAD, &currentLineData, &IC, head);
-    if (errorTemp != MISSING_COMMA) {
+    if (errorTemp != MISSING_COMMA){
         printf("pandas - testExtractOperands test 7 failed - expected another error code\n");
         printf("--------------------------------------\n");
         generalError = TRUE;
@@ -653,8 +652,8 @@ void testExtractOperands(void *head) {
     /*test 14*/
     currentPos = line;
     strcpy(line, "10, $15, $20");
-    if ((errorTemp = extractCodeOperandsTest(&currentPos, R_ARITHMETIC, &currentLineData, &IC, head))) {
-        if (errorTemp != EXPECTED_REGISTER_FIRST) {
+    if ((errorTemp = extractCodeOperandsTest(&currentPos, R_ARITHMETIC, &currentLineData, &IC, head))){
+        if (errorTemp != EXPECTED_REGISTER_FIRST){
             printf("pandas - testExtractOperands test 14 failed - missing register\n");
             printf("--------------------------------------\n");
             generalError = TRUE;
@@ -748,7 +747,7 @@ void testExtractOperands(void *head) {
         generalError = TRUE;
     }
 
-    if (!generalError) {
+    if (!generalError){
         printf("pandas - extractCodeOperandsTest - good!\n");
     }
     printf("-----------------------------------------------------------------------------------------------\n");
@@ -760,7 +759,7 @@ void testExtractOperands(void *head) {
 
 /* labelsDB tests */
 /* todo remake tests */
-void testAddNewLabel(void *head) {
+void testAddNewLabel(void *head){
 
     printf("You didnt write the test yet you idiot!\n");
     printf("-----------------------------------------------------------------------------------------------\n");
@@ -772,31 +771,8 @@ void testAddNewLabel(void *head) {
 
 /* dataImageDB tests */
 
-void testAddNumber(void *head) {
-    long DC;
-    unsigned char buffer[] = {10, 150, 0, 84, 242, 255, 255, 244, 1};
 
-    DC = 0;
-
-    addNumber(head, &DC, 10, SIZE_OF_BYTE);
-
-    addNumber(head, &DC, 150, SIZE_OF_HALF_WORD);
-
-    addNumber(head, &DC, -3500, SIZE_OF_WORD);
-
-    addNumber(head, &DC, 500, SIZE_OF_HALF_WORD);
-
-    if(checkDataImage(DC, head, buffer)){
-        printf("dataImageDB - addNumber - good!\n");
-    }
-    else{
-        printf("!!TEST FAILED!!! dataImageDB - addNumber\n");
-    }
-    printf("-----------------------------------------------------------------------------------------------\n");
-}
-
-
-void testAddString(void *head) {
+void testAddString(void *head){
     long DC = 0;
     unsigned char buffer[] = {'a', 's', 'd', '\0', ' ', ' ', 'w', 'S', '$', ' ', ' ', '#', 'a', '\0',
                               'a', 's', 'd', '\0', '\0'};
