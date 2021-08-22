@@ -48,9 +48,10 @@ static labelCallsDBPtr newLabelCallNode(labelCallsDBPtr head, errorCodes *errorP
         if(!current){
             *errorPtr = MEMORY_ALLOCATION_FAILURE;
         }
-
-        /* link new node to database */
-        prev->next = current;
+        else{/* allocated successfully */
+            /* link new node to database */
+            prev->next = current;
+        }
     }
 
     return current;

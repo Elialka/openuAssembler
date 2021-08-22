@@ -8,16 +8,11 @@ typedef struct entryCallsDB{
     entryCall data;
     entryCallsDBPtr next;
 }entryCallNode;
-/**
- * Find address to store new label call node, allocate memory or update error code enum if necessary
- * @param head pointer to the database
- * @param errorPtr pointer to error enum
- * @return pointer containing address of new node
- */
+
 
 /**
  * Find address to store new entry call node, allocate memory or update error code enum if necessary
- * If identical name already exists in the database, return NULL pointer
+ * If identical name already exists in the database, return NULL pointer + update error pointer
  * @param head pointer to the database
  * @param labelName name of new entry call
  * @param errorPtr pointer to error enum
@@ -54,9 +49,10 @@ static entryCallNode *newEntryCallNode(entryCallsDBPtr head, char *labelName, er
             if(!current){
                 *errorPtr = MEMORY_ALLOCATION_FAILURE;
             }
-
-            /* link new node to database */
-            prev->next = current;
+            else{/* allocated successfully */
+                /* link new node to database */
+                prev->next = current;
+            }
         }
         else{/* entry call already exists */
             current = NULL;

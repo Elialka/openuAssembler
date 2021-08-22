@@ -14,8 +14,6 @@ typedef struct definedLabel{
  */
 labelsDBPtr initLabelsDB();
 
-boolean seekLabel(labelsDBPtr head, char *name);
-
 errorCodes addNewLabel(labelsDBPtr head, definedLabel *labelDataPtr);
 
 errorCodes getLabelAttributes(labelsDBPtr head, char *name, definedLabel **destinationPtr);

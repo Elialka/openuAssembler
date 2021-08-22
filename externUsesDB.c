@@ -33,9 +33,10 @@ errorCodes addExternUse(externUsesDBPtr head, char *labelName, long IC){
         if(!current){/* memory allocation failed */
             encounteredError = MEMORY_ALLOCATION_FAILURE;
         }
-
-        /* link new labelCallNode to database */
-        prev->next = current;
+        else{/* allocated successfully */
+            /* link new labelCallNode to database */
+            prev->next = current;
+        }
     }
 
     /* add new extern use */

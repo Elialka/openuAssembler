@@ -12,8 +12,32 @@ typedef struct labelsDB{
     labelsDBPtr next;
 }labelCallNode;
 
-
+/**
+ *
+ * @param head
+ * @return
+ */
 static boolean isLabelsDBEmpty(labelsDBPtr head);
+
+/**
+ * Find address to store new entry call node, allocate memory or update error code enum if necessary
+ * If identical name already exists in the database, return NULL pointer + update error pointer
+ * @param head
+ * @param labelName
+ * @param identicalPtr
+ * @param errorPtr
+ * @return
+ */
+static labelsDBPtr newLabelNode(labelsDBPtr head, char *labelName, labelsDBPtr *identicalPtr, errorCodes *errorPtr);
+
+/**
+ * Check if both existing label and new label with matching names, are extern labels,
+ * and return error code enum value accordingly
+ * @param newLabelDataPtr pointer to new label data structure
+ * @param existingLabelDataPtr pointer to new label data structure
+ * @return errorCodes enum value describing function success/failure
+ */
+static errorCodes legalDoubleDefinition(definedLabel *newLabelDataPtr, definedLabel *existingLabelDataPtr);
 
 
 labelsDBPtr initLabelsDB(){
@@ -29,69 +53,89 @@ static boolean isLabelsDBEmpty(labelsDBPtr head){
 }
 
 
-/*
- * return if labels with matching name already exists in database
- */
-boolean seekLabel(labelsDBPtr head, char *name){
-    labelsDBPtr curr;
+static labelsDBPtr newLabelNode(labelsDBPtr head, char *labelName, labelsDBPtr *identicalPtr, errorCodes *errorPtr) {
+    labelsDBPtr current = head;
+    labelsDBPtr prev = current;
+    boolean alreadyExists = FALSE;
 
-    curr = head;
-
-    while(curr){
-        if(!strcmp(name, curr->data.labelId.name)){/* found */
-            return TRUE;
-        }
-    }
-    return FALSE;
-}
-
-/* todo split function to 3 - can remodel seekLabel */
-errorCodes addNewLabel(labelsDBPtr head, definedLabel *labelDataPtr) {
-    errorCodes encounteredError = NO_ERROR;
-    labelsDBPtr current;
-    labelsDBPtr prev;
-
-    current = head;
-
-    if(!isLabelsDBEmpty(head)){/* not first labelsDB */
-        /* find last defined labelsDB, in the process look for new name in defined labels */
+    if(!isLabelsDBEmpty(head)){/* not first label call in database - need to allocate memory */
+        /* find last label node */
         while(current){
-            if(!strcmp(labelDataPtr->labelId.name, current->data.labelId.name)){/* labelsDB already defined */
-                if(current->data.type == EXTERN_LABEL || labelDataPtr->type == EXTERN_LABEL){/* if the old or the new labelsDB is external */
-                    if(current->data.type == EXTERN_LABEL && labelDataPtr->type == EXTERN_LABEL){/* both labels are external */
-                        /* multiple extern declarations are allowed */
-                    }
-                    else{/* only one of them is external */
-                        encounteredError = LABEL_LOCAL_AND_EXTERN;
-                    }
-                }
-                else{/* two local labelsDB definitions */
-                    encounteredError = DOUBLE_LABEL_DEFINITION;
-                }
+            if(!strcmp(current->data.labelId.name, labelName)){/* label already defined */
+                alreadyExists = TRUE;
+                current = NULL;
+                *identicalPtr = current;
             }
-            else{/* new labelsDB name is not used so far */
+            else{
                 prev = current;
                 current = current->next;
             }
         }
 
-        if(!encounteredError){
-            /* allocate memory for new labelsDB - memory for first labelsDB is allocated when database was initialized */
+        if(alreadyExists){
+            *errorPtr = DOUBLE_LABEL_DEFINITION;
+        }
+        else{/* new label */
+            /* allocate memory for new label node */
             current = calloc(1, sizeof(labelCallNode));
             if(!current){
-                encounteredError = MEMORY_ALLOCATION_FAILURE;
+                *errorPtr = MEMORY_ALLOCATION_FAILURE;
+            }
+            else{/* allocated successfully */
+                /* link new node to database */
+                prev->next = current;
             }
         }
-
-        /* link new labelCallNode to database */
-        prev->next = current;
     }
 
-    if(!encounteredError){
+    return current;
+}
+
+
+
+
+static errorCodes legalDoubleDefinition(definedLabel *newLabelDataPtr, definedLabel *existingLabelDataPtr) {
+    errorCodes encounteredError = NO_ERROR;
+
+    if(newLabelDataPtr->type == EXTERN_LABEL){
+        if(existingLabelDataPtr->type == EXTERN_LABEL){/* double extern declarations are legal */
+            encounteredError = NO_ERROR;
+        }
+        else{
+            encounteredError = LABEL_LOCAL_AND_EXTERN;
+        }
+    }
+    else{
+        if(existingLabelDataPtr->type == EXTERN_LABEL){
+            encounteredError = LABEL_LOCAL_AND_EXTERN;
+        }
+        else{
+            encounteredError = DOUBLE_LABEL_DEFINITION;
+        }
+    }
+
+    return encounteredError;
+}
+
+
+
+
+errorCodes addNewLabel(labelsDBPtr head, definedLabel *labelDataPtr) {
+    errorCodes encounteredError = NO_ERROR;
+    labelsDBPtr current = NULL;
+    labelsDBPtr identical = NULL;
+
+    current = newLabelNode(head, labelDataPtr->labelId.name, &identical, &encounteredError);
+    if(current){/* new node allocated */
         /* update fields */
         strcpy(current->data.labelId.name, labelDataPtr->labelId.name);
         current->data.labelId.address = labelDataPtr->labelId.address;
         current->data.type = labelDataPtr->type;
+    }
+    else{/* label already exists or memory allocation failure */
+        if(encounteredError == DOUBLE_LABEL_DEFINITION){
+            encounteredError = legalDoubleDefinition(labelDataPtr, &identical->data);
+        }
     }
 
     return encounteredError;

@@ -19,7 +19,7 @@ boolean needToReadLine(char *line);
 int extractNextToken(char **sourcePtr, char *buffer);
 
 /**
- * If a labelsDB is defined in current line, copy it's name
+ * If a label is defined in current line, copy it's name
  * If input is faulty, update error code
  * @param currentPosPtr Pointer to position in line array
  * @param currentLabel Address of labelsDB name array
