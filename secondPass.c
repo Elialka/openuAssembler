@@ -6,7 +6,7 @@
 #include "externUsesDB.h"
 
 static errorCodes
-validateExternalUsage(externUsesDBPtr externDatabase, labelCall *currentCallPtr, labelType definedLabelType);
+validateExternalUsage(databasePtr externDatabase, labelCall *currentCallPtr, labelType definedLabelType);
 
 static errorCodes
 updateCodeImage(codeImageDBPtr codeImageDatabase, labelCall *currentCallPtr, long labelAddress);
@@ -15,10 +15,7 @@ static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr);
 
 static boolean locateEntryDefinitions(entryCallsDBPtr entryCallsDatabase, labelsDBPtr labelsDatabase);
 
-/* todo refactor - ugly file */
-/* change inner functions return value to error codes */
 
-/* todo test EVERYTHING */
 boolean secondPass(databaseRouterPtr databasesPtr, long ICF){
     boolean result;
 
@@ -73,7 +70,7 @@ static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr){
 
 
 static errorCodes
-validateExternalUsage(externUsesDBPtr externDatabase, labelCall *currentCallPtr, labelType definedLabelType) {
+validateExternalUsage(databasePtr externDatabase, labelCall *currentCallPtr, labelType definedLabelType) {
     errorCodes encounteredError = NO_ERROR;
 
     if(definedLabelType == EXTERN_LABEL){

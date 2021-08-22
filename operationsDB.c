@@ -162,7 +162,7 @@ boolean firstOperandFormat(operationClass commandOpType, codeLineData *currentLi
     if(commandOpType == J_STOP){
         needMoreOperands = FALSE;
     }
-    else if(commandOpType <= R_COPY){/* is R type *//* todo check if r copy is same or reverse order */
+    else if(commandOpType <= R_COPY){/* is R type */
         currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->rAttributes.rs;
     }
     else if(commandOpType <= I_MEMORY_LOAD){/* is I type */

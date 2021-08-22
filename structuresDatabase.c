@@ -33,7 +33,7 @@ void * addNewUnit(databasePtr lastUnitAddress, int sizeOfData) {
 
     if(lastUnitAddress){
         if(lastUnitAddress->dataPtr){/* current node is in use */
-            newNode = newUnitDataPtr = calloc(1, sizeof(unitNode));
+            newNode = calloc(1, sizeof(unitNode));
             lastUnitAddress->next = newNode;
         }
         else{/* is first node in database */
@@ -41,7 +41,7 @@ void * addNewUnit(databasePtr lastUnitAddress, int sizeOfData) {
         }
 
         if(newNode){/* allocated memory for node */
-            lastUnitAddress->dataPtr = calloc(1, sizeOfData);
+            newUnitDataPtr = lastUnitAddress->dataPtr = calloc(1, sizeOfData);
             if(!lastUnitAddress->dataPtr){/* memory allocation for data failed */
                 free(newNode);
             }

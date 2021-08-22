@@ -7,7 +7,7 @@
  * Initialize extern uses database
  * @return pointer to the database
  */
-externUsesDBPtr initExternUsesDB();
+databasePtr initExternUsesDB();
 
 /**
  *
@@ -16,24 +16,24 @@ externUsesDBPtr initExternUsesDB();
  * @param IC
  * @return
  */
-errorCodes addExternUse(externUsesDBPtr head, char *labelName, long IC);
+errorCodes addExternUse(databasePtr head, char *labelName, long IC);
 
 /**
  *
  * @param head pointer to database
  * @return
  */
-boolean isExternDBEmpty(externUsesDBPtr head);
+boolean isExternDBEmpty(databasePtr head);
 
 /**
  *
  * @param currentExternUsePtr
  * @return
  */
-externUsesDBPtr getNextExternUse(externUsesDBPtr currentExternUsePtr);
+databasePtr getNextExternUse(databasePtr currentExternUsePtr);
 
 
-labelID * getExternUseData(externUsesDBPtr currentExternUsePtr);
+labelID * getExternUseData(databasePtr currentExternUsePtr);
 
 /**
  *
@@ -53,4 +53,4 @@ long getExternUseAddress(externUsesDBPtr currentExternUsePtr);
  * Free any memory allocated by the database
  * @param head pointer to the database
  */
-void clearExternUsesDB(externUsesDBPtr head);
+void clearExternUsesDB(databasePtr head);

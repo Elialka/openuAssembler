@@ -210,6 +210,7 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
     *DCFPtr = DC;
 
     if(result && IC + DC > ADDRESS_MAX_VALUE){/* total memory image size exceeds machine capabilities */
+        /* todo check if error is printed */
         result = FALSE;
     }
 

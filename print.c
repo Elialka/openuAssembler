@@ -150,7 +150,6 @@ static void printLabelAddressesFile(void *database, char *sourceFileName, fileTy
                 nextLabel = getNextEntryCall(currentLabel);
             }
             else{/* is extern type */
-                /* todo rewrite functions */
                 labelIdPtr = getExternUseData(currentLabel);
                 nextLabel = getNextExternUse(currentLabel);
             }

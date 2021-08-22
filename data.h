@@ -204,13 +204,15 @@ typedef struct labelsDB *labelsDBPtr;
 
 typedef struct operationsDB *operationsDBPtr;
 
+typedef struct unit *databasePtr;
+
 typedef struct databaseRouter *databaseRouterPtr;
 
 typedef struct databaseRouter{
     codeImageDBPtr codeImageDB;
     dataImagePtr dataImageDB;
     entryCallsDBPtr entryCallsDB;
-    externUsesDBPtr externUsesDB;
+    databasePtr externUsesDB;
     labelCallsDBPtr labelCallsDB;
     labelsDBPtr labelsDB;
     operationsDBPtr operationsDB;
