@@ -80,6 +80,7 @@ typedef enum{
     NOT_NUMBER,
     NOT_INTEGER,
     NOT_REGISTER,
+    NUMBER_OUT_OF_RANGE,
     /* parsing */
     MISSING_COMMA,
     ILLEGAL_COMMA,

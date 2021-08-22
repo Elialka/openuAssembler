@@ -120,6 +120,9 @@ void printFileErrorMessage(errorCodes encounteredError, lineID *lineIdPtr, fileE
         case NOT_REGISTER:
             printf("ERROR! Illegal register token!\n");
             break;
+        case NUMBER_OUT_OF_RANGE:
+            printf("ERROR! Given number is out of range for given data instruction!\n");
+            break;
         case MISSING_COMMA:
             printf("ERROR! Missing comma between operands!\n");
             break;

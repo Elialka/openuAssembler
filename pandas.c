@@ -28,9 +28,9 @@ static int extractNextToken(char **sourcePtr, char *buffer);
 static int countLabelNameCharacters(char *token);
 
 /**
- *
- * @param dataOpType
- * @return
+ * Calculate max value supported in current data instruction type
+ * @param dataOpType type of instruction
+ * @return max value
  */
 static long calculateMaxValue(dataOps dataOpType);
 
@@ -43,6 +43,25 @@ static long calculateMaxValue(dataOps dataOpType);
  * @return TRUE if number is in range, FALSE otherwise
  */
 static boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValue);
+
+/* todo fix docs */
+/**
+ * When expecting a comma while reading array, check all good
+ * @param currentPosPtr
+ * @param finishedPtr
+ * @return
+ */
+static errorCodes expectComma(char **currentPosPtr, boolean *finishedPtr);
+
+/**
+ *
+ * @param currentPosPtr
+ * @param numbersArray
+ * @param indexInArray
+ * @param maxValue
+ * @return
+ */
+static errorCodes expectNumber(char **currentPosPtr, long *numbersArray, int indexInArray, long maxValue);
 
 /**
  * Check if token syntax matches label name as parameter
@@ -283,33 +302,21 @@ errorCodes getStringFromLine(char **currentPosPtr, char *destination){
 
 int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpType, errorCodes *lineErrorPtr){
     errorCodes encounteredError = NO_ERROR;
-    int i;/* will help keep track if we are expecting a comma or a number */
-    long value;/* store each numbers value */
-    char token[TOKEN_ARRAY_SIZE];
-    int tokenLength;
+    int step;/* will help keep track if we are expecting a comma or a number */
     int numbersCounter = 0;/* how many numbers read */
     long maxValue = calculateMaxValue(dataOpType);/* max positive value */
     boolean finished = FALSE;
 
-    for (i = 0 ; !encounteredError && !finished; i++){
-        if (i % 2){/* expecting a comma */
-            if(readComma(currentPosPtr) != NO_ERROR){/* missing comma */
-                if(needToReadLine(*currentPosPtr)){/* line is terminated *//* temp */
-                    encounteredError = NO_ERROR;
-                }
-                finished = TRUE;
-            }
+    for (step = 0; !encounteredError && !finished; step++){
+        if (step % 2){/* expecting a comma */
+            encounteredError = expectComma(currentPosPtr, &finished);
         }
         else{/* expecting a number */
-            tokenLength = extractNextToken(currentPosPtr, token);
-            if(tokenLength){
-                /* read number */
-                encounteredError = getNumberOperand(token, &value, maxValue);
-                numbersArray[i / 2] = value;
-                numbersCounter++;
-            }
-            else{/* end of line */
-                encounteredError = i ? ILLEGAL_COMMA : MISSING_PARAMETER;
+            encounteredError = expectNumber(currentPosPtr, numbersArray, step / 2, maxValue);
+            numbersCounter++;
+
+            if(encounteredError == MISSING_PARAMETER && step != 0){/* numbers have been read already */
+                encounteredError = ILLEGAL_COMMA;/* operand reading ended on a comma */
             }
         }
     }
@@ -320,6 +327,42 @@ int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpT
     }
 
     return numbersCounter;
+}
+
+
+static errorCodes expectComma(char **currentPosPtr, boolean *finishedPtr){
+    errorCodes encounteredError = readComma(currentPosPtr);
+
+    if(encounteredError){/* missing comma */
+        *finishedPtr = TRUE;
+        if(**currentPosPtr == '\0'){/* end of the line */
+            encounteredError = NO_ERROR;
+        }
+    }
+
+    return encounteredError;
+}
+
+
+static errorCodes expectNumber(char **currentPosPtr, long *numbersArray, int indexInArray, long maxValue){
+    errorCodes encounteredError = NO_ERROR;
+    long value = 0;
+    char token[TOKEN_ARRAY_SIZE];
+    int tokenLength = extractNextToken(currentPosPtr, token);
+
+    if(tokenLength){/* not end of line */
+        encounteredError = getNumberOperand(token, &value, maxValue);
+        numbersArray[indexInArray] = value;
+
+        if(encounteredError && *token == ','){/* operand is a comma */
+            encounteredError = ILLEGAL_COMMA;
+        }
+    }
+    else{/* end of line */
+        encounteredError = MISSING_PARAMETER;
+    }
+
+    return encounteredError;
 }
 
 
@@ -493,8 +536,14 @@ static errorCodes getNumberOperand(char *token, long *destination, long maxValue
             *destination = (int)value;
         }
     }
-    else{/* first character is not a digit */
-        encounteredError = NOT_NUMBER;
+    else{/* not a legal number operand */
+        if(*nextChar){/* mixed number and other characters */
+            encounteredError = NOT_NUMBER;
+        }
+        else{
+            encounteredError = NUMBER_OUT_OF_RANGE;
+        }
+
     }
 
     return encounteredError;
