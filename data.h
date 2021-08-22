@@ -261,6 +261,6 @@ typedef struct operandAttributes{
 
 
 
-void printWarningMessage(warningCodes encounteredWarning, char *line, long lineNumber);
+void printWarningMessage(warningCodes encounteredWarning, lineID *lineIdPtr);
 
-void printErrorMessage(errorCodes encounteredError, char *line, long lineNumber);
+void printErrorMessage(errorCodes encounteredError, lineID *lineIdPtr);

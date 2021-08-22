@@ -196,7 +196,7 @@ static errorCodes handleThirdOperand(char **currentPosPtr, operationClass comman
  * @param sourceFile pointer to file
  * @return TRUE if no errors occurred, FALSE otherwise
  */
-static void flushLine(FILE *sourceFile, char *line, long lineCounter);
+static void flushLine(FILE *sourceFile, lineID *lineIdPtr);
 
 
 boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPtr databasesPtr){
@@ -233,10 +233,10 @@ static boolean encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRo
             encounteredError = readLine(&currentLineData, databasesPtr);
         }
 
-        flushLine(sourceFile, currentLineData.lineId.line, currentLineData.lineId.count);
+        flushLine(sourceFile, &currentLineData.lineId);
 
         if(encounteredError){
-            printErrorMessage(encounteredError, currentLineData.lineId.line, currentLineData.lineId.count);
+            printErrorMessage(encounteredError, &currentLineData.lineId);
             result = FALSE;
         }
     }
@@ -454,8 +454,7 @@ static void checkRedundantLabel(labelAttributesPtr definedLabelDataPtr, commandA
             operationDataPtr->operationID.dataOpType == EXTERN){
 
                 /* redundant labelsDB definition - ignore */
-                printWarningMessage(DEFINED_LABEL_ENTRY_EXTERN,
-                                    lineDataPtr->lineId.line, lineDataPtr->lineId.count);
+                printWarningMessage(DEFINED_LABEL_ENTRY_EXTERN, &lineDataPtr->lineId);
                 definedLabelDataPtr->labelIsUsed = FALSE;
             }
         }
@@ -584,8 +583,8 @@ static errorCodes handleThirdOperand(char **currentPosPtr, operationClass comman
 
 
 /* todo check flushLine EOF*/
-void flushLine(FILE *sourceFile, char *line, long lineCounter){
-    char *currentPos = line;
+void flushLine(FILE *sourceFile, lineID *lineIdPtr) {
+    char *currentPos = lineIdPtr->line;
     int currentChar;
     boolean missedCharacters = FALSE;/* turns on if any non-white characters are found past supported line limits */
 
@@ -602,7 +601,7 @@ void flushLine(FILE *sourceFile, char *line, long lineCounter){
         }
 
         if(missedCharacters){/* was not end of file */
-            printWarningMessage(LINE_TOO_LONG, line, lineCounter);
+            printWarningMessage(LINE_TOO_LONG, lineIdPtr);
         }
     }
 }

@@ -17,7 +17,6 @@
 #endif
 
 /* todo possible refactors */
-/* remake second pass to use abstract functions from labelCallsDB */
 /* address long labelsDB definition before entry or extern */
 /* new typedef of only char in dataImageDB - for abstraction */
 /* add reset EACH structure occurrence */
@@ -91,7 +90,7 @@ int main(int argc, char *argv[]){
     databaseRouter databases;
 
     if(argc < 2){/* no files to compile */
-        printErrorMessage(NO_FILES_TO_COMPILE, NULL, 0);
+        printErrorMessage(NO_FILES_TO_COMPILE, NULL);
     }
     else{/* program inline parameters present */
         /* initialize operation names database */
@@ -127,7 +126,7 @@ static boolean initProjectDatabases(databaseRouterPtr databasesPtr){
     allocationSuccess = databasesPtr->operationsDB ? TRUE : FALSE;
 
     if(!allocationSuccess){
-        printErrorMessage(MEMORY_ALLOCATION_FAILURE, NULL, 0);
+        printErrorMessage(MEMORY_ALLOCATION_FAILURE, NULL);
     }
 
     return allocationSuccess;
@@ -148,7 +147,7 @@ static boolean initFileDataBases(databaseRouterPtr databasesPtr){
     }
 
     if(!allocationSuccess){
-        printErrorMessage(MEMORY_ALLOCATION_FAILURE, NULL, 0);
+        printErrorMessage(MEMORY_ALLOCATION_FAILURE, NULL);
     }
 
     return allocationSuccess;
@@ -179,7 +178,7 @@ static boolean supportedFileName(char *sourceFileName){
 
     if(encounteredError){
         result = FALSE;
-        printErrorMessage(encounteredError, NULL, 0);
+        printErrorMessage(encounteredError, NULL);
     }
 
     return result;
@@ -225,7 +224,7 @@ static boolean openFile(char *sourceFileName, FILE **sourceFilePtr){
     *sourceFilePtr = fopen(sourceFileName, "r");
 
     if(!*sourceFileName){/* could not open file */
-        printErrorMessage(COULD_NOT_OPEN_FILE, "", 0);
+        printErrorMessage(COULD_NOT_OPEN_FILE, NULL);
         result = FALSE;
     }
 

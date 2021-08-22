@@ -63,7 +63,7 @@ static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr){
         }
 
         if(encounteredError){/* mark encounteredError occurred */
-            printErrorMessage(encounteredError, currentCallPtr->lineId.line, currentCallPtr->lineId.count);
+            printErrorMessage(encounteredError, &currentCallPtr->lineId);
             result = FALSE;
         }
     }
@@ -132,7 +132,7 @@ static boolean locateEntryDefinitions(entryCallsDBPtr entryCallsDatabase, labels
             if(encounteredError == LABEL_NOT_FOUND){/* label is declared as entry but not defined */
                 encounteredError = ENTRY_NOT_DEFINED;
             }
-            printErrorMessage(encounteredError, entryCallData->lineId.line, entryCallData->lineId.count);
+            printErrorMessage(encounteredError, &entryCallData->lineId);
             result = FALSE;
         }
     }

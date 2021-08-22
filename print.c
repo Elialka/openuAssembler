@@ -89,7 +89,7 @@ static void printObjectFile(databaseRouter databases, char *sourceFileName, long
         fclose(objectFile);
     }
     else{
-        printErrorMessage(COULD_NOT_CREATE_FILE, NULL, 0);
+        printErrorMessage(COULD_NOT_CREATE_FILE, NULL);
     }
 }
 
@@ -109,7 +109,7 @@ static FILE * createFile(char *sourceFileName, fileType type){
             extension = EXTERN_FILE_EXTENSION;
             break;
         default:
-            printErrorMessage(IMPOSSIBLE_ENCODE_DATA, NULL, 0);
+            printErrorMessage(IMPOSSIBLE_ENCODE_DATA, NULL);
     }
 
     replaceExtension(sourceFileName, extension, newFileName);
@@ -161,12 +161,12 @@ static void printLabelAddressesFile(void *database, char *sourceFileName, fileTy
         fclose(newFile);
     }
     else{
-        printErrorMessage(COULD_NOT_CREATE_FILE, NULL, 0);
+        printErrorMessage(COULD_NOT_CREATE_FILE, NULL);
     }
 }
 
 
-void printWarningMessage(warningCodes encounteredWarning, char *line, long lineNumber){
+void printWarningMessage(warningCodes encounteredWarning, lineID *lineIdPtr) {
     switch(encounteredWarning){
         case LINE_TOO_LONG:
             printf("WARNING! Line is longer than max supported length %d, didn't read some characters!\n",
@@ -180,12 +180,11 @@ void printWarningMessage(warningCodes encounteredWarning, char *line, long lineN
             break;
     }
 
-    printf("Line %ld: %s\n", lineNumber, line);/*todo  maybe function to check if \n is present */
+    printf("Line %ld: %s\n", lineIdPtr->count, lineIdPtr->line);/*todo  maybe function to check if \n is present */
 }
 
-/* todo maybe add line and token printing - fix line numbering */
-/* todo maybe return value if error or warning */
-void printErrorMessage(errorCodes encounteredError, char *line, long lineNumber){
+
+void printErrorMessage(errorCodes encounteredError, lineID *lineIdPtr) {
     switch(encounteredError){
         case NO_ERROR:
             printf("INTERNAL ERROR - NO_ERROR reached print error message!\n");
@@ -309,7 +308,7 @@ void printErrorMessage(errorCodes encounteredError, char *line, long lineNumber)
             break;
     }
 
-    if(lineNumber){/* error is line specific */
-        printf("Line %ld: %s\n", lineNumber, line);
+    if(lineIdPtr){/* error is line specific */
+        printf("Line %ld: %s\n", lineIdPtr->count, lineIdPtr->line);
     }
 }
