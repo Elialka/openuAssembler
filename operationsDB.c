@@ -72,16 +72,12 @@ operationsDBPtr setOperations(){
     return head;
 }
 
-/*
- * look for an operation with a name matching to str
- * return its position in the database (non-zero) if found
- * return zero if not found
- */
-int seekOp(operationsDBPtr head, char *str){
+
+int seekOp(operationsDBPtr head, char *operationName){
     int i;
     operationsDBPtr current = head;
     for (i = 0; i <= NUM_OF_OPERATIONS; i++, current++){
-        if (!strcmp(str, current->name))
+        if (!strcmp(operationName, current->name))
         {
             return i;
         }
@@ -94,13 +90,13 @@ int seekOp(operationsDBPtr head, char *str){
  * find an operation with a name matching str
  * return opcode if found, zero otherwise
  */
-boolean getOpcode(operationsDBPtr head, char *str, opcodes *opCodePtr, functValues *functPtr, operationClass *opTypePtr){
+boolean getOpcode(operationsDBPtr head, char *operationName, opcodes *opCodePtr, functValues *functPtr, operationClass *opTypePtr){
     int operationIndex;
     operationsDBPtr current;
 
     current = head;
 
-    if((operationIndex = seekOp(head, str)) != NOT_FOUND)
+    if((operationIndex = seekOp(head, operationName)) != NOT_FOUND)
     {
         /* go to correct operation labelCallNode */
         current += operationIndex;
@@ -120,23 +116,23 @@ boolean getOpcode(operationsDBPtr head, char *str, opcodes *opCodePtr, functValu
  * insert dataOps enum value to *dataOpTypePtr if found match
  * return TRUE if found match, FALSE otherwise
  */
-boolean seekDataOp(char *str, dataOps *dataOpTypePtr){
-    if(!strcmp(str, ".dw")){
+boolean seekDataOp(char *instructionName, dataOps *dataOpTypePtr){
+    if(!strcmp(instructionName, ".dw")){
         *dataOpTypePtr = DW;
     }
-    else if(!strcmp(str, ".dh")){
+    else if(!strcmp(instructionName, ".dh")){
         *dataOpTypePtr = DH;
     }
-    else if(!strcmp(str, ".db")){
+    else if(!strcmp(instructionName, ".db")){
         *dataOpTypePtr = DB;
     }
-    else if(!strcmp(str, ".asciz")){
+    else if(!strcmp(instructionName, ".asciz")){
         *dataOpTypePtr = ASCIZ;
     }
-    else if(!strcmp(str, ".entry")){
+    else if(!strcmp(instructionName, ".entry")){
         *dataOpTypePtr = ENTRY;
     }
-    else if(!strcmp(str, ".extern")){
+    else if(!strcmp(instructionName, ".extern")){
         *dataOpTypePtr = EXTERN;
     }
     else{

@@ -8,16 +8,49 @@
 #include "externUsesDB.h"
 #include "printErrors.h"
 
+/**
+ * Check if label used is extern, validate legal extern label use add to extern database
+ * @param externDatabase pointer to extern uses database
+ * @param currentCallPtr pointer to current label call struct
+ * @param definedLabelType type of label used
+ * @return errorCodes enum value describing function success/failure
+ */
 static errorCodes
 validateExternalUsage(databasePtr externDatabase, labelCall *currentCallPtr, labelType definedLabelType);
 
+/**
+ * Update line in code image according to label address
+ * @param codeImageDatabase pointer to code image database
+ * @param currentCallPtr pointer to label call struct
+ * @param labelAddress address of label used
+ * @return errorCodes enum value describing function success/failure
+ */
 static errorCodes
 updateCodeImage(codeImageDBPtr codeImageDatabase, labelCall *currentCallPtr, long labelAddress);
 
+/**
+ * For each code line that used a label as operand in first pass, update label value from labelsDB
+ * @param databasesPtr pointer to databases struct
+ * @param fileStatusPtr pointer to struct containing data regarding file error status
+ * @return TRUE if no errors occurred, FALSE otherwise
+ */
 static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr);
 
+/**
+ * Fill address of label use
+ * @param databasesPtr pointer to databases struct
+ * @param currentCallDataPtr pointer to label call data struct
+ * @return errorCodes enum value describing function success/failure
+ */
 static errorCodes fillMissingAddress(databaseRouterPtr databasesPtr, labelCall *currentCallDataPtr);
 
+/**
+ * Update entry declarations definition addresses
+ * @param entryCallsDatabase pointer to entryCallsDB
+ * @param labelsDatabase pointer to labelsDB
+ * @param fileStatusPtr pointer to struct containing data regarding file error status
+ * @return
+ */
 static boolean
 locateEntryDefinitions(databasePtr entryCallsDatabase, databasePtr labelsDatabase, fileErrorStatus *fileStatusPtr);
 
@@ -40,7 +73,7 @@ boolean secondPass(databaseRouterPtr databasesPtr, long ICF, fileErrorStatus *fi
     return result;
 }
 
-/* todo split function */
+
 static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr) {
     boolean result = TRUE;
     errorCodes encounteredError = NO_ERROR;/* if errors occur, track encounteredError code */

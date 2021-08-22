@@ -18,7 +18,7 @@ typedef struct dataImageDB{
 
 /**
  * Add a byte to the database
- * @param headPtr pointer to database
+ * @param headPtr address of pointer to the database
  * @param byte the byte to be added
  * @param DC value of DC counter
  * @return TRUE if added successfully, FALSE otherwise
@@ -27,7 +27,7 @@ static boolean addByte(dataImageDBPtr *headPtr, unsigned char byte, long DC);
 
 /**
  * Add a number to the database, update DC counter
- * @param headPtr pointer to database
+ * @param headPtr address of pointer to the database
  * @param DCPtr pointer to DC counter
  * @param value value of the number
  * @param numOfBytes how many bytes should the number span across

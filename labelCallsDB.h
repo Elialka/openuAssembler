@@ -1,8 +1,8 @@
 
 typedef struct{
-    labelID labelId;
-    operationClass type;
-    lineID lineId;
+    labelID labelId;/* defined in global.h */
+    operationClass type;/* defined in global.h */
+    lineID lineId;/* defined in global.h */
 }labelCall;
 
 

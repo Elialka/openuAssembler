@@ -13,7 +13,7 @@ databasePtr initLabelCallsDB(){
 
 
 errorCodes addLabelCall(databasePtr head, labelCall *newCallPtr) {
-    databasePtr lastAddress = seekLastUnit(head);
+    databasePtr lastAddress = seekLastDatabaseEntry(head);
     labelCall *currentDataPtr = NULL;
     errorCodes encounteredError = NO_ERROR;
 
@@ -21,7 +21,7 @@ errorCodes addLabelCall(databasePtr head, labelCall *newCallPtr) {
         encounteredError = IMPOSSIBLE;
     }
     else{/* legal label call */
-        currentDataPtr = addNewUnit(lastAddress, sizeof(labelCall));
+        currentDataPtr = addNewDatabaseEntry(lastAddress, sizeof(labelCall));
         if(currentDataPtr){/* memory allocated for data */
             strcpy(currentDataPtr->labelId.name, newCallPtr->labelId.name);
             currentDataPtr->labelId.address = newCallPtr->labelId.address;
@@ -40,13 +40,13 @@ errorCodes addLabelCall(databasePtr head, labelCall *newCallPtr) {
 
 labelCall * getLabelCallData(databasePtr currentLabelCallPtr){
 
-    return getDataPtr(currentLabelCallPtr);
+    return getEntryDataPtr(currentLabelCallPtr);
 }
 
 
 databasePtr getNextLabelCall(databasePtr currentLabelCallPtr){
 
-    return getNextUnitAddress(currentLabelCallPtr);
+    return getNextEntryAddress(currentLabelCallPtr);
 }
 
 

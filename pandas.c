@@ -11,6 +11,14 @@
 #define DECIMAL_BASE (10)
 
 
+/**
+ * Copy next token from source to buffer, terminate buffer with '/0'
+ * Stops copying at white character/end of string/comma
+ * @param sourcePtr where to copy from
+ * @param buffer where to copy to
+ * @return amount of characters copied
+ */
+static int extractNextToken(char **sourcePtr, char *buffer);
 
 /**
  * Count legal label's characters
@@ -19,7 +27,57 @@
  */
 static int countLabelNameCharacters(char *token);
 
+/**
+ *
+ * @param dataOpType
+ * @return
+ */
 static long calculateMaxValue(dataOps dataOpType);
+
+/**
+ * Convert number string to long variable, validating possible range
+ * @param token number string
+ * @param valuePtr Pointer to long variable - result will be stored at this address
+ * @param endPtrPtr Will be set to point to the first character after number
+ * @param maxValue Maximum positive value possible with current representation
+ * @return TRUE if number is in range, FALSE otherwise
+ */
+static boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValue);
+
+/**
+ * Check if token syntax matches label name as parameter
+ * @param token The name
+ * @param tokenLength Total token length
+ * @param lineErrorPtr Pointer to line error code enum
+ * @return errorCodes enum value describing function success/failure
+ */
+static errorCodes tokenIsLabel(char *token, int tokenLength);
+
+/**
+ * Read token, try to id register number
+ * @param token string representing register id without white characters
+ * @param regPtr pointer to result buffer
+ * @return errorCodes enum value describing function success/failure
+ */
+static errorCodes getRegisterOperand(char *token, unsigned char *regPtr);
+
+/**
+ * Read token, check if possible label name and copy to destination
+ * @param token string representing label name without white characters
+ * @param tokenLength number of characters in token
+ * @param destination pointer to store name if legal
+ * @return errorCodes enum value describing function success/failure
+ */
+static errorCodes getLabelOperand(char *token, int tokenLength, char *destination);
+
+/**
+ * Read token, try convert string to integer
+ * @param token string representing number without white characters
+ * @param destination pointer to store number if legal
+ * @param maxValue max positive value supported
+ * @return errorCodes enum value describing function success/failure
+ */
+static errorCodes getNumberOperand(char *token, long *destination, long maxValue);
 
 
 boolean needToReadLine(char *line){
@@ -40,7 +98,7 @@ boolean needToReadLine(char *line){
 }
 
 
-int extractNextToken(char **sourcePtr, char *buffer){
+static int extractNextToken(char **sourcePtr, char *buffer){
     int length;
     char *currentPos = *sourcePtr;
 
@@ -143,7 +201,7 @@ errorCodes extractCommandName(char **currentPosPtr, char *commandName){
 }
 
 
-boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValue){
+static boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValue){
     boolean result = TRUE;
     long value;
     long minValue;/* negative border for number of bits used */
@@ -265,7 +323,7 @@ int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpT
 }
 
 
-errorCodes tokenIsLabel(char *token, int tokenLength){
+static errorCodes tokenIsLabel(char *token, int tokenLength){
     errorCodes encounteredError = NO_ERROR;
     int nameLength;
 
@@ -374,7 +432,7 @@ errorCodes getThirdOperand(char **currentPosPtr, operationClass commandOpType, o
 }
 
 
-errorCodes getRegisterOperand(char *token, unsigned char *regPtr){
+static errorCodes getRegisterOperand(char *token, unsigned char *regPtr){
     long registerValue; /*register value*/
     errorCodes encounteredError = NO_ERROR;
     char *currentPos = token;
@@ -407,7 +465,7 @@ errorCodes getRegisterOperand(char *token, unsigned char *regPtr){
 }
 
 
-errorCodes getLabelOperand(char *token, int tokenLength, char *destination){
+static errorCodes getLabelOperand(char *token, int tokenLength, char *destination){
     errorCodes encounteredError = tokenIsLabel(token, tokenLength);
 
     if(!encounteredError){/* legal label name */
@@ -418,7 +476,7 @@ errorCodes getLabelOperand(char *token, int tokenLength, char *destination){
 }
 
 
-errorCodes getNumberOperand(char *token, long *destination, long maxValue){
+static errorCodes getNumberOperand(char *token, long *destination, long maxValue){
     long value;
     char *nextChar;/* will point to first character after the integer in token */
     errorCodes encounteredError = NO_ERROR;

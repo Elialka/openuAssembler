@@ -33,13 +33,13 @@ static boolean labelExists(databasePtr head, char *newLabelName, databasePtr *ex
     if(!isDBEmpty(head)){/* not first label definition */
         while(currentAddress){/* go through database, check if label is already defined */
             lastAddress = currentAddress;
-            currentData = getDataPtr(currentAddress);
+            currentData = getEntryDataPtr(currentAddress);
             if(!strcmp(currentData->labelId.name, newLabelName)){/* label exists */
                 alreadyExists = TRUE;
                 currentAddress = NULL;/* terminate loop */
             }
             else{/* keep looking */
-                currentAddress = getNextUnitAddress(currentAddress);
+                currentAddress = getNextEntryAddress(currentAddress);
             }
         }
     }
@@ -80,7 +80,7 @@ errorCodes addNewLabel(databasePtr head, definedLabel *labelDataPtr) {
     definedLabel *newDataPtr = NULL;
 
     if(!labelExists(head, labelDataPtr->labelId.name, &lastAddress)){/* new label definition */
-        newDataPtr = addNewUnit(lastAddress, sizeof(definedLabel));
+        newDataPtr = addNewDatabaseEntry(lastAddress, sizeof(definedLabel));
         if(newDataPtr){/* memory allocated for data */
             strcpy(newDataPtr->labelId.name, labelDataPtr->labelId.name);
             newDataPtr->labelId.address = labelDataPtr->labelId.address;
@@ -91,7 +91,7 @@ errorCodes addNewLabel(databasePtr head, definedLabel *labelDataPtr) {
         }
     }
     else{/* label already exists */
-        encounteredError = legalDoubleDefinition(labelDataPtr, getDataPtr(lastAddress));
+        encounteredError = legalDoubleDefinition(labelDataPtr, getEntryDataPtr(lastAddress));
     }
 
     return encounteredError;
@@ -103,7 +103,7 @@ errorCodes getLabelAttributes(databasePtr head, char *name, definedLabel **desti
     errorCodes encounteredError =LABEL_NOT_FOUND;
 
     if(labelExists(head, name, &matchingNameLabel)){/* there is a label with such a name */
-        *destinationPtr = getDataPtr(matchingNameLabel);
+        *destinationPtr = getEntryDataPtr(matchingNameLabel);
         encounteredError = NO_ERROR;
     }
 
@@ -115,8 +115,8 @@ void updateDataLabels(databasePtr head, long offset){
     databasePtr currentLabelAddress = head;
     definedLabel *currentDataPtr = NULL;
 
-    for(; currentLabelAddress; currentLabelAddress = getNextUnitAddress(currentLabelAddress)){
-        currentDataPtr = getDataPtr(currentLabelAddress);
+    for(; currentLabelAddress; currentLabelAddress = getNextEntryAddress(currentLabelAddress)){
+        currentDataPtr = getEntryDataPtr(currentLabelAddress);
         if(currentDataPtr && currentDataPtr->type == DATA_LABEL){
             currentDataPtr->labelId.address += offset;
         }

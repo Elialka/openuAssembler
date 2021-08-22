@@ -26,14 +26,14 @@ static boolean entryExists(databasePtr head, char *newEntryName, databasePtr *la
 
     if(!isDBEmpty(head)){/* not first entry call */
         while(currentAddress){/* go through database, check if entry already declared */
-            currentData = getDataPtr(currentAddress);
+            currentData = getEntryDataPtr(currentAddress);
             if(!strcmp(currentData->labelId.name, newEntryName)){/* entry exists */
                 alreadyExists = TRUE;
                 currentAddress = NULL;/* terminate loop */
             }
             else{/* keep looking */
                 lastAddress = currentAddress;
-                currentAddress = getNextUnitAddress(currentAddress);
+                currentAddress = getNextEntryAddress(currentAddress);
             }
         }
     }
@@ -52,7 +52,7 @@ errorCodes addEntryCall(databasePtr head, char *newLabelName, lineID lineId) {
     entryCall *newDataPtr = NULL;
 
     if(!entryExists(head, newLabelName, &lastAddress)){/* new entry declaration */
-        newDataPtr = addNewUnit(lastAddress, sizeof(entryCall));
+        newDataPtr = addNewDatabaseEntry(lastAddress, sizeof(entryCall));
         if(newDataPtr){/* memory allocated for data */
             strcpy(newDataPtr->labelId.name, newLabelName);
             memcpy(&newDataPtr->lineId, &lineId, sizeof(lineID));
@@ -68,17 +68,17 @@ errorCodes addEntryCall(databasePtr head, char *newLabelName, lineID lineId) {
 
 entryCall * getEntryCallData(databasePtr entryCallPtr){
 
-    return getDataPtr(entryCallPtr);
+    return getEntryDataPtr(entryCallPtr);
 }
 
 
 databasePtr getNextEntryCall(databasePtr entryCallPtr){
 
-    return getNextUnitAddress(entryCallPtr);
+    return getNextEntryAddress(entryCallPtr);
 }
 
 void setEntryCallValue(databasePtr entryCallPtr, long address){/* check if redundant */
-    entryCall *currentDataPtr = getDataPtr(entryCallPtr);
+    entryCall *currentDataPtr = getEntryDataPtr(entryCallPtr);
 
     if(currentDataPtr){
         currentDataPtr->labelId.address = address;

@@ -67,7 +67,7 @@ encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRouterPtr databas
 /**
  * Read a line of input, encode command if legal
  * @param lineDataPtr structure containing line identifiers
- * @param databasesPtr
+ * @param headPtr address of pointer to the database
  * @param fileStatusPtr
  * @return
  */
@@ -373,7 +373,6 @@ encodeDataCommand(char **currentPosPtr, commandAttributesPtr operationDataPtr, l
 }
 
 
-/* todo check function */
 static errorCodes
 externOrEntry(char **currentPosPtr, dataOps dataOpType, lineAttributesPtr lineDataPtr, databaseRouterPtr databasesPtr){
     labelAttributes definedLabelData;
@@ -438,7 +437,7 @@ static errorCodes checkLabelDefinition(char **currentPosPtr, labelAttributesPtr 
     return encounteredError;
 }
 
-/* todo maybe split\organize */
+
 static errorCodes getLineType(char **currentPosPtr, commandAttributesPtr operationDataPtr,
                               labelType *labelTypePtr, operationsDBPtr operationsDB){
     char command[COMMAND_ARRAY_SIZE];/* command name buffer */

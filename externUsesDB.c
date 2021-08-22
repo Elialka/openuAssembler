@@ -11,11 +11,11 @@ databasePtr initExternUsesDB(){
 
 
 errorCodes addExternUse(databasePtr head, labelID labelId) {
-    databasePtr lastAddress = seekLastUnit(head);
+    databasePtr lastAddress = seekLastDatabaseEntry(head);
     labelID *currentDataPtr = NULL;
     errorCodes encounteredError = NO_ERROR;
 
-    currentDataPtr = addNewUnit(lastAddress, sizeof(labelID));
+    currentDataPtr = addNewDatabaseEntry(lastAddress, sizeof(labelID));
     if(currentDataPtr){/* memory allocated for data */
         strcpy(currentDataPtr->name, labelId.name);
         currentDataPtr->address = labelId.address;
@@ -41,13 +41,13 @@ boolean isExternDBEmpty(databasePtr head){
 
 databasePtr getNextExternUse(databasePtr currentExternUsePtr){
 
-    return getNextUnitAddress(currentExternUsePtr);
+    return getNextEntryAddress(currentExternUsePtr);
 }
 
 
 labelID * getExternUseData(databasePtr currentExternUsePtr){
 
-    return getDataPtr(currentExternUsePtr);
+    return getEntryDataPtr(currentExternUsePtr);
 }
 
 

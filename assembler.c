@@ -21,14 +21,14 @@
 /**
  * Initialize static databases to be used throughout the program,
  * set pointers to other databases to NULL
- * @param databasesPtr pointer to database router struct
+ * @param headPtr address of pointer to the database
  * @return TRUE if memory allocated successfully, FALSE otherwise
  */
 static boolean initProjectDatabases(databaseRouterPtr databasesPtr);
 
 /**
  * Initialize dynamic databases to be used for a file being compiled
- * @param databasesPtr pointer to database router struct
+ * @param headPtr address of pointer to the database
  * @return TRUE if memory allocated successfully, FALSE otherwise
  */
 static boolean initFileDataBases(databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr);
@@ -59,13 +59,13 @@ static boolean openFile(char *sourceFileName, FILE **sourceFilePtr, fileErrorSta
 
 /**
  * Free memory allocated for per-file databases, set pointers to databases to NULL
- * @param databasesPtr pointer to database router struct
+ * @param headPtr address of pointer to the database
  */
 static void clearFileDatabases(databaseRouterPtr databasesPtr);
 
 /**
  * Free memory allocated for per-project databases, set pointers to databases to NULL
- * @param databasesPtr pointer to database router struct
+ * @param headPtr address of pointer to the database
  */
 static void clearProjectDatabases(databaseRouterPtr databasesPtr);
 
@@ -139,7 +139,6 @@ static boolean initFileDataBases(databaseRouterPtr databasesPtr, fileErrorStatus
 }
 
 
-/* TODO test function */
 static boolean supportedFileName(char *sourceFileName){
     char *currentChar = sourceFileName;
     boolean result = TRUE;
@@ -197,7 +196,7 @@ static void compileFile(char *sourceFileName, databaseRouter databases){
     }
 
     if(sourceFile){/* the file was opened */
-        fclose(sourceFile);/* todo check if need to use returned value */
+        fclose(sourceFile);
     }
 
     divideFileErrorPrinting(&fileStatus);
@@ -211,12 +210,11 @@ static boolean openFile(char *sourceFileName, FILE **sourceFilePtr, fileErrorSta
     boolean result = TRUE;
     *sourceFilePtr = fopen(sourceFileName, "r");
 
+    fileStatusPtr->sourceFileName = sourceFileName;
+
     if(!*sourceFilePtr){/* could not open file */
-        printProjectErrorMessage(COULD_NOT_OPEN_FILE);/* todo change per file error */
+        printFileErrorMessage(COULD_NOT_OPEN_FILE, NULL, fileStatusPtr);
         result = FALSE;
-    }
-    else{
-        fileStatusPtr->sourceFileName = sourceFileName;
     }
 
     return result;
@@ -246,7 +244,6 @@ static void clearFileDatabases(databaseRouterPtr databasesPtr){
 
 
 static void clearProjectDatabases(databaseRouterPtr databasesPtr){
-    /* free static database */
     clearOperationDB(databasesPtr->operationsDB);
     databasesPtr->operationsDB = NULL;
 }

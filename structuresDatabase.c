@@ -28,20 +28,20 @@ boolean isDBEmpty(databasePtr head){
 }
 
 
-databasePtr seekLastUnit(databasePtr head){
+databasePtr seekLastDatabaseEntry(databasePtr head){
     databasePtr currentAddress = head;
     databasePtr lastAddress = NULL;
 
     while(currentAddress){/* find last unit address in database */
         lastAddress = currentAddress;
-        currentAddress = getNextUnitAddress(currentAddress);
+        currentAddress = getNextEntryAddress(currentAddress);
     }
 
     return lastAddress;
 }
 
 
-void * addNewUnit(databasePtr lastUnitAddress, int sizeOfData) {
+void * addNewDatabaseEntry(databasePtr lastUnitAddress, int sizeOfData) {
     void * newUnitDataPtr = NULL;
     databasePtr newNode = NULL;
 
@@ -66,7 +66,7 @@ void * addNewUnit(databasePtr lastUnitAddress, int sizeOfData) {
 }
 
 
-void *getDataPtr(databasePtr unitAddress){
+void *getEntryDataPtr(databasePtr unitAddress){
     if(unitAddress){
         return unitAddress->dataPtr;
     }
@@ -76,7 +76,7 @@ void *getDataPtr(databasePtr unitAddress){
 }
 
 
-databasePtr getNextUnitAddress(databasePtr unitAddress){
+databasePtr getNextEntryAddress(databasePtr unitAddress){
     if(unitAddress){
         return unitAddress->next;
     }

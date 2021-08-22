@@ -4,6 +4,7 @@
 #include "codeImageDB.h"
 
 #define FIRST_16_BITS_MASK (0xFFFF)
+#define BITS_ALREADY_READ (16)
 
 typedef union codeImageDB{
     struct{
@@ -36,7 +37,7 @@ typedef union codeImageDB{
 
 /**
  * Add encoded command to database
- * @param headPtr pointer to database
+ * @param headPtr address of pointer to the database
  * @param ICPtr pointer to IC counter
  * @param newPtr pointer to encoded code line to be added
  * @return errorCodes enum value describing function success/failure
@@ -137,7 +138,6 @@ errorCodes updateITypeImmed(codeImageDBPtr headPtr, long IC, long labelAddress){
 }
 
 
-/* todo maybe handle literal number 16 */
 void updateJTypeAddress(codeImageDBPtr headPtr, long IC, long labelAddress){
     /* calculate index of code line with given IC */
     long index = (long)((IC - STARTING_ADDRESS) / sizeof(encodedOperation));
@@ -145,7 +145,7 @@ void updateJTypeAddress(codeImageDBPtr headPtr, long IC, long labelAddress){
 
     /* update addresses */
     operationPtr->J.address1 = labelAddress & FIRST_16_BITS_MASK;
-    operationPtr->J.address2 = labelAddress >> 16;
+    operationPtr->J.address2 = labelAddress >> BITS_ALREADY_READ;
 }
 
 

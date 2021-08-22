@@ -86,6 +86,7 @@ typedef enum{
     /* other */
     EXTRANEOUS_TEXT,
     COULD_NOT_CREATE_FILE,
+    COULD_NOT_OPEN_FILE,
     /* internal crisis */
     IMPOSSIBLE
 }errorCodes;
@@ -95,8 +96,7 @@ typedef enum projectErrors{
     PROJECT_MEMORY_FAILURE,
     FILENAME_LENGTH_NOT_SUPPORTED,
     ILLEGAL_FILE_EXTENSION,
-    NO_FILES_TO_COMPILE,
-    COULD_NOT_OPEN_FILE
+    NO_FILES_TO_COMPILE
 }projectErrors;
 
 typedef struct fileErrorStatus{
@@ -185,7 +185,7 @@ typedef struct jTypeData{
 
 
 typedef struct operandAttributes{
-    union valuePointer{
+    union valuePointer{/* pointers to where to store relevant values */
         unsigned char*regPtr;
         long *immedPtr;
     }valuePointer;

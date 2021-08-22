@@ -52,21 +52,71 @@ typedef union codeLineData{
 }codeLineData;
 
 
+/**
+ * Initialize operations database
+ * @return pointer to database
+ */
 operationsDBPtr setOperations();
 
-int seekOp(operationsDBPtr head, char *str);
+/**
+ * Search the database for a operations command with identical name
+ * @param head pointer to database
+ * @param operationName name of the operation
+ * @return index of the operation in the database, or NOT_FOUND macro value
+ */
+int seekOp(operationsDBPtr head, char *operationName);
 
-boolean seekDataOp(char *str, dataOps *dataOpTypePtr);
+/**
+ * Seek for data instruction with identical name
+ * @param instructionName name of the instruction
+ * @param dataOpTypePtr address where to store data instruction enum value
+ * @return TRUE if found, FALSE otherwise
+ */
+boolean seekDataOp(char *instructionName, dataOps *dataOpTypePtr);
 
-boolean getOpcode(operationsDBPtr head, char *str, opcodes *opCodePtr, functValues *functPtr, operationClass *opTypePtr);
+/**
+ * Get opcode and funct(if relevant), store in given addresses and return whether found
+ * @param head pointer to database
+ * @param operationName name of the operation
+ * @param opCodePtr address where to store opcode enum value
+ * @param functPtr address where to store funct enum value, if relevant
+ * @param opTypePtr address where to store operation class enum value
+ * @return TRUE if found, FALSE otherwise
+ */
+boolean getOpcode(operationsDBPtr head, char *operationName, opcodes *opCodePtr, functValues *functPtr, operationClass *opTypePtr);
 
+/**
+ * Set pointers for first operand values base on operation class
+ * @param commandOpType enum value representing operation class
+ * @param codeLineDataPtr pointer to union struct where operand data should be stored
+ * @param currentOperandPtr pointer to struct where pointers should be set by this function
+ * @return TRUE if first operand is needed, FALSE otherwise
+ */
 boolean firstOperandFormat(operationClass commandOpType, codeLineData *codeLineDataPtr,
                            operandAttributes *currentOperandPtr);
 
+/**
+ * Set pointers for second operand values base on operation class
+ * @param commandOpType enum value representing operation class
+ * @param codeLineDataPtr pointer to union struct where operand data should be stored
+ * @param currentOperandPtr pointer to struct where pointers should be set by this function
+ * @return TRUE if second operand is needed, FALSE otherwise
+ */
 boolean secondOperandFormat(operationClass commandOpType, codeLineData *codeLineDataPtr,
                             operandAttributes *currentOperandPtr);
 
+/**
+ * Set pointers for third operand values base on operation class
+ * @param commandOpType enum value representing operation class
+ * @param codeLineDataPtr pointer to union struct where operand data should be stored
+ * @param currentOperandPtr pointer to struct where pointers should be set by this function
+ * @return TRUE if third operand is needed, FALSE otherwise
+ */
 boolean thirdOperandFormat(operationClass commandOpType, codeLineData *codeLineDataPtr,
                            operandAttributes *currentOperandPtr);
 
+/**
+ * Free any memory allocated by the database
+ * @param head pointer to the database
+ */
 void clearOperationDB(operationsDBPtr head);

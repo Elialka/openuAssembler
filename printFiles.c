@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <fvec.h>
 
 #include "global.h"
 #include "printFiles.h"
@@ -18,28 +19,64 @@ typedef enum{
     EXTERN_TYPE
 }fileType;
 
+/**
+ * Generate new file name with relevant extension
+ * @param sourceFileName name of source file
+ * @param newExtension extension of relevant file
+ * @param destination where to copy name
+ */
 static void replaceExtension(char *sourceFileName, char *newExtension, char *destination);
 
+/**
+ * Generate output object file
+ * @param databases struct holding database pointers
+ * @param sourceFileName name of source file
+ * @param ICF size of coda image
+ * @param DCF size of data image
+ * @param fileStatusPtr pointer to struct containing data regarding file error status
+ */
 static void
 printObjectFile(databaseRouter databases, char *sourceFileName, long ICF, long DCF, fileErrorStatus *fileStatusPtr);
 
+/**
+ * Create file with relevant name
+ * @param sourceFileName name of source file
+ * @param type enum value representing type of file
+ * @param fileStatusPtr pointer to struct containing data regarding file error status
+ * @return pointer to file
+ */
 static FILE *createFile(char *sourceFileName, fileType type, fileErrorStatus *fileStatusPtr);
 
+/**
+ * Print code/data image
+ * @param newFile object file pointer
+ * @param sizeOfDatabase size of relevant database
+ * @param startingAddress first address to print as
+ * @param databasePtr pointer to relevant database
+ * @param getNextByte pointer to function to get next byte in relevant image
+ */
 static void printImage(FILE *newFile, long sizeOfDatabase, long startingAddress, void *databasePtr,
                        unsigned char (*getNextByte)(void *, long));
 
-static void printLabelAddressesFile(void *database, char *sourceFileName, fileType currentFileType);
+/**
+ * Print entry/extern file
+ * @param database pointer to relevant database
+ * @param sourceFileName name of source file
+ * @param type enum value representing type of file
+ */
+static void
+printLabelAddressesFile(void *database, char *sourceFileName, fileType currentFileType, fileErrorStatus *fileStatusPtr);
 
-/* todo terminate after failure */
+
 void writeFiles(databaseRouter databases, char *sourceFilename, long ICF, long DCF, fileErrorStatus *fileStatusPtr) {
     printObjectFile(databases, sourceFilename, ICF, DCF, fileStatusPtr);
 
     if(!isEntryCallsDBEmpty(databases.entryCallsDB)){/* need to print entry file */
-        printLabelAddressesFile(databases.entryCallsDB, sourceFilename, ENTRY_TYPE);
+        printLabelAddressesFile(databases.entryCallsDB, sourceFilename, ENTRY_TYPE, fileStatusPtr);
     }
 
     if(!isExternDBEmpty(databases.externUsesDB)){/* need to print extern file */
-        printLabelAddressesFile(databases.externUsesDB, sourceFilename, EXTERN_TYPE);
+        printLabelAddressesFile(databases.externUsesDB, sourceFilename, EXTERN_TYPE, fileStatusPtr);
     }
 }
 
@@ -140,7 +177,8 @@ static void printImage(FILE *newFile, long sizeOfDatabase, long startingAddress,
 }
 
 
-static void printLabelAddressesFile(void *database, char *sourceFileName, fileType currentFileType){
+static void
+printLabelAddressesFile(void *database, char *sourceFileName, fileType currentFileType, fileErrorStatus *fileStatusPtr) {
     FILE *newFile;
     void *nextLabel = database;
     void *currentLabel = NULL;
@@ -167,6 +205,6 @@ static void printLabelAddressesFile(void *database, char *sourceFileName, fileTy
         fclose(newFile);
     }
     else{
-        printProjectErrorMessage(COULD_NOT_CREATE_FILE);
+        printFileErrorMessage(COULD_NOT_CREATE_FILE, NULL, fileStatusPtr);
     }
 }

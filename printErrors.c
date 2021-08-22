@@ -118,7 +118,7 @@ void printFileErrorMessage(errorCodes encounteredError, lineID *lineIdPtr, fileE
             printf("ERROR! This program only supports integers!\n");
             break;
         case NOT_REGISTER:
-            printf("ERROR! Illegal register token!\n");/* todo check enum value */
+            printf("ERROR! Illegal register token!\n");
             break;
         case MISSING_COMMA:
             printf("ERROR! Missing comma between operands!\n");
@@ -131,6 +131,9 @@ void printFileErrorMessage(errorCodes encounteredError, lineID *lineIdPtr, fileE
             break;
         case COULD_NOT_CREATE_FILE:
             printf("ERROR! Cannot create output file!\n");
+            break;
+        case COULD_NOT_OPEN_FILE:
+            printf("ERROR! Cannot open file!\n");
             break;
         case IMPOSSIBLE:
             printf("INTERNAL ERROR! Impossible scenario detected!\n");
@@ -156,9 +159,6 @@ void printProjectErrorMessage(projectErrors errorCode){
             break;
         case NO_FILES_TO_COMPILE:
             printf("ERROR! No Files to compile! Quitting program!\n");
-            break;
-        case COULD_NOT_OPEN_FILE:
-            printf("ERROR! Cannot open file!\n");
             break;
         default:
             printf("INTERNAL ERROR! Reached impossible scenario in printProjectErrorMessage !\n");

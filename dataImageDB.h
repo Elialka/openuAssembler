@@ -7,7 +7,7 @@ dataImageDBPtr initDataImageDB();
 
 /**
  * Add an array of numbers to the database
- * @param headPtr pointer to database
+ * @param headPtr address of pointer to the database
  * @param DCPtr pointer to DC counter
  * @param array array of numbers
  * @param amountOfNumbers how many numbers to add from array
@@ -18,7 +18,7 @@ errorCodes addNumberArray(dataImageDBPtr *headPtr, long *DCPtr, long *array, int
 
 /**
  * Add a string of characters to the database
- * @param headPtr pointer to database
+ * @param headPtr address of pointer to the database
  * @param DCPtr pointer to DC counter
  * @param str the string
  * @return errorCodes enum value describing function success/failure
@@ -27,7 +27,7 @@ errorCodes addString(dataImageDBPtr *headPtr, long *DCPtr, char *str);
 
 /**
  * Get the serial byte in the data image, as specified by index
- * @param headPtr pointer to database
+ * @param headPtr address of pointer to the database
  * @param index byte index in data image
  * @return the byte as unsigned char
  */
