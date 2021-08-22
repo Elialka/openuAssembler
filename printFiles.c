@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include <fvec.h>
 
 #include "global.h"
 #include "printFiles.h"
