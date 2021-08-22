@@ -1,5 +1,6 @@
 #include <string.h>
 
+#include "global.h"
 #include "structuresDatabase.h"
 #include "externUsesDB.h"
 

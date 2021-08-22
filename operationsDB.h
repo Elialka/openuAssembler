@@ -1,6 +1,3 @@
-#ifndef MAX_LINE
-#include "global.h"
-#endif
 
 #define MAX_COMMAND_LENGTH (7)
 #define COMMAND_ARRAY_SIZE (MAX_COMMAND_LENGTH + 1)

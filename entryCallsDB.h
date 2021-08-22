@@ -1,6 +1,3 @@
-#ifndef MAX_LINE
-#include "global.h"
-#endif
 
 typedef struct{
     labelID labelId;

@@ -3,7 +3,7 @@
 #include <string.h>
 #include <errno.h>
 
-
+#include "global.h"
 #include "pandas.h"
 #include "operationsDB.h"
 

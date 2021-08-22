@@ -1,5 +1,6 @@
 #include <stdlib.h>
 
+#include "global.h"
 #include "codeImageDB.h"
 
 #define FIRST_16_BITS_MASK (0xFFFF)

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "global.h"
 #include "printFiles.h"
 #include "entryCallsDB.h"
 #include "externUsesDB.h"

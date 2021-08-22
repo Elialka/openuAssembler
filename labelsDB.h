@@ -1,7 +1,3 @@
-#ifndef MAX_LINE
-#include "global.h"
-#endif
-
 
 typedef enum{
     UNIDENTIFIED_LABEL_TYPE,

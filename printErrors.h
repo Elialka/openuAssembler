@@ -1,8 +1,3 @@
-#ifndef MAX_LINE
-#include "global.h"
-#endif
-
-
 
 void printWarningMessage(warningCodes encounteredWarning, lineID *lineIdPtr, fileErrorStatus *fileStatusPtr);
 

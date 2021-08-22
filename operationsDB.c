@@ -1,7 +1,7 @@
-#include "global.h"
 #include <stdlib.h>
 #include <string.h>
 
+#include "global.h"
 #include "operationsDB.h"
 
 /* number of different operations available */

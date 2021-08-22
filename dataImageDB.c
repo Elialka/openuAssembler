@@ -1,4 +1,6 @@
 #include <stdlib.h>
+
+#include "global.h"
 #include "dataImageDB.h"
 #include "string.h"
 

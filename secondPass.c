@@ -1,3 +1,5 @@
+
+#include "global.h"
 #include "secondPass.h"
 #include "labelsDB.h"
 #include "labelCallsDB.h"

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "global.h"
 #include "structuresDatabase.h"
 #include "labelsDB.h"
 #include "operationsDB.h"

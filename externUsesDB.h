@@ -1,7 +1,3 @@
-#ifndef MAX_LINE
-#include "global.h"
-#endif
-
 
 /**
  * Initialize extern uses database

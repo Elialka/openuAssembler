@@ -1,10 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifndef MAX_LINE
 #include "global.h"
-#endif
-
 #include "codeImageDB.h"
 #include "dataImageDB.h"
 #include "entryCallsDB.h"

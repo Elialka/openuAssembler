@@ -2,6 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "global.h"
 #include "firstPass.h"
 #include "labelsDB.h"
 #include "operationsDB.h"
