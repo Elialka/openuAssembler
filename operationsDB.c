@@ -1,9 +1,6 @@
 #include "global.h"
 #include <stdlib.h>
 #include <string.h>
-#ifndef MAX_LINE
-#include "global.h"
-#endif
 
 #include "operationsDB.h"
 
@@ -21,10 +18,6 @@ typedef struct operationsDB{
 }operation;
 
 
-/*
- * This function is used to set a database, containing operation names, types and OpCodes
- * Return value is TRUE if memory allocation succeeded, FALSE otherwise
- */
 operationsDBPtr setOperations(){
     int i;
     operationsDBPtr head;

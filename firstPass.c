@@ -15,10 +15,10 @@
 
 typedef struct labelAttributes *labelAttributesPtr;
 
-typedef struct labelAttributes{/* todo maybe reset flag each line */
+typedef struct labelAttributes{
     union{
-        definedLabel defined;
-        labelCall called;
+        definedLabel defined;/* defined in labelsDB.h */
+        labelCall called;/* defined in labelCallsBD.h */
     }data;
     boolean labelIsUsed;/* based on context, track if a label definition or call occurred */
 }labelAttributes;
@@ -35,18 +35,18 @@ typedef struct commandAttributes{
     commandType lineType;/* track if current line is code or data line */
     union{
         struct{
-            opcodes opcode;
-            functValues funct;
-            operationClass class;
+            opcodes opcode;/* defined in operationsDB.h */
+            functValues funct;/* defined in operationsDB.h */
+            operationClass class;/* defined in global.h */
         }commandOpData;
-        dataOps dataOpType;
+        dataOps dataOpType;/* defined in global.h */
     }operationID;
 }commandAttributes;
 
 typedef struct lineAttributes * lineAttributesPtr;
 
 typedef struct lineAttributes{
-    lineID lineId;
+    lineID lineId;/* defined in global.h */
     long *ICPtr;
     long *DCPtr;
 }lineAttributes;
@@ -63,6 +63,13 @@ typedef struct lineAttributes{
 static boolean
 encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr);
 
+/**
+ * Read a line of input, encode command if legal
+ * @param lineDataPtr structure containing line identifiers
+ * @param databasesPtr
+ * @param fileStatusPtr
+ * @return
+ */
 static errorCodes
 readLine(lineAttributesPtr lineDataPtr, databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr);
 
@@ -573,6 +580,7 @@ static errorCodes handleSecondOperand(char **currentPosPtr, operationClass comma
     return encounteredError;
 }
 
+
 static errorCodes handleThirdOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *codeLineDataPtr,
                               labelAttributes *calledLabelPtr){
     errorCodes encounteredError = NO_ERROR;
@@ -597,7 +605,6 @@ static errorCodes handleThirdOperand(char **currentPosPtr, operationClass comman
 }
 
 
-/* todo check flushLine EOF*/
 void flushLine(FILE *sourceFile, lineID *lineIdPtr, fileErrorStatus *fileStatusPtr) {
     char *currentPos = lineIdPtr->line;
     int currentChar;

@@ -6,8 +6,6 @@
 
 #include "pandas.h"
 #include "operationsDB.h"
-#include "dataImageDB.h"
-#include "labelCallsDB.h"
 
 #define SKIP_WHITES(x) for(; isspace(*(x)); (x)++)
 #define DECIMAL_BASE (10)
