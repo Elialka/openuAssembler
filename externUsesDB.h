@@ -10,44 +10,35 @@
 databasePtr initExternUsesDB();
 
 /**
- *
+ * Add new extern label use to the database
  * @param head pointer to database
- * @param labelName
- * @param IC
- * @return
+ * @param labelName name of label used
+ * @param IC address in memory where used
+ * @return errorCodes enum value describing function success/failure
  */
 errorCodes addExternUse(databasePtr head, char *labelName, long IC);
 
 /**
- *
+ * Check if database has been used
  * @param head pointer to database
- * @return
+ * @return TRUE if any data has been added, FALSE otherwise
  */
 boolean isExternDBEmpty(databasePtr head);
 
 /**
- *
- * @param currentExternUsePtr
- * @return
+ * Get next extern use address in the database
+ * @param currentExternUsePtr current extern use address in database
+ * @return address of next extern use
  */
 databasePtr getNextExternUse(databasePtr currentExternUsePtr);
 
-
+/**
+ * Get current extern use data
+ * @param currentExternUsePtr current extern use address in database
+ * @return pointer to data structure
+ */
 labelID * getExternUseData(databasePtr currentExternUsePtr);
 
-/**
- *
- * @param currentExternUsePtr
- * @return
- */
-char * getExternUseName(externUsesDBPtr currentExternUsePtr);
-
-/**
- *
- * @param currentExternUsePtr
- * @return
- */
-long getExternUseAddress(externUsesDBPtr currentExternUsePtr);
 
 /**
  * Free any memory allocated by the database

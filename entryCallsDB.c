@@ -1,141 +1,103 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "structuresDatabase.h"
 #include "entryCallsDB.h"
 
 
-typedef struct entryCallsDB{
-    entryCall data;
-    entryCallsDBPtr next;
-}entryCallNode;
+databasePtr initEntryCallsDB(){
 
+    return initDatabase();
+}
 
 /**
- * Find address to store new entry call node, allocate memory or update error code enum if necessary
- * If identical name already exists in the database, return NULL pointer + update error pointer
- * @param head pointer to the database
- * @param labelName name of new entry call
- * @param errorPtr pointer to error enum
- * @return pointer containing address of new node or NULL if already registered
+ * Check if label already declared as entry, if not, mark last address usd in the database
+ * @param head pointer to database
+ * @param newEntryName name of new entry call
+ * @param lastAddressPtr pointer to last address variable
+ * @return TRUE if label already declared as entry, FALSE otherwise
  */
-static entryCallNode *newEntryCallNode(entryCallsDBPtr head, char *labelName, errorCodes *errorPtr);
-
-
-entryCallsDBPtr initEntryCallsDB(){
-    entryCallsDBPtr head = calloc(1, sizeof(entryCallNode));
-
-    return head;
-}
-
-
-static entryCallNode *newEntryCallNode(entryCallsDBPtr head, char *labelName, errorCodes *errorPtr) {
-    entryCallNode *current = head;/* current node being examined */
-    entryCallNode *prev = NULL;/* pointer to previous node */
+static boolean entryExists(databasePtr head, char *newEntryName, databasePtr *lastAddressPtr){
+    databasePtr currentAddress = head;
+    databasePtr lastAddress = currentAddress;
+    entryCall *currentData = NULL;
     boolean alreadyExists = FALSE;
 
-    if(!isEntryCallsDBEmpty(head)){/* not first entry call in database - need to allocate memory */
-        /* go through database, check if entry call already registered */
-        while(!alreadyExists && current){
-            if(!strcmp(labelName, current->data.labelId.name)){/* already added this name */
+    if(!isDBEmpty(head)){/* not first entry call */
+        while(currentAddress){/* go through database, check if entry already declared *//* todo check if error strcmp for first entry call */
+            currentData = getDataPtr(currentAddress);
+            if(!strcmp(currentData->labelId.name, newEntryName)){/* entry exists */
                 alreadyExists = TRUE;
+                currentAddress = NULL;/* terminate loop */
             }
-            prev = current;
-            current = current->next;
-        }
-
-        if(!alreadyExists){
-            /* allocate memory for new entry call node */
-            current = calloc(1, sizeof(entryCallNode));
-            if(!current){
-                *errorPtr = MEMORY_ALLOCATION_FAILURE;
+            else{/* keep looking */
+                lastAddress = currentAddress;
+                currentAddress = getNextUnitAddress(currentAddress);
             }
-            else{/* allocated successfully */
-                /* link new node to database */
-                prev->next = current;
-            }
-        }
-        else{/* entry call already exists */
-            current = NULL;
         }
     }
 
-    return current;
+    if(!alreadyExists){
+        *lastAddressPtr = lastAddress;
+    }
+
+    return alreadyExists;
 }
 
 
-errorCodes addEntryCall(entryCallsDBPtr head, char *labelName, lineID lineId) {
+errorCodes addEntryCall(databasePtr head, char *newLabelName, lineID lineId) {
     errorCodes encounteredError = NO_ERROR;
-    entryCallNode *current = NULL;/* pointer to new node */
+    databasePtr lastAddress = NULL;
+    entryCall *newDataPtr = NULL;
 
-    if(!head){
-        encounteredError = IMPOSSIBLE_ENCODE_DATA;
-    }
-    else{
-        current = newEntryCallNode(head, labelName, &encounteredError);
-    }
-
-    if(current){
-        /* add new entry call */
-        strcpy(current->data.labelId.name, labelName);
-        strcpy(current->data.lineId.line, lineId.line);
-        current->data.lineId.count = lineId.count;
+    if(!entryExists(head, newLabelName, &lastAddress)){/* new entry declaration */
+        newDataPtr = addNewUnit(lastAddress, sizeof(entryCall));
+        if(newDataPtr){/* memory allocated for data */
+            strcpy(newDataPtr->labelId.name, newLabelName);
+            memcpy(&newDataPtr->lineId, &lineId, sizeof(lineID));
+        }
+        else{/* could not add new entry call */
+            encounteredError = MEMORY_ALLOCATION_FAILURE;
+        }
     }
 
     return encounteredError;
 }
 
 
-/* todo try const return value */
-entryCall * getEntryCallData(entryCallsDBPtr entryCallPtr){
-    entryCallNode *current = entryCallPtr;
-    entryCall *data = NULL;
+entryCall * getEntryCallData(databasePtr entryCallPtr){
 
-    if(current){
-        data = &current->data;
-    }
-
-    return data;
+    return getDataPtr(entryCallPtr);
 }
 
 
-entryCallsDBPtr getNextEntryCall(entryCallsDBPtr entryCallPtr){
-    entryCallNode *current = entryCallPtr;
-    entryCallsDBPtr nextEntryPtr = NULL;
+databasePtr getNextEntryCall(databasePtr entryCallPtr){
 
-    if(current){
-        nextEntryPtr = current->next;
-    }
-
-    return nextEntryPtr;
+    return getNextUnitAddress(entryCallPtr);
 }
 
-void setEntryCallValue(entryCallsDBPtr entryCallPtr, long address){
-    if(entryCallPtr){
-        entryCallPtr->data.labelId.address = address;
+void setEntryCallValue(databasePtr entryCallPtr, long address){/* check if redundant */
+    entryCall *currentDataPtr = getDataPtr(entryCallPtr);
+
+    if(currentDataPtr){
+        currentDataPtr->labelId.address = address;
     }
 }
 
 
-boolean isEntryCallsDBEmpty(entryCallsDBPtr head){
+boolean isEntryCallsDBEmpty(databasePtr head){
     boolean result = TRUE;
 
     if(head){
-        /* check if first node's name is empty */
-        result = *(head->data.labelId.name) ? FALSE : TRUE;
+        result = isDBEmpty(head);
     }
 
     return result;
 }
 
 
-void clearEntryCallsDB(entryCallsDBPtr head){
-    entryCallsDBPtr prev;
-
-    while(head){
-        prev = head;
-        head = head->next;
-        free(prev);
-    }
+void clearEntryCallsDB(databasePtr head){
+    clearDatabase(head);
 }
 
 

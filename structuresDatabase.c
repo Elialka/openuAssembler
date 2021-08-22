@@ -41,7 +41,7 @@ void * addNewUnit(databasePtr lastUnitAddress, int sizeOfData) {
         }
 
         if(newNode){/* allocated memory for node */
-            newUnitDataPtr = lastUnitAddress->dataPtr = calloc(1, sizeOfData);
+            newUnitDataPtr = newNode->dataPtr = calloc(1, sizeOfData);
             if(!lastUnitAddress->dataPtr){/* memory allocation for data failed */
                 free(newNode);
             }

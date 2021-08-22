@@ -13,7 +13,7 @@ updateCodeImage(codeImageDBPtr codeImageDatabase, labelCall *currentCallPtr, lon
 
 static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr);
 
-static boolean locateEntryDefinitions(entryCallsDBPtr entryCallsDatabase, labelsDBPtr labelsDatabase);
+static boolean locateEntryDefinitions(databasePtr entryCallsDatabase, labelsDBPtr labelsDatabase);
 
 
 boolean secondPass(databaseRouterPtr databasesPtr, long ICF){
@@ -103,10 +103,10 @@ static errorCodes updateCodeImage(codeImageDBPtr codeImageDatabase, labelCall *c
 }
 
 
-static boolean locateEntryDefinitions(entryCallsDBPtr entryCallsDatabase, labelsDBPtr labelsDatabase){
+static boolean locateEntryDefinitions(databasePtr entryCallsDatabase, labelsDBPtr labelsDatabase){
     boolean result = TRUE;/* reset error flag */
     errorCodes encounteredError = NO_ERROR;
-    entryCallsDBPtr currentEntryCall = entryCallsDatabase;/* get first entry call */
+    databasePtr currentEntryCall = entryCallsDatabase;/* get first entry call */
     entryCall *entryCallData;/* pointer to entry call data structure */
     definedLabel *definedLabelDataPtr;/* pointer to defined label with matching name's data structure */
 

@@ -12,17 +12,18 @@ databasePtr initExternUsesDB(){
 errorCodes addExternUse(databasePtr head, char *labelName, long IC){
     databasePtr currentAddress = head;
     databasePtr lastAddress;
-    labelID *currentData;
+    labelID *currentDataPtr;
     errorCodes encounteredError = NO_ERROR;
 
-    while(currentAddress){
+    while(currentAddress){/* find last unit address in database */
         lastAddress = currentAddress;
         currentAddress = getNextUnitAddress(currentAddress);
     }
 
-    if((currentData = addNewUnit(lastAddress, sizeof(labelID)))){/* memory allocated for data */
-        strcpy(currentData->name, labelName);
-        currentData->address = IC;
+    currentDataPtr = addNewUnit(lastAddress, sizeof(labelID));
+    if(currentDataPtr){/* memory allocated for data */
+        strcpy(currentDataPtr->name, labelName);
+        currentDataPtr->address = IC;
     }
     else{
         encounteredError = MEMORY_ALLOCATION_FAILURE;
@@ -36,7 +37,6 @@ boolean isExternDBEmpty(databasePtr head){
     boolean result = TRUE;
 
     if(head){
-        /* check if first labelCallNode was used */
         result = isDBEmpty(head);
     }
 

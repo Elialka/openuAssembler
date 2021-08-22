@@ -11,47 +11,47 @@ typedef struct{
  * Initialize entry calls database
  * @return pointer to the database
  */
-entryCallsDBPtr initEntryCallsDB();
+databasePtr initEntryCallsDB();
 
 /**
- *
- * @param head
- * @param labelName
- * @param lineId
+ * Add new entry declaration to the database
+ * @param head pointer to database
+ * @param newLabelName name of label declared
+ * @param lineId structure containing line array + counter
  * @return errorCodes enum value describing function success/failure
  */
-errorCodes addEntryCall(entryCallsDBPtr head, char *labelName, lineID lineId);
+errorCodes addEntryCall(databasePtr head, char *newLabelName, lineID lineId);
 
 /**
  * Get current entry call data
- * @param entryCallPtr
+ * @param entryCallPtr current entry call address in database
  * @return pointer to data structure
  */
-entryCall * getEntryCallData(entryCallsDBPtr entryCallPtr);
+entryCall * getEntryCallData(databasePtr entryCallPtr);
 
 /**
- * Get next entry call pointer
- * @param entryCallPtr
- * @return next entry call pointer
+ * Get next entry call address in the database
+ * @param entryCallPtr current entry call address in database
+ * @return address of next entry call
  */
-entryCallsDBPtr getNextEntryCall(entryCallsDBPtr entryCallPtr);
+databasePtr getNextEntryCall(databasePtr entryCallPtr);
 
 /**
  * Set entry call definition address
  * @param entryCallPtr pointer to current entry call
  * @param address definition address
  */
-void setEntryCallValue(entryCallsDBPtr entryCallPtr, long address);
+void setEntryCallValue(databasePtr entryCallPtr, long address);
 
 /**
  * Check if database has been used
  * @param head pointer to database
  * @return TRUE if any data has been added, FALSE otherwise
  */
-boolean isEntryCallsDBEmpty(entryCallsDBPtr head);
+boolean isEntryCallsDBEmpty(databasePtr head);
 
 /**
  * Free any memory allocated by the database
  * @param head pointer to the database
  */
-void clearEntryCallsDB(entryCallsDBPtr head);
+void clearEntryCallsDB(databasePtr head);
