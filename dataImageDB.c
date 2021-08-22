@@ -4,9 +4,14 @@
 
 #define BITS_IN_BYTE (8)
 #define FIRST_BYTE_MASK (0xFF)
+#define SIZE_OF_BYTE (1)
+#define SIZE_OF_HALF_WORD (2)
+#define SIZE_OF_WORD (4)
 
 
-/* todo make typedef char * or something */
+typedef struct dataImageDB{
+    unsigned char byte;
+}dataImageDB;
 
 
 /**
@@ -16,7 +21,7 @@
  * @param DC value of DC counter
  * @return TRUE if added successfully, FALSE otherwise
  */
-static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC);
+static boolean addByte(dataImageDBPtr *headPtr, unsigned char byte, long DC);
 
 /**
  * Add a number to the database, update DC counter
@@ -26,17 +31,17 @@ static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC);
  * @param numOfBytes how many bytes should the number span across
  * @return TRUE if added successfully, FALSE otherwise
  */
-static boolean addNumber(dataImagePtr *headPtr, long *DCPtr, long value, int numOfBytes);
+static boolean addNumber(dataImageDBPtr *headPtr, long *DCPtr, long value, int numOfBytes);
 
 
-dataImagePtr initDataImageDB(){
-    dataImagePtr database = calloc(IMAGE_BLOCK_SIZE, sizeof(char));
+dataImageDBPtr initDataImageDB(){
+    dataImageDBPtr database = calloc(IMAGE_BLOCK_SIZE, sizeof(dataImageDB));
 
     return database;
 }
 
 
-static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC){
+static boolean addByte(dataImageDBPtr *headPtr, unsigned char byte, long DC){
     boolean result = TRUE;
     void *temp;
 
@@ -50,14 +55,14 @@ static boolean addByte(dataImagePtr *headPtr, unsigned char byte, long DC){
 
     /* add byte to database */
     if(result){
-        memcpy(*headPtr + DC, &byte, sizeof(char));
+        memcpy(&((*headPtr + DC)->byte), &byte, sizeof(char));
     }
 
     return result;
 }
 
 
-static boolean addNumber(dataImagePtr *headPtr, long *DCPtr, long value, int numOfBytes){
+static boolean addNumber(dataImageDBPtr *headPtr, long *DCPtr, long value, int numOfBytes){
     boolean result = TRUE;
     int i, offset;
     unsigned long mask;
@@ -86,7 +91,7 @@ static boolean addNumber(dataImagePtr *headPtr, long *DCPtr, long value, int num
 }
 
 
-errorCodes addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType){
+errorCodes addNumberArray(dataImageDBPtr *headPtr, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType){
     int i;
     int numOfBytes;/* how many bytes should the number span */
     errorCodes encounteredError = NO_ERROR;
@@ -117,7 +122,7 @@ errorCodes addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int a
 }
 
 
-errorCodes addString(dataImagePtr *headPtr, long *DCPtr, char *str){
+errorCodes addString(dataImageDBPtr *headPtr, long *DCPtr, char *str){
     char *next;/* pointer to next character in string */
     char *current;/* pointer to current character being added */
     errorCodes encounteredError = NO_ERROR;
@@ -136,11 +141,11 @@ errorCodes addString(dataImagePtr *headPtr, long *DCPtr, char *str){
 
 unsigned char getNextDataByte(void *headPtr, long index){
 
-    return ((char *)headPtr)[index];
+    return (((dataImageDBPtr)headPtr) + index)->byte;
 }
 
 
-void clearDataImageDB(dataImagePtr head){
+void clearDataImageDB(dataImageDBPtr head){
     if(head){
         free(head);
     }

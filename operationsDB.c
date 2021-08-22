@@ -1,8 +1,8 @@
-#include "data.h"
+#include "global.h"
 #include <stdlib.h>
 #include <string.h>
 #ifndef MAX_LINE
-#include "data.h"
+#include "global.h"
 #endif
 
 #include "operationsDB.h"
@@ -154,7 +154,7 @@ boolean seekDataOp(char *str, dataOps *dataOpTypePtr){
 }
 
 
-boolean firstOperandFormat(operationClass commandOpType, codeLineData *currentLineDataPtr,
+boolean firstOperandFormat(operationClass commandOpType, codeLineData *codeLineDataPtr,
                            operandAttributes *currentOperandPtr){
     boolean needMoreOperands = TRUE;
 
@@ -163,20 +163,20 @@ boolean firstOperandFormat(operationClass commandOpType, codeLineData *currentLi
         needMoreOperands = FALSE;
     }
     else if(commandOpType <= R_COPY){/* is R type */
-        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->rAttributes.rs;
+        currentOperandPtr->valuePointer.regPtr = &codeLineDataPtr->rAttributes.rs;
     }
     else if(commandOpType <= I_MEMORY_LOAD){/* is I type */
-        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->iAttributes.rs;
+        currentOperandPtr->valuePointer.regPtr = &codeLineDataPtr->iAttributes.rs;
     }
     else{/* is J type - not stop */
-        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->jAttributes.address;
+        currentOperandPtr->valuePointer.regPtr = &codeLineDataPtr->jAttributes.address;
     }
 
     return needMoreOperands;
 }
 
 
-boolean secondOperandFormat(operationClass commandOpType, codeLineData *currentLineDataPtr,
+boolean secondOperandFormat(operationClass commandOpType, codeLineData *codeLineDataPtr,
                             operandAttributes *currentOperandPtr){
     boolean needMoreOperands = TRUE;
 
@@ -184,22 +184,22 @@ boolean secondOperandFormat(operationClass commandOpType, codeLineData *currentL
         needMoreOperands = FALSE;
     }
     else if(commandOpType == R_ARITHMETIC){
-        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->rAttributes.rt;
+        currentOperandPtr->valuePointer.regPtr = &codeLineDataPtr->rAttributes.rt;
     }
     else if(commandOpType == R_COPY){
-        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->rAttributes.rd;
+        currentOperandPtr->valuePointer.regPtr = &codeLineDataPtr->rAttributes.rd;
     }
     else if(commandOpType == I_ARITHMETIC || commandOpType == I_MEMORY_LOAD){
-        currentOperandPtr->valuePointer.immedPtr = &currentLineDataPtr->iAttributes.immed;
+        currentOperandPtr->valuePointer.immedPtr = &codeLineDataPtr->iAttributes.immed;
     }
     else if(commandOpType == I_BRANCHING){
-        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->iAttributes.rt;
+        currentOperandPtr->valuePointer.regPtr = &codeLineDataPtr->iAttributes.rt;
     }
 
     return needMoreOperands;
 }
 
-boolean thirdOperandFormat(operationClass commandOpType, codeLineData *currentLineDataPtr,
+boolean thirdOperandFormat(operationClass commandOpType, codeLineData *codeLineDataPtr,
                            operandAttributes *currentOperandPtr){
     boolean needMoreOperands = TRUE;
 
@@ -207,10 +207,10 @@ boolean thirdOperandFormat(operationClass commandOpType, codeLineData *currentLi
         needMoreOperands = FALSE;
     }
     else if(commandOpType == R_ARITHMETIC){
-        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->rAttributes.rd;
+        currentOperandPtr->valuePointer.regPtr = &codeLineDataPtr->rAttributes.rd;
     }
     else if(commandOpType == I_ARITHMETIC || commandOpType == I_MEMORY_LOAD){
-        currentOperandPtr->valuePointer.regPtr = &currentLineDataPtr->iAttributes.rt;
+        currentOperandPtr->valuePointer.regPtr = &codeLineDataPtr->iAttributes.rt;
     }
 
     return needMoreOperands;

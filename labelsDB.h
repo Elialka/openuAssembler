@@ -1,6 +1,15 @@
 #ifndef MAX_LINE
-#include "data.h"
+#include "global.h"
 #endif
+
+
+typedef enum{
+    UNIDENTIFIED_LABEL_TYPE,
+    CODE_LABEL,
+    DATA_LABEL,
+    EXTERN_LABEL
+}labelType;
+
 
 typedef struct definedLabel{
     labelID labelId;

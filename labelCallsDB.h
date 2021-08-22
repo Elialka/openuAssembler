@@ -1,5 +1,5 @@
 #ifndef MAX_LINE
-#include "data.h"
+#include "global.h"
 #endif
 
 typedef struct{

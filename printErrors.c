@@ -73,6 +73,9 @@ void printFileErrorMessage(errorCodes encounteredError, lineID *lineIdPtr, fileE
         case MEMORY_ALLOCATION_FAILURE:
             printf("FATAL ERROR! Memory allocation failure!\n");
             break;
+        case EXCEEDING_MEMORY_LIMITS:
+            printf("FATAL ERROR! Program memory exceeds 25 bit memory limits!\n");
+            break;
         case UNIDENTIFIED_OPERATION_NAME:
             printf("ERROR! Unrecognized command!\n");
             break;

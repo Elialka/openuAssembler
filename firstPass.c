@@ -23,6 +23,12 @@ typedef struct labelAttributes{/* todo maybe reset flag each line */
     boolean labelIsUsed;/* based on context, track if a label definition or call occurred */
 }labelAttributes;
 
+typedef enum{
+    UNIDENTIFIED_COMMAND = 0,
+    OPERATION_LINE,
+    INSTRUCTION_LINE
+}commandType;
+
 typedef struct commandAttributes *commandAttributesPtr;
 
 typedef struct commandAttributes{
@@ -113,7 +119,7 @@ externOrEntry(char **currentPosPtr, dataOps dataOpType, lineAttributesPtr lineDa
  * @param dataImageDBPtr pointer to data image database pointer
  * @return errorCodes enum value describing function success/failure
  */
-static errorCodes readNumbers(char **currentPosPtr, dataOps dataOpType, long *DCPtr, dataImagePtr *dataImageDBPtr);
+static errorCodes readNumbers(char **currentPosPtr, dataOps dataOpType, long *DCPtr, dataImageDBPtr *dataImageDBPtr);
 
 /**
  * Handle asciz instruction
@@ -122,7 +128,7 @@ static errorCodes readNumbers(char **currentPosPtr, dataOps dataOpType, long *DC
  * @param dataImageDBPtr pointer to data image database pointer
  * @return errorCodes enum value describing function success/failure
  */
-static errorCodes readString(char **currentPosPtr, long *DCPtr, dataImagePtr *dataImageDBPtr);
+static errorCodes readString(char **currentPosPtr, long *DCPtr, dataImageDBPtr *dataImageDBPtr);
 
 /**
  * Check if a label is defined in current line, update line attributes accordingly
@@ -158,44 +164,44 @@ static void checkRedundantLabel(labelAttributesPtr definedLabelDataPtr, commandA
  */
 static errorCodes addLabel(labelAttributesPtr definedLabelDataPtr, long IC, long DC, databasePtr labelsDB);
 
-static errorCodes extractCodeOperands(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
+static errorCodes extractCodeOperands(char **currentPosPtr, operationClass commandOpType, codeLineData *codeLineDataPtr,
                                       lineAttributesPtr lineDataPtr, databasePtr labelCallsDB);
 
 /**
  * Check if first operand is needed, and extract relevant information from it
  * @param currentPosPtr Pointer to position in line array
  * @param commandOpType type of command
- * @param currentLineDataPtr pointer to structure to set operand attributes
+ * @param codeLineDataPtr pointer to structure to set operand attributes
  * @param needAnotherPtr flag turns on if current operand is needed
  * @param calledLabelPtr pointer to label structure to copy label name if used
  * @return errorCodes enum value describing function success/failure
  */
-static errorCodes handleFirstOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
+static errorCodes handleFirstOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *codeLineDataPtr,
                               boolean *needAnotherPtr, labelAttributes *calledLabelPtr);
 /**
  * Check if second operand is needed, and extract relevant information from it
  * @param currentPosPtr Pointer to position in line array
  * @param commandOpType type of command
- * @param currentLineDataPtr pointer to structure to set operand attributes
+ * @param codeLineDataPtr pointer to structure to set operand attributes
  * @param needAnotherPtr flag turns on if current operand is needed
  * @return errorCodes enum value describing function success/failure
  */
-static errorCodes handleSecondOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
+static errorCodes handleSecondOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *codeLineDataPtr,
                                boolean *needAnotherPtr);
 /**
  * Check if third operand is needed, and extract relevant information from it
  * @param currentPosPtr Pointer to position in line array
  * @param commandOpType type of command
- * @param currentLineDataPtr pointer to structure to set operand attributes
+ * @param codeLineDataPtr pointer to structure to set operand attributes
  * @param calledLabelPtr pointer to label structure to copy label name if used
  * @return errorCodes enum value describing function success/failure
  */
-static errorCodes handleThirdOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
+static errorCodes handleThirdOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *codeLineDataPtr,
                               labelAttributes *calledLabelPtr);
 
 /**
  * Check for extraneous text in the end of the line, and ensure line was not longer than max supported length
- * @param currentLineData Position in line array
+ * @param lineIdPtr pointer to
  * @param sourceFile pointer to file
  * @return TRUE if no errors occurred, FALSE otherwise
  */
@@ -214,7 +220,7 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
     *DCFPtr = DC;
 
     if(result && IC + DC > ADDRESS_MAX_VALUE){/* total memory image size exceeds machine capabilities */
-        /* todo check if error is printed */
+        printFileErrorMessage(EXCEEDING_MEMORY_LIMITS, NULL, fileStatusPtr);
         result = FALSE;
     }
 
@@ -232,7 +238,7 @@ encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRouterPtr databas
     currentLineData.DCPtr = DCPtr;
 
     for(currentLineData.lineId.count = 1;
-    fgets(currentLineData.lineId.line, MAX_LINE, sourceFile);/* todo check if maxLine + 1 */
+    fgets(currentLineData.lineId.line, CHARS_PER_LINE_MAX, sourceFile);
     currentLineData.lineId.count++){/* there is another line */
         encounteredError = NO_ERROR;
 
@@ -380,7 +386,7 @@ externOrEntry(char **currentPosPtr, dataOps dataOpType, lineAttributesPtr lineDa
 }
 
 
-static errorCodes readNumbers(char **currentPosPtr, dataOps dataOpType, long *DCPtr, dataImagePtr *dataImageDBPtr){
+static errorCodes readNumbers(char **currentPosPtr, dataOps dataOpType, long *DCPtr, dataImageDBPtr *dataImageDBPtr){
     int amountOfNumbers;
     long numbers[NUMBERS_ARRAY_SIZE];
     errorCodes encounteredError = NO_ERROR;
@@ -394,7 +400,7 @@ static errorCodes readNumbers(char **currentPosPtr, dataOps dataOpType, long *DC
 }
 
 
-static errorCodes readString(char **currentPosPtr, long *DCPtr, dataImagePtr *dataImageDBPtr){
+static errorCodes readString(char **currentPosPtr, long *DCPtr, dataImageDBPtr *dataImageDBPtr){
     char string[LINE_ARRAY_SIZE];
     errorCodes encounteredError = getStringFromLine(currentPosPtr, string);
 
@@ -494,7 +500,7 @@ static errorCodes addLabel(labelAttributesPtr definedLabelDataPtr, long IC, long
 }
 
 
-static errorCodes extractCodeOperands(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
+static errorCodes extractCodeOperands(char **currentPosPtr, operationClass commandOpType, codeLineData *codeLineDataPtr,
                                       lineAttributesPtr lineDataPtr, databasePtr labelCallsDB){
     errorCodes encounteredError;
     labelAttributes calledLabel;/* struct holding information about label operand if was present */
@@ -506,16 +512,16 @@ static errorCodes extractCodeOperands(char **currentPosPtr, operationClass comma
     calledLabel.data.called.type = commandOpType;
     calledLabel.data.called.labelId.address = *lineDataPtr->ICPtr;
 
-    encounteredError = handleFirstOperand(currentPosPtr, commandOpType, currentLineDataPtr,
+    encounteredError = handleFirstOperand(currentPosPtr, commandOpType, codeLineDataPtr,
                                           &mayNeedAnotherOperand, &calledLabel);
 
     if(!encounteredError && mayNeedAnotherOperand){/* first operand read successfully */
-        encounteredError = handleSecondOperand(currentPosPtr, commandOpType, currentLineDataPtr,
+        encounteredError = handleSecondOperand(currentPosPtr, commandOpType, codeLineDataPtr,
                                                &mayNeedAnotherOperand);
     }
 
     if(!encounteredError && mayNeedAnotherOperand){/* second operand read successfully */
-        encounteredError = handleThirdOperand(currentPosPtr, commandOpType, currentLineDataPtr, &calledLabel);
+        encounteredError = handleThirdOperand(currentPosPtr, commandOpType, codeLineDataPtr, &calledLabel);
     }
 
     /* mark label usage */
@@ -527,11 +533,11 @@ static errorCodes extractCodeOperands(char **currentPosPtr, operationClass comma
 }
 
 
-static errorCodes handleFirstOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
+static errorCodes handleFirstOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *codeLineDataPtr,
                               boolean *needAnotherPtr, labelAttributes *calledLabelPtr){
     errorCodes encounteredError = NO_ERROR;
     operandAttributes currentOperand;
-    boolean operandIsNeeded = firstOperandFormat(commandOpType, currentLineDataPtr, &currentOperand);
+    boolean operandIsNeeded = firstOperandFormat(commandOpType, codeLineDataPtr, &currentOperand);
 
     currentOperand.isLabel = FALSE;/* reset parameter is labels flag */
 
@@ -543,18 +549,18 @@ static errorCodes handleFirstOperand(char **currentPosPtr, operationClass comman
         strcpy(calledLabelPtr->data.called.labelId.name, currentOperand.labelName);
     }
     else if(commandOpType == J_JMP){/* register is used with jmp command */
-        currentLineDataPtr->jAttributes.isReg = TRUE;
+        codeLineDataPtr->jAttributes.isReg = TRUE;
     }
 
     *needAnotherPtr = operandIsNeeded;
     return encounteredError;
 }
 
-static errorCodes handleSecondOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
+static errorCodes handleSecondOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *codeLineDataPtr,
                                boolean *needAnotherPtr){
     errorCodes encounteredError = NO_ERROR;
     operandAttributes currentOperand;
-    boolean operandIsNeeded = secondOperandFormat(commandOpType, currentLineDataPtr, &currentOperand);
+    boolean operandIsNeeded = secondOperandFormat(commandOpType, codeLineDataPtr, &currentOperand);
 
     if(operandIsNeeded){
         encounteredError = readComma(currentPosPtr);
@@ -567,11 +573,11 @@ static errorCodes handleSecondOperand(char **currentPosPtr, operationClass comma
     return encounteredError;
 }
 
-static errorCodes handleThirdOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
+static errorCodes handleThirdOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *codeLineDataPtr,
                               labelAttributes *calledLabelPtr){
     errorCodes encounteredError = NO_ERROR;
     operandAttributes currentOperand;
-    boolean operandIsNeeded = thirdOperandFormat(commandOpType, currentLineDataPtr, &currentOperand);
+    boolean operandIsNeeded = thirdOperandFormat(commandOpType, codeLineDataPtr, &currentOperand);
 
     currentOperand.isLabel = FALSE;/* reset flag */
 

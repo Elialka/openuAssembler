@@ -1,11 +1,8 @@
 /* max supported sizes */
 #define MAX_LABEL_LENGTH (31)
 #define MAX_LINE (80)
+#define CHARS_PER_LINE_MAX (MAX_LINE + 1)
 #define MAX_FILENAME_LENGTH (250)
-#define MAX_COMMAND_LENGTH (7)
-#define SIZE_OF_BYTE (1)
-#define SIZE_OF_HALF_WORD (2)
-#define SIZE_OF_WORD (4)
 #define I_TYPE_IMMED_MAX_VALUE_SIGNED (32767)
 #define I_TYPE_IMMED_MIN_VALUE (-32768)
 #define I_TYPE_IMMED_MAX_VALUE_UNSIGNED (65536)
@@ -16,24 +13,21 @@
 #define REGISTER_MIN_INDEX (0)
 #define REGISTER_MAX_INDEX (31)
 
-
 /* array types sizes */
 #define LABEL_ARRAY_SIZE (MAX_LABEL_LENGTH + 1) /* label length including '\0' character */
 #define LINE_ARRAY_SIZE (MAX_LINE + 2)/* including '\n' and '\0' */
 #define TOKEN_ARRAY_SIZE (MAX_LINE)
 #define NUMBERS_ARRAY_SIZE (MAX_LINE / 2)
 #define IMAGE_BLOCK_SIZE (50)
-#define COMMAND_ARRAY_SIZE (MAX_COMMAND_LENGTH + 1)
+
 
 /* default values */
 #define STARTING_ADDRESS (100)
 #define CODE_AND_DATA_IMAGE_MARGIN (0)
 #define EXTERN_LABEL_VALUE (0)
-#define NOT_FOUND (-1)
 
 
 /* formats */
-#define DECIMAL_BASE (10)
 #define SOURCE_FILE_EXTENSION (".as")
 #define OBJECT_FILE_EXTENSION (".ob")
 #define ENTRY_FILE_EXTENSION (".ent")
@@ -44,6 +38,8 @@ typedef enum {
     FALSE = 0,
     TRUE = 1
 }boolean;
+
+/* error enums */
 
 typedef enum{
     LINE_TOO_LONG,
@@ -66,6 +62,7 @@ typedef enum{
     CANNOT_BE_EXTERN,
     /* memory */
     MEMORY_ALLOCATION_FAILURE,
+    EXCEEDING_MEMORY_LIMITS,
     /* operation names */
     UNIDENTIFIED_OPERATION_NAME,
     MISSING_OPERATION_NAME,
@@ -107,7 +104,8 @@ typedef struct fileErrorStatus{
     boolean errorOccurred;
 }fileErrorStatus;
 
-typedef enum{
+
+typedef enum{/* for code line commands - grouped by operand types */
     R_ARITHMETIC,
     R_COPY,
     I_ARITHMETIC,
@@ -118,7 +116,7 @@ typedef enum{
     J_STOP
 }operationClass;
 
-typedef enum{
+typedef enum{/* for data line commands */
     ENTRY,
     EXTERN,
     DW,
@@ -127,67 +125,13 @@ typedef enum{
     ASCIZ
 }dataOps;
 
-typedef enum{
-    ADD = 0,
-    SUB = 0,
-    AND = 0,
-    OR = 0,
-    NOR = 0,
-    MOVE = 1,
-    MVHI = 1,
-    MVLO = 1,
-    ADDI = 10,
-    SUBI = 11,
-    ANDI = 12,
-    ORI = 13,
-    NORI = 14,
-    BNE = 15,
-    BEQ = 16,
-    BLT = 17,
-    BGT = 18,
-    LB = 19,
-    SB = 20,
-    LW = 21,
-    SW = 22,
-    LH = 23,
-    SH = 24,
-    JMP = 30,
-    LA = 31,
-    CALL = 32,
-    STOP = 63
-}opcodes;
 
-typedef enum{
-    ADD_FUNCT = 1,
-    SUB_FUNCT = 2,
-    AND_FUNCT = 3,
-    OR_FUNCT = 4,
-    NOR_FUNCT = 5,
-    MOVE_FUNCT = 1,
-    MVHI_FUNCT = 2,
-    MVLO_FUNCT = 3
-}functValues;
-
-typedef enum{
-    UNIDENTIFIED_LABEL_TYPE,
-    CODE_LABEL,
-    DATA_LABEL,
-    EXTERN_LABEL
-}labelType;
-
-typedef enum{
-    UNIDENTIFIED_COMMAND = 0,
-    OPERATION_LINE,
-    INSTRUCTION_LINE
-}commandType;
-
-
-typedef struct lineID{
+typedef struct lineID{/* input line identifiers */
     char line[LINE_ARRAY_SIZE];/* the line exactly as read from input file */
     long count;/* number of line in input file */
 }lineID;
 
-typedef struct labelID{
+typedef struct labelID{/* label identifiers */
     char name[LABEL_ARRAY_SIZE];/* name of label */
     long address;/* based on context - address defined or address called as operand */
 }labelID;
@@ -197,7 +141,7 @@ typedef struct labelID{
 
 typedef union codeImageDB *codeImageDBPtr;
 
-typedef char *dataImagePtr;/* todo change terminology */
+typedef struct dataImageDB *dataImageDBPtr;
 
 typedef struct operationsDB *operationsDBPtr;
 
@@ -205,9 +149,9 @@ typedef struct unit *databasePtr;
 
 typedef struct databaseRouter *databaseRouterPtr;
 
-typedef struct databaseRouter{
+typedef struct databaseRouter{/* structure holding pointers to all databases */
     codeImageDBPtr codeImageDB;
-    dataImagePtr dataImageDB;
+    dataImageDBPtr dataImageDB;
     databasePtr entryCallsDB;
     databasePtr externUsesDB;
     databasePtr labelCallsDB;
@@ -238,15 +182,6 @@ typedef struct jTypeData{
     boolean isReg;
     unsigned char address;
 }jTypeData;
-
-
-typedef union codeLineData{
-    rTypeData rAttributes;
-    iTypeData iAttributes;
-    jTypeData jAttributes;
-}codeLineData;
-
-
 
 
 typedef struct operandAttributes{

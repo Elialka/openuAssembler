@@ -1,38 +1,25 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "firstPass.h"
-#include "secondPass.h"
-#include "labelsDB.h"
-#include "operationsDB.h"
-#include "dataImageDB.h"
-#include "codeImageDB.h"
-#include "labelCallsDB.h"
-#include "entryCallsDB.h"
-#include "externUsesDB.h"
-#include "printFiles.h"
-#include "printErrors.h"
-
 #ifndef MAX_LINE
-#include "data.h"
+#include "global.h"
 #endif
 
+#include "codeImageDB.h"
+#include "dataImageDB.h"
+#include "entryCallsDB.h"
+#include "externUsesDB.h"
+#include "firstPass.h"
+#include "labelCallsDB.h"
+#include "labelsDB.h"
+#include "operationsDB.h"
+#include "printErrors.h"
+#include "printFiles.h"
+#include "secondPass.h"
+
 /* todo possible refactors */
-/* address long labels definition before entry or extern */
-/* new typedef of only char in dataImageDB - for abstraction */
-/* add reset EACH structure occurrence */
-/* add NULL checking */
-/* check all strcmp */
-/* complete struct renaming terminology throughout project */
-/* operationsDB.h - check no data.h include in header file + maybe remove from databases struct */
 /* wrong error for .dh number out of range */
 /* error printing: handle file headline + mark end of file  - error printing database */
-/* program does not address labels definition without ':' - wrong error message */
-/* pandas refactor long functions/functions that receive many parameters */
-/* for every database - extract finding end of DB\allocating additional memory to different function */
-/* for every database - check if head not NULL */
-/* test reallocation codeImageDB, dataImageDB */
-/* in the end, make as many functions as static as possible */
 
 /**
  * Initialize static databases to be used throughout the program,

@@ -1,5 +1,5 @@
 #ifndef MAX_LINE
-#include "data.h"
+#include "global.h"
 #endif
 
 
@@ -7,7 +7,7 @@
  * Initialize data image database
  * @return pointer to the database
  */
-dataImagePtr initDataImageDB();
+dataImageDBPtr initDataImageDB();
 
 /**
  * Add an array of numbers to the database
@@ -18,7 +18,7 @@ dataImagePtr initDataImageDB();
  * @param dataOpType enum value of data type
  * @return errorCodes enum value describing function success/failure
  */
-errorCodes addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType);
+errorCodes addNumberArray(dataImageDBPtr *headPtr, long *DCPtr, long *array, int amountOfNumbers, dataOps dataOpType);
 
 /**
  * Add a string of characters to the database
@@ -27,7 +27,7 @@ errorCodes addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int a
  * @param str the string
  * @return errorCodes enum value describing function success/failure
  */
-errorCodes addString(dataImagePtr *headPtr, long *DCPtr, char *str);
+errorCodes addString(dataImageDBPtr *headPtr, long *DCPtr, char *str);
 
 /**
  * Get the serial byte in the data image, as specified by index
@@ -41,4 +41,4 @@ unsigned char getNextDataByte(void *headPtr, long index);
  * Free any memory allocated by the database
  * @param head pointer to the database
  */
-void clearDataImageDB(dataImagePtr head);
+void clearDataImageDB(dataImageDBPtr head);

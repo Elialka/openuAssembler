@@ -3,9 +3,9 @@ databases:
     dataImageDB: char * (will be changed to something else) + Ptr in data(dataImagePtr) - encoded byte of data
     entryCallsDB: entryCall + Ptr in data - information fields about entry definition location + the line it was declared as entry
     externUsesDB: externUse + Ptr in data(externUsePtr) - name and IC of extern label used
-    labelsCallsDB: labelCall(in data.h), labelCallNode(in DB) + Ptr in data.h - need to merge with entryCall
-    labelsDB: label + Ptr in data.h - need to merge with labelCalls and entryCalls somehow
-    operationsDB: operation + Ptr in data.h operation encoding data - maybe remove from general databases struct
+    labelsCallsDB: labelCall(in global.h), labelCallNode(in DB) + Ptr in global.h - need to merge with entryCall
+    labelsDB: label + Ptr in global.h - need to merge with labelCalls and entryCalls somehow
+    operationsDB: operation + Ptr in global.h operation encoding data - maybe remove from general databases struct
     databaseRouter - stores database pointer
 
 codeLineData: rTypeData + iTypeData + jTypeData - used in codeImageDB, operationsDB, firstPass

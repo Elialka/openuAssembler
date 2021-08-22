@@ -10,6 +10,7 @@
 #include "labelCallsDB.h"
 
 #define SKIP_WHITES(x) for(; isspace(*(x)); (x)++)
+#define DECIMAL_BASE (10)
 
 
 

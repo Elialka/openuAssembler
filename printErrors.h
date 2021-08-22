@@ -1,6 +1,7 @@
 #ifndef MAX_LINE
-#include "data.h"
+#include "global.h"
 #endif
+
 
 
 void printWarningMessage(warningCodes encounteredWarning, lineID *lineIdPtr, fileErrorStatus *fileStatusPtr);
