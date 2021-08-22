@@ -32,6 +32,9 @@ boolean isExternDBEmpty(externUsesDBPtr head);
  */
 externUsesDBPtr getNextExternUse(externUsesDBPtr currentExternUsePtr);
 
+
+labelID * getExternUseData(externUsesDBPtr currentExternUsePtr);
+
 /**
  *
  * @param currentExternUsePtr

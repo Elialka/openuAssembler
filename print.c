@@ -22,17 +22,11 @@ static void printObjectFile(databaseRouter databases, char *sourceFileName, long
 
 static FILE * createFile(char *sourceFileName, fileType type);
 
-static void printImage(FILE *newFile, long sizeOfDatabase, void *databasePtr,
+static void printImage(FILE *newFile, long sizeOfDatabase, long startingAddress, void *databasePtr,
                        unsigned char (*getNextByte)(void *, long));
 
 static void printLabelAddressesFile(void *database, char *sourceFileName, fileType currentFileType);
-/*
-static char * getCurrentLabelName(void *currentLabel, fileType currentFileType);
 
-static long getCurrentLabelAddress(void *currentLabel, fileType currentFileType);
-
-void * getNextLabel(void *currentLabel, fileType currentFileType);
-*/
 /* todo terminate after failure */
 void writeFiles(databaseRouter databases, char *sourceFilename, long ICF, long DCF){
     printObjectFile(databases, sourceFilename, ICF, DCF);
@@ -85,11 +79,11 @@ static void printObjectFile(databaseRouter databases, char *sourceFileName, long
         fprintf(objectFile, "%ld %ld", ICF, DCF);
 
         /* print code image */
-        printImage(objectFile, ICF, databases.codeImageDB, getEncodedCodeByte);
+        printImage(objectFile, ICF, STARTING_ADDRESS, databases.codeImageDB, getEncodedCodeByte);
 
         /* print data image */
 
-        printImage(objectFile, DCF, databases.dataImageDB, getNextDataByte);
+        printImage(objectFile, DCF, STARTING_ADDRESS + ICF, databases.dataImageDB, getNextDataByte);
 
         /* close file */
         fclose(objectFile);
@@ -124,13 +118,13 @@ static FILE * createFile(char *sourceFileName, fileType type){
 }
 
 
-static void printImage(FILE *newFile, long sizeOfDatabase, void *databasePtr,
-                       unsigned char (*getNextByte)(void *, long)){
+static void printImage(FILE *newFile, long sizeOfDatabase, long startingAddress, void *databasePtr,
+                       unsigned char (*getNextByte)(void *, long)) {
     long imageCounter;/* how many bytes printed */
     unsigned char nextByte;/* next byte in database */
     for(imageCounter = 0; imageCounter < sizeOfDatabase; imageCounter++){
         if(!(imageCounter % BYTES_IN_ROW)){/* print in new line + print current address */
-            fprintf(newFile, "\n%04ld", sizeOfDatabase + STARTING_ADDRESS);
+            fprintf(newFile, "\n%04ld", imageCounter + startingAddress);
         }
         /* print next byte */
         nextByte = getNextByte(databasePtr, imageCounter);
@@ -171,48 +165,7 @@ static void printLabelAddressesFile(void *database, char *sourceFileName, fileTy
     }
 }
 
-/* temp - delete
-static char * getCurrentLabelName(void *currentLabel, fileType currentFileType){
-    char *result;
 
-    if(currentFileType == ENTRY_TYPE){
-        result = getEntryCallData(currentLabel)->labelId.name;
-    }
-    else{
-        result = getExternUseName(currentLabel);
-    }
-
-    return result;
-}
-
-
-static long getCurrentLabelAddress(void *currentLabel, fileType currentFileType){
-    long result;
-
-    if(currentFileType == ENTRY_TYPE){
-        result = getEntryCallAddress(currentLabel);
-    }
-    else{
-        result = getExternUseAddress(currentLabel);
-    }
-
-    return result;
-}
-
-
-void * getNextLabel(void *currentLabel, fileType currentFileType){
-    void *result;
-
-    if(currentFileType == ENTRY_TYPE){
-        result = getNextEntryCall(currentLabel);
-    }
-    else{
-        result = getNextExternUse(currentLabel);
-    }
-
-    return result;
-}
-*/
 void printWarningMessage(warningCodes encounteredWarning, char *line, long lineNumber){
     switch(encounteredWarning){
         case LINE_TOO_LONG:

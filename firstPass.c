@@ -496,6 +496,7 @@ static errorCodes extractCodeOperands(char **currentPosPtr, operationClass comma
     calledLabel.labelIsUsed = FALSE;/* reset flag */
     calledLabel.data.called.lineId = lineDataPtr->lineId;/* copy input line data */
     calledLabel.data.called.type = commandOpType;
+    calledLabel.data.called.labelId.address = *lineDataPtr->ICPtr;
 
     encounteredError = handleFirstOperand(currentPosPtr, commandOpType, currentLineDataPtr,
                                           &mayNeedAnotherOperand, &calledLabel);

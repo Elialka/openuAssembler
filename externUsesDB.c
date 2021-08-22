@@ -10,7 +10,7 @@ typedef struct externUsesDB{
 
 
 externUsesDBPtr initExternUsesDB(){
-    externUsesDBPtr head = calloc(1, sizeof(externUseNode));;
+    externUsesDBPtr head = calloc(1, sizeof(externUseNode));
 
     return head;
 }
@@ -47,53 +47,42 @@ errorCodes addExternUse(externUsesDBPtr head, char *labelName, long IC){
 
 
 boolean isExternDBEmpty(externUsesDBPtr head){
-    boolean result;
+    boolean result = TRUE;
 
-    /* check if first labelCallNode was used */
-    result = ((externUsesDBPtr)head)->labelId.address ? FALSE : TRUE;
+    if(head){
+        /* check if first labelCallNode was used */
+        result = ((externUsesDBPtr)head)->labelId.address ? FALSE : TRUE;
+    }
 
     return result;
 }
 
 
 externUsesDBPtr getNextExternUse(externUsesDBPtr currentExternUsePtr){
-    void *nextExternUsePtr;
+    externUsesDBPtr nextExternUsePtr;
+
     if(!currentExternUsePtr){
         nextExternUsePtr = NULL;
     }
     else{
-        nextExternUsePtr = ((externUsesDBPtr)currentExternUsePtr)->next;
+        nextExternUsePtr = currentExternUsePtr->next;
     }
 
     return nextExternUsePtr;
 }
 
 
-char * getExternUseName(externUsesDBPtr currentExternUsePtr){
-    char *namePtr;
+labelID * getExternUseData(externUsesDBPtr currentExternUsePtr){
+    labelID *data;
 
-    if(!currentExternUsePtr){
-        namePtr = NULL;
+    if(currentExternUsePtr){
+        data = &currentExternUsePtr->labelId;
     }
     else{
-        namePtr = ((externUsesDBPtr)currentExternUsePtr)->labelId.name;
+        data = NULL;
     }
 
-    return namePtr;
-}
-
-
-long getExternUseAddress(externUsesDBPtr currentExternUsePtr){
-    long address;
-
-    if(!currentExternUsePtr){
-        address = 0;
-    }
-    else{
-        address = ((externUsesDBPtr)currentExternUsePtr)->labelId.address;
-    }
-
-    return address;
+    return data;
 }
 
 

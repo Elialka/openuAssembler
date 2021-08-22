@@ -36,16 +36,6 @@ entryCall * getEntryCallData(entryCallsDBPtr entryCallPtr);
  */
 entryCallsDBPtr getNextEntryCall(entryCallsDBPtr entryCallPtr);
 
-/*/* temp - delete
-char * getEntryCallName(entryCallsDBPtr currentEntryPtr);
-
-long getEntryCallAddress(entryCallsDBPtr currentEntryCallPtr);
-
-char * getEntryCallLine(entryCallsDBPtr currentEntryPtr);
-
-long getEntryCallLineCount(entryCallsDBPtr currentEntryCallPtr);
-*/
-
 /**
  * Set entry call definition address
  * @param entryCallPtr pointer to current entry call

@@ -51,13 +51,13 @@ static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr){
                                               currentCallPtr->labelId.name, &definedLabelDataPtr);
 
         /* validate legality of labels type with command type */
-        if(encounteredError){/* found labels attributes */
+        if(!encounteredError){/* found labels attributes */
             encounteredError = validateExternalUsage(databasesPtr->externUsesDB, currentCallPtr,
                                                      definedLabelDataPtr->type);
         }
 
         /* update code image */
-        if(encounteredError){/* labels is of legal type for command type */
+        if(!encounteredError){/* labels is of legal type for command type */
             encounteredError = updateCodeImage(databasesPtr->codeImageDB, currentCallPtr,
                                                definedLabelDataPtr->labelId.address);
         }

@@ -113,61 +113,6 @@ entryCallsDBPtr getNextEntryCall(entryCallsDBPtr entryCallPtr){
     return nextEntryPtr;
 }
 
-/* temp - delete
-char * getEntryCallName(entryCallsDBPtr currentEntryPtr){
-    char *namePtr;
-    if(!currentEntryPtr){
-        namePtr = NULL;
-    }
-    else{
-        namePtr = currentEntryPtr->data.labelId.name;
-    }
-
-    return namePtr;
-}
-
-
-long getEntryCallAddress(entryCallsDBPtr currentEntryCallPtr){
-    long address;
-
-    if(!currentEntryCallPtr){
-        address = 0;
-    }
-    else{
-        address =  currentEntryCallPtr->data.labelId.address;
-    }
-
-    return address;
-}
-
-
-char * getEntryCallLine(entryCallsDBPtr currentEntryPtr){
-    char *line;
-    if(!currentEntryPtr){
-        line = NULL;
-    }
-    else{
-        line = currentEntryPtr->data.lineId.line;
-    }
-
-    return line;
-}
-
-
-long getEntryCallLineCount(entryCallsDBPtr currentEntryCallPtr){
-    long lineCount;
-
-    if(!currentEntryCallPtr){
-        lineCount = 0;
-    }
-    else{
-        lineCount =  currentEntryCallPtr->data.lineId.count;
-    }
-
-    return lineCount;
-}
-*/
-
 void setEntryCallValue(entryCallsDBPtr entryCallPtr, long address){
     if(entryCallPtr){
         entryCallPtr->data.labelId.address = address;
