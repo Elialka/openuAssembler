@@ -1,7 +1,5 @@
 #include <stdlib.h>
 
-#include<stdio.h>/* for tests - delete */
-
 #include "codeImageDB.h"
 
 #define FIRST_16_BITS_MASK (0xFFFF)
@@ -154,35 +152,6 @@ unsigned char getEncodedCodeByte(void *headPtr, long index){
 
     return ((char *)headPtr)[index];
 }
-
-
-void printCode(void *head, long IC){
-    int i, j;
-    encodedOperation *current;
-
-    current = head;
-
-    for(i = 0; i < (IC - 100) / 4; i++, current++){
-        for (j = 0; j < 8; j++){
-            printf("%d", ((current->bytes.fourth) & (1 << (7 - j))) >> (7 - j));
-        }
-        putchar(' ');
-        for (j = 0; j < 8; j++){
-            printf("%d", ((current->bytes.third) & (1 << (7 - j))) >> (7 - j));
-        }
-        putchar(' ');
-        for (j = 0; j < 8; j++){
-            printf("%d", ((current->bytes.second) & (1 << (7 - j))) >> (7 - j));
-        }
-        putchar(' ');
-        for (j = 0; j < 8; j++){
-            printf("%d", ((current->bytes.first) & (1 << (7 - j))) >> (7 - j));
-        }
-        putchar('\n');
-    }
-
-    printf("\n");
-}/* temp - delete */
 
 
 void clearCodeImageDB(codeImageDBPtr head){

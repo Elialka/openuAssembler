@@ -223,8 +223,7 @@ errorCodes getStringFromLine(char **currentPosPtr, char *destination){
     return encounteredError;
 }
 
-/* todo test function */
-/* todo maybe switch return type and error pointer*/
+
 int getNumbersFromLine(char **currentPosPtr, long *numbersArray, dataOps dataOpType, errorCodes *lineErrorPtr){
     errorCodes encounteredError = NO_ERROR;
     int i;/* will help keep track if we are expecting a comma or a number */

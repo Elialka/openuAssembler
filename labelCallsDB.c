@@ -85,23 +85,6 @@ errorCodes addLabelCall(labelCallsDBPtr head, labelCall *newCallPtr) {
     return encounteredError;
 }
 
-/*temp - delete
-boolean getLabelCall(labelCallsDBPtr head, int index, labelCall *destination){
-    int i;
-    labelCallsDBPtr current = head;
-
-    for(i = 0; current && i < index; current = current->next, i++)
-        ;
-
-    if(current){ labelsDB call in given index exists
-        *destination = current->data;
-        return TRUE;
-    }
-    else{
-        return FALSE;
-    }
-}
-*/
 
 labelCall * getLabelCallData(labelCallsDBPtr labelCallPtr){
     labelCall *data = NULL;

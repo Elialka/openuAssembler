@@ -25,10 +25,6 @@ labelCallsDBPtr initLabelCallsDB();
  */
 errorCodes addLabelCall(labelCallsDBPtr head, labelCall *newCallPtr);
 
-/* temp - delete
-boolean getLabelCall(labelCallsDBPtr head, int index, labelCall *destination);
-*/
-
 /**
  * Get current label call data
  * @param labelCallPtr pointer to label call

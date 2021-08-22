@@ -30,8 +30,7 @@ static boolean isLabelsDBEmpty(labelsDBPtr head){
 
 
 /*
- * todo may be redundant
- * return if labelsDB with matching name already exists in database
+ * return if labels with matching name already exists in database
  */
 boolean seekLabel(labelsDBPtr head, char *name){
     labelsDBPtr curr;

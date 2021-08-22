@@ -16,8 +16,6 @@
 #include "data.h"
 #endif
 
-#include "tests.h"
-
 /* todo possible refactors */
 /* remake second pass to use abstract functions from labelCallsDB */
 /* address long labelsDB definition before entry or extern */
@@ -98,14 +96,6 @@ int main(int argc, char *argv[]){
     else{/* program inline parameters present */
         /* initialize operation names database */
         initProjectDatabases(&databases);
-
-        /* test - delete */
-        /*
-        initFileDataBases(&databases);
-        testFunctions(&databases);
-        clearFileDatabases(&databases);
-         */
-        /* end of test */
 
         /* compile files */
         for(i = 1; i < argc; i++){

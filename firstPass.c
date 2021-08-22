@@ -606,14 +606,3 @@ void flushLine(FILE *sourceFile, char *line, long lineCounter){
         }
     }
 }
-
-
-
-
-/* temp - delete - test */
-errorCodes extractCodeOperandsTest(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
-                                   long *ICPtr, labelCallsDBPtr labelCallsDB){
-    lineAttributes lineData;
-    lineData.ICPtr = ICPtr;
-    return extractCodeOperands(currentPosPtr, commandOpType, currentLineDataPtr, &lineData,labelCallsDB);
-}
