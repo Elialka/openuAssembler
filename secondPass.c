@@ -1,9 +1,11 @@
+#include <stddef.h>
 #include "secondPass.h"
 #include "labelsDB.h"
 #include "labelCallsDB.h"
 #include "codeImageDB.h"
 #include "entryCallsDB.h"
 #include "externUsesDB.h"
+#include "printErrors.h"
 
 static errorCodes
 validateExternalUsage(databasePtr externDatabase, labelCall *currentCallPtr, labelType definedLabelType);
@@ -11,28 +13,29 @@ validateExternalUsage(databasePtr externDatabase, labelCall *currentCallPtr, lab
 static errorCodes
 updateCodeImage(codeImageDBPtr codeImageDatabase, labelCall *currentCallPtr, long labelAddress);
 
-static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr);
+static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr);
 
-static boolean locateEntryDefinitions(databasePtr entryCallsDatabase, databasePtr labelsDatabase);
+static boolean
+locateEntryDefinitions(databasePtr entryCallsDatabase, databasePtr labelsDatabase, fileErrorStatus *fileStatusPtr);
 
 
-boolean secondPass(databaseRouterPtr databasesPtr, long ICF){
+boolean secondPass(databaseRouterPtr databasesPtr, long ICF, fileErrorStatus *fileStatusPtr) {
     boolean result;
 
     /* update data-type labels' addresses, to appear after code image */
     updateDataLabels(databasesPtr->labelsDB, ICF + STARTING_ADDRESS);
 
     /* handle labels as operators usages */
-    result = fillMissingLabelAddresses(databasesPtr);
+    result = fillMissingLabelAddresses(databasesPtr, fileStatusPtr);
 
     if(result){/* no errors */
-        result = locateEntryDefinitions(databasesPtr->entryCallsDB, databasesPtr->labelsDB);
+        result = locateEntryDefinitions(databasesPtr->entryCallsDB, databasesPtr->labelsDB, fileStatusPtr);
     }
 
     return result;
 }
 
-static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr){
+static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr) {
     boolean result = TRUE;
     errorCodes encounteredError = NO_ERROR;/* if errors occur, track encounteredError code */
     databasePtr currentPtr = databasesPtr->labelCallsDB;
@@ -60,7 +63,7 @@ static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr){
         }
 
         if(encounteredError){/* mark encounteredError occurred */
-            printErrorMessage(encounteredError, &currentCallPtr->lineId);
+            printFileErrorMessage(encounteredError, &currentCallPtr->lineId, fileStatusPtr);
             result = FALSE;
         }
     }
@@ -96,14 +99,15 @@ static errorCodes updateCodeImage(codeImageDBPtr codeImageDatabase, labelCall *c
         updateJTypeAddress(codeImageDatabase, currentCallPtr->labelId.address, labelAddress);
     }
     else{/* impossible scenario - only I_branching, call, la and jmp commands use labels */
-        encounteredError = IMPOSSIBLE_UPDATE_CODE_IMAGE;
+        encounteredError = IMPOSSIBLE;
     }
 
     return encounteredError;
 }
 
 
-static boolean locateEntryDefinitions(databasePtr entryCallsDatabase, databasePtr labelsDatabase){
+static boolean
+locateEntryDefinitions(databasePtr entryCallsDatabase, databasePtr labelsDatabase, fileErrorStatus *fileStatusPtr) {
     boolean result = TRUE;/* reset error flag */
     errorCodes encounteredError = NO_ERROR;
     databasePtr currentEntryCall = entryCallsDatabase;/* get first entry call */
@@ -129,7 +133,7 @@ static boolean locateEntryDefinitions(databasePtr entryCallsDatabase, databasePt
             if(encounteredError == LABEL_NOT_FOUND){/* label is declared as entry but not defined */
                 encounteredError = ENTRY_NOT_DEFINED;
             }
-            printErrorMessage(encounteredError, &entryCallData->lineId);
+            printFileErrorMessage(encounteredError, &entryCallData->lineId, fileStatusPtr);
             result = FALSE;
         }
     }

@@ -102,7 +102,7 @@ errorCodes addNumberArray(dataImagePtr *headPtr, long *DCPtr, long *array, int a
             numOfBytes = SIZE_OF_WORD;
             break;
         default:
-            encounteredError = IMPOSSIBLE_ENCODE_DATA;
+            encounteredError = IMPOSSIBLE;
             break;
     }
 

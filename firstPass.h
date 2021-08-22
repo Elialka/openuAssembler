@@ -2,4 +2,6 @@
 #include "data.h"
 #endif
 
-boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPtr databasesPtr);
+
+boolean
+firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr);

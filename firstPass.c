@@ -10,6 +10,7 @@
 #include "codeImageDB.h"
 #include "labelCallsDB.h"
 #include "entryCallsDB.h"
+#include "printErrors.h"
 
 
 typedef struct labelAttributes *labelAttributesPtr;
@@ -19,7 +20,7 @@ typedef struct labelAttributes{/* todo maybe reset flag each line */
         definedLabel defined;
         labelCall called;
     }data;
-    boolean labelIsUsed;/* based on context, track if a labelsDB definition or call occurred */
+    boolean labelIsUsed;/* based on context, track if a label definition or call occurred */
 }labelAttributes;
 
 typedef struct commandAttributes *commandAttributesPtr;
@@ -53,13 +54,15 @@ typedef struct lineAttributes{
  * @param databasesPtr pointer to databases structure
  * @return TRUE if no errors occurred, FALSE otherwise
  */
-static boolean encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRouterPtr databasesPtr);
+static boolean
+encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr);
 
-static errorCodes readLine(lineAttributesPtr lineDataPtr, databaseRouterPtr databasesPtr);
+static errorCodes
+readLine(lineAttributesPtr lineDataPtr, databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr);
 
 /**
- * Read labelsDB definition (if present) and command name, set operation attributes,
- * and add labelsDB to database (if present)
+ * Read label definition (if present) and command name, set operation attributes,
+ * and add label to database (if present)
  * @param currentPosPtr Pointer to position in line array
  * @param operationDataPtr pointer to operation attributes structure
  * @param IC code image counter
@@ -69,7 +72,7 @@ static errorCodes readLine(lineAttributesPtr lineDataPtr, databaseRouterPtr data
  */
 static errorCodes
 handleLabelAndCommandName(char **currentPosPtr, commandAttributesPtr operationDataPtr, lineAttributesPtr lineDataPtr,
-                          databaseRouterPtr databasesPtr);
+                          databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr);
 /**
  * Handle encoding for code operation commands,  print relevant error message if encountered
  * @param currentPosPtr Pointer to position in line array
@@ -122,7 +125,7 @@ static errorCodes readNumbers(char **currentPosPtr, dataOps dataOpType, long *DC
 static errorCodes readString(char **currentPosPtr, long *DCPtr, dataImagePtr *dataImageDBPtr);
 
 /**
- * Check if a labelsDB is defined in current line, update line attributes accordingly
+ * Check if a label is defined in current line, update line attributes accordingly
  * @param currentPosPtr Pointer to position in line array
  * @param definedLabelDataPtr pointer to struct - current line attributes
  * @param operationsDB pointer to operations database
@@ -135,7 +138,7 @@ static errorCodes checkLabelDefinition(char **currentPosPtr, labelAttributesPtr 
  * Print error messages, if any encountered
  * @param currentPosPtr Pointer to position in line array
  * @param operationDataPtr  pointer to operation attributes structure
- * @param labelTypePtr pointer to labelsDB attributes structure
+ * @param labelTypePtr pointer to label attributes structure
  * @param operationsDB pointer to operations database
  * @return errorCodes enum value describing function success/failure
  */
@@ -143,11 +146,11 @@ static errorCodes getLineType(char **currentPosPtr, commandAttributesPtr operati
                               operationsDBPtr operationsDB);
 
 static void checkRedundantLabel(labelAttributesPtr definedLabelDataPtr, commandAttributesPtr operationDataPtr,
-                                lineAttributesPtr lineDataPtr);
+                                lineAttributesPtr lineDataPtr, fileErrorStatus *fileStatusPtr);
 
 /**
- * Add new labelsDB to labels database
- * @param definedLabelDataPtr pointer to labelsDB attributes structure
+ * Add new label to labels database
+ * @param definedLabelDataPtr pointer to label attributes structure
  * @param IC image counter value
  * @param DC data counter value
  * @param labelsDB pointer to labels database
@@ -164,7 +167,7 @@ static errorCodes extractCodeOperands(char **currentPosPtr, operationClass comma
  * @param commandOpType type of command
  * @param currentLineDataPtr pointer to structure to set operand attributes
  * @param needAnotherPtr flag turns on if current operand is needed
- * @param calledLabelPtr pointer to labelsDB structure to copy labelsDB name if used
+ * @param calledLabelPtr pointer to label structure to copy label name if used
  * @return errorCodes enum value describing function success/failure
  */
 static errorCodes handleFirstOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
@@ -184,7 +187,7 @@ static errorCodes handleSecondOperand(char **currentPosPtr, operationClass comma
  * @param currentPosPtr Pointer to position in line array
  * @param commandOpType type of command
  * @param currentLineDataPtr pointer to structure to set operand attributes
- * @param calledLabelPtr pointer to labelsDB structure to copy labelsDB name if used
+ * @param calledLabelPtr pointer to label structure to copy label name if used
  * @return errorCodes enum value describing function success/failure
  */
 static errorCodes handleThirdOperand(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
@@ -196,15 +199,16 @@ static errorCodes handleThirdOperand(char **currentPosPtr, operationClass comman
  * @param sourceFile pointer to file
  * @return TRUE if no errors occurred, FALSE otherwise
  */
-static void flushLine(FILE *sourceFile, lineID *lineIdPtr);
+static void flushLine(FILE *sourceFile, lineID *lineIdPtr, fileErrorStatus *fileStatusPtr);
 
 
-boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPtr databasesPtr){
+boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPtr databasesPtr,
+                  fileErrorStatus *fileStatusPtr) {
     /* reset image counters */
     long IC = STARTING_ADDRESS;
     long DC = CODE_AND_DATA_IMAGE_MARGIN;
 
-    boolean result = encodeFile(sourceFile, &IC, &DC, databasesPtr);
+    boolean result = encodeFile(sourceFile, &IC, &DC, databasesPtr, fileStatusPtr);
 
     *ICFPtr = IC - STARTING_ADDRESS;
     *DCFPtr = DC;
@@ -218,7 +222,8 @@ boolean firstPass(FILE *sourceFile, long *ICFPtr, long *DCFPtr, databaseRouterPt
 }
 
 
-static boolean encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRouterPtr databasesPtr){
+static boolean
+encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr) {
     lineAttributes currentLineData;/* structure containing line array + counters */
     boolean result = TRUE;
     errorCodes encounteredError = NO_ERROR;
@@ -231,13 +236,13 @@ static boolean encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRo
     currentLineData.lineId.count++){/* there is another line */
 
         if(needToReadLine(currentLineData.lineId.line)){/* line should be analysed */
-            encounteredError = readLine(&currentLineData, databasesPtr);
+            encounteredError = readLine(&currentLineData, databasesPtr, fileStatusPtr);
         }
 
-        flushLine(sourceFile, &currentLineData.lineId);
+        flushLine(sourceFile, &currentLineData.lineId, fileStatusPtr);
 
         if(encounteredError){
-            printErrorMessage(encounteredError, &currentLineData.lineId);
+            printFileErrorMessage(encounteredError, &currentLineData.lineId, fileStatusPtr);
             result = FALSE;
         }
     }
@@ -246,12 +251,14 @@ static boolean encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRo
 }
 
 
-static errorCodes readLine(lineAttributesPtr lineDataPtr, databaseRouterPtr databasesPtr){
+static errorCodes
+readLine(lineAttributesPtr lineDataPtr, databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr) {
     char *currentPos = lineDataPtr->lineId.line;/* position in line array */
     commandAttributes currCommandAttributes;/* current operation identifiers*/
     errorCodes encounteredError;
 
-    encounteredError = handleLabelAndCommandName(&currentPos, &currCommandAttributes, lineDataPtr, databasesPtr);
+    encounteredError = handleLabelAndCommandName(&currentPos, &currCommandAttributes,
+                                                 lineDataPtr, databasesPtr, fileStatusPtr);
 
     if(!encounteredError){
         if(currCommandAttributes.lineType == OPERATION_LINE){
@@ -272,7 +279,7 @@ static errorCodes readLine(lineAttributesPtr lineDataPtr, databaseRouterPtr data
 
 static errorCodes
 handleLabelAndCommandName(char **currentPosPtr, commandAttributesPtr operationDataPtr, lineAttributesPtr lineDataPtr,
-                          databaseRouterPtr databasesPtr){
+                          databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr) {
     labelAttributes definedLabelData;/* structure to store defined label attributes, if present */
     errorCodes encounteredError = checkLabelDefinition(currentPosPtr, &definedLabelData, databasesPtr->operationsDB);
 
@@ -281,7 +288,7 @@ handleLabelAndCommandName(char **currentPosPtr, commandAttributesPtr operationDa
     }
 
     if(!encounteredError){
-        checkRedundantLabel(&definedLabelData, operationDataPtr, lineDataPtr);
+        checkRedundantLabel(&definedLabelData, operationDataPtr, lineDataPtr, fileStatusPtr);
     }
 
     if(!encounteredError){
@@ -319,7 +326,7 @@ static errorCodes encodeCodeCommand(char **currentPosPtr, commandAttributesPtr o
             encounteredError = addJCommand(&databasesPtr->codeImageDB, lineDataPtr->ICPtr, currentLineData.jAttributes);
         }
         else{/* impossible scenario */
-            encounteredError = IMPOSSIBLE_ENCODE_CODE;
+            encounteredError = IMPOSSIBLE;
         }
     }
 
@@ -344,7 +351,7 @@ encodeDataCommand(char **currentPosPtr, commandAttributesPtr operationDataPtr, l
         encounteredError = readString(currentPosPtr, lineDataPtr->DCPtr, &databasesPtr->dataImageDB);
     }
     else{
-        encounteredError = IMPOSSIBLE_ENCODE_DATA;
+        encounteredError = IMPOSSIBLE;
     }
 
     return encounteredError;
@@ -405,11 +412,11 @@ static errorCodes checkLabelDefinition(char **currentPosPtr, labelAttributesPtr 
         if(seekOp(operationsDB, definedLabelDataPtr->data.defined.labelId.name) == NOT_FOUND){/* labels name is not operation name */
             definedLabelDataPtr->labelIsUsed = TRUE;
         }
-        else{/* labelsDB name is operation name */
+        else{/* label name is operation name */
             encounteredError = LABEL_IS_OPERATION;
         }
     }
-    else{/* no labelsDB definition */
+    else{/* no label definition */
         definedLabelDataPtr->labelIsUsed = FALSE;
     }
 
@@ -446,7 +453,7 @@ static errorCodes getLineType(char **currentPosPtr, commandAttributesPtr operati
 
 
 static void checkRedundantLabel(labelAttributesPtr definedLabelDataPtr, commandAttributesPtr operationDataPtr,
-                                lineAttributesPtr lineDataPtr){
+                                lineAttributesPtr lineDataPtr, fileErrorStatus *fileStatusPtr) {
     if(operationDataPtr->lineType == INSTRUCTION_LINE){/* is data instruction line */
 
         if(definedLabelDataPtr->labelIsUsed){/* label definition is present */
@@ -454,8 +461,8 @@ static void checkRedundantLabel(labelAttributesPtr definedLabelDataPtr, commandA
             if(operationDataPtr->operationID.dataOpType == ENTRY ||
             operationDataPtr->operationID.dataOpType == EXTERN){
 
-                /* redundant labelsDB definition - ignore */
-                printWarningMessage(DEFINED_LABEL_ENTRY_EXTERN, &lineDataPtr->lineId);
+                /* redundant label definition - ignore */
+                printWarningMessage(DEFINED_LABEL_ENTRY_EXTERN, &lineDataPtr->lineId, fileStatusPtr);
                 definedLabelDataPtr->labelIsUsed = FALSE;
             }
         }
@@ -510,7 +517,7 @@ static errorCodes extractCodeOperands(char **currentPosPtr, operationClass comma
         encounteredError = handleThirdOperand(currentPosPtr, commandOpType, currentLineDataPtr, &calledLabel);
     }
 
-    /* mark labelsDB usage */
+    /* mark label usage */
     if(!encounteredError && calledLabel.labelIsUsed){
         encounteredError = addLabelCall(labelCallsDB, &calledLabel.data.called);
     }
@@ -574,7 +581,7 @@ static errorCodes handleThirdOperand(char **currentPosPtr, operationClass comman
         }
     }
 
-    if(currentOperand.isLabel){/* labelsDB is used */
+    if(currentOperand.isLabel){/* label is used */
         calledLabelPtr->labelIsUsed = TRUE;
         strcpy(calledLabelPtr->data.called.labelId.name, currentOperand.labelName);
     }
@@ -584,7 +591,7 @@ static errorCodes handleThirdOperand(char **currentPosPtr, operationClass comman
 
 
 /* todo check flushLine EOF*/
-void flushLine(FILE *sourceFile, lineID *lineIdPtr) {
+void flushLine(FILE *sourceFile, lineID *lineIdPtr, fileErrorStatus *fileStatusPtr) {
     char *currentPos = lineIdPtr->line;
     int currentChar;
     boolean missedCharacters = FALSE;/* turns on if any non-white characters are found past supported line limits */
@@ -602,7 +609,7 @@ void flushLine(FILE *sourceFile, lineID *lineIdPtr) {
         }
 
         if(missedCharacters){/* was not end of file */
-            printWarningMessage(LINE_TOO_LONG, lineIdPtr);
+            printWarningMessage(LINE_TOO_LONG, lineIdPtr, fileStatusPtr);
         }
     }
 }

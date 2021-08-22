@@ -10,14 +10,15 @@
 #include "labelCallsDB.h"
 #include "entryCallsDB.h"
 #include "externUsesDB.h"
-#include "print.h"
+#include "printFiles.h"
+#include "printErrors.h"
 
 #ifndef MAX_LINE
 #include "data.h"
 #endif
 
 /* todo possible refactors */
-/* address long labelsDB definition before entry or extern */
+/* address long labels definition before entry or extern */
 /* new typedef of only char in dataImageDB - for abstraction */
 /* add reset EACH structure occurrence */
 /* add NULL checking */
@@ -26,7 +27,7 @@
 /* operationsDB.h - check no data.h include in header file + maybe remove from databases struct */
 /* wrong error for .dh number out of range */
 /* error printing: handle file headline + mark end of file  - error printing database */
-/* program does not address labelsDB definition without ':' - wrong error message */
+/* program does not address labels definition without ':' - wrong error message */
 /* pandas refactor long functions/functions that receive many parameters */
 /* for every database - extract finding end of DB\allocating additional memory to different function */
 /* for every database - check if head not NULL */
@@ -46,7 +47,7 @@ static boolean initProjectDatabases(databaseRouterPtr databasesPtr);
  * @param databasesPtr pointer to database router struct
  * @return TRUE if memory allocated successfully, FALSE otherwise
  */
-static boolean initFileDataBases(databaseRouterPtr databasesPtr);
+static boolean initFileDataBases(databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr);
 
 /**
  * Validate name of source file matching required extension, and supported name length.
@@ -70,7 +71,7 @@ static void compileFile(char *sourceFileName, databaseRouter databases);
  * @param sourceFilePtr address to file pointer, file address will be assigned here
  * @return TRUE if file opened successfully, FALSE otherwise
  */
-static boolean openFile(char *sourceFileName, FILE **sourceFilePtr);
+static boolean openFile(char *sourceFileName, FILE **sourceFilePtr, fileErrorStatus *fileStatusPtr);
 
 /**
  * Free memory allocated for per-file databases, set pointers to databases to NULL
@@ -90,7 +91,7 @@ int main(int argc, char *argv[]){
     databaseRouter databases;
 
     if(argc < 2){/* no files to compile */
-        printErrorMessage(NO_FILES_TO_COMPILE, NULL);
+        printProjectErrorMessage(NO_FILES_TO_COMPILE);
     }
     else{/* program inline parameters present */
         /* initialize operation names database */
@@ -126,14 +127,14 @@ static boolean initProjectDatabases(databaseRouterPtr databasesPtr){
     allocationSuccess = databasesPtr->operationsDB ? TRUE : FALSE;
 
     if(!allocationSuccess){
-        printErrorMessage(MEMORY_ALLOCATION_FAILURE, NULL);
+        printProjectErrorMessage(PROJECT_MEMORY_FAILURE);
     }
 
     return allocationSuccess;
 }
 
 
-static boolean initFileDataBases(databaseRouterPtr databasesPtr){
+static boolean initFileDataBases(databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr) {
     boolean allocationSuccess = TRUE;
 
     if (!(databasesPtr->codeImageDB = initCodeImage()) ||
@@ -147,7 +148,7 @@ static boolean initFileDataBases(databaseRouterPtr databasesPtr){
     }
 
     if(!allocationSuccess){
-        printErrorMessage(MEMORY_ALLOCATION_FAILURE, NULL);
+        printFileErrorMessage(MEMORY_ALLOCATION_FAILURE, NULL, fileStatusPtr);
     }
 
     return allocationSuccess;
@@ -158,7 +159,7 @@ static boolean initFileDataBases(databaseRouterPtr databasesPtr){
 static boolean supportedFileName(char *sourceFileName){
     char *currentChar = sourceFileName;
     boolean result = TRUE;
-    errorCodes encounteredError = NO_ERROR;
+    projectErrors error = NOT_OCCURRED;
 
     /* validate extension */
     for(; *currentChar; currentChar++)/* go to end of name */
@@ -168,17 +169,17 @@ static boolean supportedFileName(char *sourceFileName){
         ;
 
     if(strcmp(currentChar, SOURCE_FILE_EXTENSION) != 0){/* illegal extension */
-        encounteredError = ILLEGAL_FILE_EXTENSION;
+        error = ILLEGAL_FILE_EXTENSION;
     }
 
     /* validate length */
-    if(!encounteredError && strlen(sourceFileName) > MAX_FILENAME_LENGTH){
-        encounteredError = FILENAME_LENGTH_NOT_SUPPORTED;
+    if(!error && strlen(sourceFileName) > MAX_FILENAME_LENGTH){
+        error = FILENAME_LENGTH_NOT_SUPPORTED;
     }
 
-    if(encounteredError){
+    if(error){
         result = FALSE;
-        printErrorMessage(encounteredError, NULL);
+        printProjectErrorMessage(error);
     }
 
     return result;
@@ -190,42 +191,48 @@ static void compileFile(char *sourceFileName, databaseRouter databases){
     long DCF = 0;/* will store size of data image, in bytes */
     databaseRouterPtr databasesPtr = &databases;/* pointer to databases struct */
     boolean validFile;/* track if any errors occurred */
+    fileErrorStatus fileStatus = {0};/* file attribute to be used when printing errors */
     FILE *sourceFile = NULL;/* pointer to current file */
 
-    validFile = openFile(sourceFileName, &sourceFile);
+    validFile = openFile(sourceFileName, &sourceFile, &fileStatus);
     
     if(validFile){/* file opened */
-        validFile = initFileDataBases(databasesPtr);
+        validFile = initFileDataBases(databasesPtr, &fileStatus);
     }
 
     if(validFile){/* databases initialized */
-        validFile = firstPass(sourceFile, &ICF, &DCF, databasesPtr);
+        validFile = firstPass(sourceFile, &ICF, &DCF, databasesPtr, &fileStatus);
     }
 
     if(validFile){/* first pass no errors */
-        validFile = secondPass(databasesPtr, ICF);
+        validFile = secondPass(databasesPtr, ICF, &fileStatus);
     }
 
     if(validFile){/* second pass no errors */
-        writeFiles(databases, sourceFileName, ICF, DCF);
+        writeFiles(databases, sourceFileName, ICF, DCF, &fileStatus);
     }
 
     if(sourceFile){/* the file was opened */
         fclose(sourceFile);/* todo check if need to use returned value */
     }
 
+    divideFileErrorPrinting(&fileStatus);
+
     /* free any memory allocated during file compilation */
     clearFileDatabases(databasesPtr);
 }
 
 
-static boolean openFile(char *sourceFileName, FILE **sourceFilePtr){
+static boolean openFile(char *sourceFileName, FILE **sourceFilePtr, fileErrorStatus *fileStatusPtr) {
     boolean result = TRUE;
     *sourceFilePtr = fopen(sourceFileName, "r");
 
     if(!*sourceFileName){/* could not open file */
-        printErrorMessage(COULD_NOT_OPEN_FILE, NULL);
+        printProjectErrorMessage(COULD_NOT_OPEN_FILE);
         result = FALSE;
+    }
+    else{
+        fileStatusPtr->sourceFileName = sourceFileName;
     }
 
     return result;

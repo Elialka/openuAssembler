@@ -18,7 +18,7 @@
 
 
 /* array types sizes */
-#define LABEL_ARRAY_SIZE (MAX_LABEL_LENGTH + 1) /* labelsDB length including '\0' character */
+#define LABEL_ARRAY_SIZE (MAX_LABEL_LENGTH + 1) /* label length including '\0' character */
 #define LINE_ARRAY_SIZE (MAX_LINE + 2)/* including '\n' and '\0' */
 #define TOKEN_ARRAY_SIZE (MAX_LINE)
 #define NUMBERS_ARRAY_SIZE (MAX_LINE / 2)
@@ -76,8 +76,7 @@ typedef enum{
     EXPECTED_REGISTER_THIRD,
     EXPECTED_NUMBER_SECOND,
     EXPECTED_LABEL_FIRST,
-    REGISTER_ILLEGAL_CHAR,
-    REGISTER_OUT_OF_RANGE,
+    ILLEGAL_REGISTER_ID,
     /* strings and numbers*/
     MISSING_QUOTE,
     NOT_PRINTABLE_CHAR,
@@ -87,20 +86,26 @@ typedef enum{
     /* parsing */
     MISSING_COMMA,
     ILLEGAL_COMMA,
-    /* source file name */
-    FILENAME_LENGTH_NOT_SUPPORTED,
-    ILLEGAL_FILE_EXTENSION,
-    NO_FILES_TO_COMPILE,
-    COULD_NOT_OPEN_FILE,
     /* other */
     EXTRANEOUS_TEXT,
     COULD_NOT_CREATE_FILE,
     /* internal crisis */
-    IMPOSSIBLE_UPDATE_CODE_IMAGE,/* todo change back */
-    IMPOSSIBLE_ENCODE_CODE,
-    IMPOSSIBLE_ENCODE_DATA,
-    IMPOSSIBLE_SET_LABEL_CALL
+    IMPOSSIBLE
 }errorCodes;
+
+typedef enum projectErrors{
+    NOT_OCCURRED = 0,
+    PROJECT_MEMORY_FAILURE,
+    FILENAME_LENGTH_NOT_SUPPORTED,
+    ILLEGAL_FILE_EXTENSION,
+    NO_FILES_TO_COMPILE,
+    COULD_NOT_OPEN_FILE
+}projectErrors;
+
+typedef struct fileErrorStatus{
+    char *sourceFileName;
+    boolean errorOccurred;
+}fileErrorStatus;
 
 typedef enum{
     R_ARITHMETIC,
@@ -183,7 +188,7 @@ typedef struct lineID{
 }lineID;
 
 typedef struct labelID{
-    char name[LABEL_ARRAY_SIZE];/* name of labelsDB */
+    char name[LABEL_ARRAY_SIZE];/* name of label */
     long address;/* based on context - address defined or address called as operand */
 }labelID;
 
@@ -252,9 +257,3 @@ typedef struct operandAttributes{
     char labelName[LABEL_ARRAY_SIZE];
     boolean isLabel;
 }operandAttributes;
-
-
-
-void printWarningMessage(warningCodes encounteredWarning, lineID *lineIdPtr);
-
-void printErrorMessage(errorCodes encounteredError, lineID *lineIdPtr);

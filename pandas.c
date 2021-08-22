@@ -14,7 +14,7 @@
 
 
 /**
- * Count legal labelsDB characters
+ * Count legal label's characters
  * @param token Name string
  * @return How many characters read until string ended, or until illegal character encountered
  */
@@ -98,18 +98,18 @@ boolean isLabelDefinition(char **currentPosPtr, char *currentLabel, errorCodes *
     int tokenLength = extractNextToken(&currentPos, token);
 
 
-    if((definitionEnd = strchr(token, ':'))){/* a labelsDB is defined */
+    if((definitionEnd = strchr(token, ':'))){/* a label is defined */
         *definitionEnd = '\0';/* delete ':' from token */
         tokenLength--;/* update new token length */
         encounteredError = tokenIsLabel(token, tokenLength);/* check if possibly legal name */
 
         if(!encounteredError){/* possibly legal */
-            if(isspace(*currentPos)){/* legal labelsDB declaration */
-                strcpy(currentLabel, token);/* save labelsDB name */
+            if(isspace(*currentPos)){/* legal label declaration */
+                strcpy(currentLabel, token);/* save label name */
                 *currentPosPtr = currentPos;/* update line position */
                 result = TRUE;
             }
-            else{/* no white character after labelsDB definition */
+            else{/* no white character after label definition */
                 encounteredError = NO_SPACE_AFTER_LABEL;
             }
         }
@@ -309,7 +309,7 @@ errorCodes getFirstOperand(char **currentPosPtr, operationClass commandOpType, o
         encounteredError = MISSING_PARAMETER;
     }
     else if(encounteredError == NOT_REGISTER){/* not a register */
-        if (commandOpType == J_JMP || commandOpType == J_CALL_OR_LA){/* is possibly a labelsDB */
+        if (commandOpType == J_JMP || commandOpType == J_CALL_OR_LA){/* is possibly a label */
             encounteredError = getLabelOperand(token, tokenLength, operandAttributesPtr->labelName);
             operandAttributesPtr->isLabel = TRUE;
         }
@@ -366,7 +366,7 @@ errorCodes getThirdOperand(char **currentPosPtr, operationClass commandOpType, o
             encounteredError = EXPECTED_REGISTER_THIRD;
         }
     }
-    else{/* need a labelsDB */
+    else{/* need a label */
         encounteredError = getLabelOperand(token, tokenLength, operandAttributesPtr->labelName);
         operandAttributesPtr->isLabel = TRUE;
     }
@@ -392,11 +392,11 @@ errorCodes getRegisterOperand(char *token, unsigned char *regPtr){
                     *regPtr = (unsigned char)registerValue;
                 }
                 else{/* mixed digits and other characters */
-                    encounteredError = REGISTER_ILLEGAL_CHAR;
+                    encounteredError = ILLEGAL_REGISTER_ID;
                 }
             }
             else{/* out of range */
-                encounteredError = REGISTER_OUT_OF_RANGE;
+                encounteredError = ILLEGAL_REGISTER_ID;
             }
         }
         else{/* register name is not a number */
@@ -411,7 +411,7 @@ errorCodes getRegisterOperand(char *token, unsigned char *regPtr){
 errorCodes getLabelOperand(char *token, int tokenLength, char *destination){
     errorCodes encounteredError = tokenIsLabel(token, tokenLength);
 
-    if(!encounteredError){/* legal labelsDB name */
+    if(!encounteredError){/* legal label name */
         strcpy(destination, token);
     }
 
@@ -450,7 +450,12 @@ errorCodes checkLineTermination(char **currentPosPtr){
 
     for(; !encounteredError && *current; current++){
         if(!isspace(*current)){
-            encounteredError = EXTRANEOUS_TEXT;
+            if(*current == ','){
+                encounteredError = ILLEGAL_COMMA;
+            }
+            else{
+                encounteredError = EXTRANEOUS_TEXT;
+            }
         }
     }
 

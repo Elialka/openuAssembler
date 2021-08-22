@@ -17,7 +17,7 @@ errorCodes addLabelCall(databasePtr head, labelCall *newCallPtr) {
     errorCodes encounteredError = NO_ERROR;
 
     if(newCallPtr->type != I_BRANCHING && newCallPtr->type != J_JMP && newCallPtr->type != J_CALL_OR_LA){
-        encounteredError = IMPOSSIBLE_SET_LABEL_CALL;
+        encounteredError = IMPOSSIBLE;
     }
     else{/* legal label call */
         currentDataPtr = addNewUnit(lastAddress, sizeof(labelCall));
