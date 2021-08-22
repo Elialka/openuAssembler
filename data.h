@@ -194,10 +194,6 @@ typedef union codeImageDB *codeImageDBPtr;
 
 typedef char *dataImagePtr;/* todo change terminology */
 
-typedef struct labelCallsDB *labelCallsDBPtr;
-
-typedef struct labelsDB *labelsDBPtr;
-
 typedef struct operationsDB *operationsDBPtr;
 
 typedef struct unit *databasePtr;
@@ -209,8 +205,8 @@ typedef struct databaseRouter{
     dataImagePtr dataImageDB;
     databasePtr entryCallsDB;
     databasePtr externUsesDB;
-    labelCallsDBPtr labelCallsDB;
-    labelsDBPtr labelsDB;
+    databasePtr labelCallsDB;
+    databasePtr labelsDB;
     operationsDBPtr operationsDB;
 }databaseRouter;
 

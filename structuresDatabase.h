@@ -6,6 +6,8 @@ databasePtr initDatabase();
 
 boolean isDBEmpty(databasePtr head);
 
+databasePtr seekLastUnit(databasePtr head);
+
 void * addNewUnit(databasePtr lastUnitAddress, int sizeOfData);
 
 void *getDataPtr(databasePtr unitAddress);

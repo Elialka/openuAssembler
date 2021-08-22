@@ -27,6 +27,19 @@ boolean isDBEmpty(databasePtr head){
 }
 
 
+databasePtr seekLastUnit(databasePtr head){
+    databasePtr currentAddress = head;
+    databasePtr lastAddress = NULL;
+
+    while(currentAddress){/* find last unit address in database */
+        lastAddress = currentAddress;
+        currentAddress = getNextUnitAddress(currentAddress);
+    }
+
+    return lastAddress;
+}
+
+
 void * addNewUnit(databasePtr lastUnitAddress, int sizeOfData) {
     void * newUnitDataPtr = NULL;
     databasePtr newNode = NULL;

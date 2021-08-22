@@ -153,10 +153,10 @@ static void checkRedundantLabel(labelAttributesPtr definedLabelDataPtr, commandA
  * @param labelsDB pointer to labels database
  * @return errorCodes enum value describing function success/failure
  */
-static errorCodes addLabel(labelAttributesPtr definedLabelDataPtr, long IC, long DC, labelsDBPtr labelsDB);
+static errorCodes addLabel(labelAttributesPtr definedLabelDataPtr, long IC, long DC, databasePtr labelsDB);
 
 static errorCodes extractCodeOperands(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
-                                      lineAttributesPtr lineDataPtr, labelCallsDBPtr labelCallsDB);
+                                      lineAttributesPtr lineDataPtr, databasePtr labelCallsDB);
 
 /**
  * Check if first operand is needed, and extract relevant information from it
@@ -463,7 +463,7 @@ static void checkRedundantLabel(labelAttributesPtr definedLabelDataPtr, commandA
 }
 
 
-static errorCodes addLabel(labelAttributesPtr definedLabelDataPtr, long IC, long DC, labelsDBPtr labelsDB){
+static errorCodes addLabel(labelAttributesPtr definedLabelDataPtr, long IC, long DC, databasePtr labelsDB){
     errorCodes encounteredError = NO_ERROR;
 
     if(definedLabelDataPtr->labelIsUsed){
@@ -487,7 +487,7 @@ static errorCodes addLabel(labelAttributesPtr definedLabelDataPtr, long IC, long
 
 
 static errorCodes extractCodeOperands(char **currentPosPtr, operationClass commandOpType, codeLineData *currentLineDataPtr,
-                                      lineAttributesPtr lineDataPtr, labelCallsDBPtr labelCallsDB){
+                                      lineAttributesPtr lineDataPtr, databasePtr labelCallsDB){
     errorCodes encounteredError;
     labelAttributes calledLabel;/* struct holding information about label operand if was present */
     boolean mayNeedAnotherOperand;/* flag to keep track whether we should check for another operand */

@@ -24,7 +24,7 @@ static boolean entryExists(databasePtr head, char *newEntryName, databasePtr *la
     boolean alreadyExists = FALSE;
 
     if(!isDBEmpty(head)){/* not first entry call */
-        while(currentAddress){/* go through database, check if entry already declared *//* todo check if error strcmp for first entry call */
+        while(currentAddress){/* go through database, check if entry already declared */
             currentData = getDataPtr(currentAddress);
             if(!strcmp(currentData->labelId.name, newEntryName)){/* entry exists */
                 alreadyExists = TRUE;

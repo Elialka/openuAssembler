@@ -13,7 +13,7 @@ typedef struct{
  * Initialize label calls database
  * @return pointer to the database
  */
-labelCallsDBPtr initLabelCallsDB();
+databasePtr initLabelCallsDB();
 
 /**
  * Add label call instance to database
@@ -23,24 +23,24 @@ labelCallsDBPtr initLabelCallsDB();
  * @param commandOpType type of command
  * @return errorCodes enum value describing function success/failure
  */
-errorCodes addLabelCall(labelCallsDBPtr head, labelCall *newCallPtr);
+errorCodes addLabelCall(databasePtr head, labelCall *newCallPtr);
 
 /**
  * Get current label call data
- * @param labelCallPtr pointer to label call
+ * @param currentLabelCallPtr pointer to label call
  * @return pointer to data structure
  */
-labelCall * getLabelCallData(labelCallsDBPtr labelCallPtr);
+labelCall * getLabelCallData(databasePtr currentLabelCallPtr);
 
 /**
  * Get next label call pointer
- * @param labelCallPtr
+ * @param currentLabelCallPtr
  * @return next label call pointer
  */
-labelCallsDBPtr getNextLabelCall(labelCallsDBPtr labelCallPtr);
+databasePtr getNextLabelCall(databasePtr currentLabelCallPtr);
 
 /**
  * Free any memory allocated by the database
  * @param head pointer to the database
  */
-void clearLabelCallsDB(labelCallsDBPtr head);
+void clearLabelCallsDB(databasePtr head);

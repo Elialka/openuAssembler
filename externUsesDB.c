@@ -10,15 +10,9 @@ databasePtr initExternUsesDB(){
 
 
 errorCodes addExternUse(databasePtr head, labelID labelId) {
-    databasePtr currentAddress = head;
-    databasePtr lastAddress;
-    labelID *currentDataPtr;
+    databasePtr lastAddress = seekLastUnit(head);
+    labelID *currentDataPtr = NULL;
     errorCodes encounteredError = NO_ERROR;
-
-    while(currentAddress){/* find last unit address in database */
-        lastAddress = currentAddress;
-        currentAddress = getNextUnitAddress(currentAddress);
-    }
 
     currentDataPtr = addNewUnit(lastAddress, sizeof(labelID));
     if(currentDataPtr){/* memory allocated for data */
