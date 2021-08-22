@@ -118,8 +118,6 @@ static errorCodes legalDoubleDefinition(definedLabel *newLabelDataPtr, definedLa
 }
 
 
-
-
 errorCodes addNewLabel(labelsDBPtr head, definedLabel *labelDataPtr) {
     errorCodes encounteredError = NO_ERROR;
     labelsDBPtr current = NULL;

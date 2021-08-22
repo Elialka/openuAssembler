@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "structuresDatabase.h"
 #include "externUsesDB.h"
 
 typedef struct externUsesDB{
