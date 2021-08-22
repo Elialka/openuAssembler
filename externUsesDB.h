@@ -16,7 +16,7 @@ databasePtr initExternUsesDB();
  * @param IC address in memory where used
  * @return errorCodes enum value describing function success/failure
  */
-errorCodes addExternUse(databasePtr head, char *labelName, long IC);
+errorCodes addExternUse(databasePtr head, labelID labelId);
 
 /**
  * Check if database has been used

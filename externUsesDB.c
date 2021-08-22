@@ -9,7 +9,7 @@ databasePtr initExternUsesDB(){
 }
 
 
-errorCodes addExternUse(databasePtr head, char *labelName, long IC){
+errorCodes addExternUse(databasePtr head, labelID labelId) {
     databasePtr currentAddress = head;
     databasePtr lastAddress;
     labelID *currentDataPtr;
@@ -22,8 +22,8 @@ errorCodes addExternUse(databasePtr head, char *labelName, long IC){
 
     currentDataPtr = addNewUnit(lastAddress, sizeof(labelID));
     if(currentDataPtr){/* memory allocated for data */
-        strcpy(currentDataPtr->name, labelName);
-        currentDataPtr->address = IC;
+        strcpy(currentDataPtr->name, labelId.name);
+        currentDataPtr->address = labelId.address;
     }
     else{
         encounteredError = MEMORY_ALLOCATION_FAILURE;

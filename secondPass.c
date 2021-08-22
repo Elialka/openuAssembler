@@ -78,7 +78,7 @@ validateExternalUsage(databasePtr externDatabase, labelCall *currentCallPtr, lab
             encounteredError = CANNOT_BE_EXTERN;
         }
         else{/* add extern use to database *//* todo change two parameters to labelID */
-            encounteredError = addExternUse(externDatabase, currentCallPtr->labelId.name, currentCallPtr->labelId.address);
+            encounteredError = addExternUse(externDatabase, currentCallPtr->labelId);
         }
     }
 
