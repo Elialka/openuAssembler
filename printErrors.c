@@ -165,6 +165,6 @@ void printProjectErrorMessage(projectErrors errorCode){
 
 void divideFileErrorPrinting(fileErrorStatus *fileStatusPtr){
     if(fileStatusPtr->errorOccurred){
-        printf("-------------------------------------------------------------------------------------\n");
+        printf("--------------------------------------------------------------------------------------------------\n");
     }
 }

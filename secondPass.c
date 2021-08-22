@@ -15,6 +15,8 @@ updateCodeImage(codeImageDBPtr codeImageDatabase, labelCall *currentCallPtr, lon
 
 static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr);
 
+static errorCodes fillMissingAddress(databaseRouterPtr databasesPtr, labelCall *currentCallDataPtr);
+
 static boolean
 locateEntryDefinitions(databasePtr entryCallsDatabase, databasePtr labelsDatabase, fileErrorStatus *fileStatusPtr);
 
@@ -29,46 +31,62 @@ boolean secondPass(databaseRouterPtr databasesPtr, long ICF, fileErrorStatus *fi
     result = fillMissingLabelAddresses(databasesPtr, fileStatusPtr);
 
     if(result){/* no errors */
-        result = locateEntryDefinitions(databasesPtr->entryCallsDB, databasesPtr->labelsDB, fileStatusPtr);
+        if(!isEntryCallsDBEmpty(databasesPtr->entryCallsDB)){
+            result = locateEntryDefinitions(databasesPtr->entryCallsDB, databasesPtr->labelsDB, fileStatusPtr);
+        }
     }
 
     return result;
 }
 
+/* todo split function */
 static boolean fillMissingLabelAddresses(databaseRouterPtr databasesPtr, fileErrorStatus *fileStatusPtr) {
     boolean result = TRUE;
     errorCodes encounteredError = NO_ERROR;/* if errors occur, track encounteredError code */
-    databasePtr currentPtr = databasesPtr->labelCallsDB;
-    labelCall *currentCallPtr;/* pointer to current label call data structure */
-    definedLabel *definedLabelDataPtr;/* pointer to defined label with matching name's data structure */
+    databasePtr labelCallPtr = databasesPtr->labelCallsDB;
+    labelCall *currentCallDataPtr;/* pointer to current label call data structure */
 
     /* resolve each labels call not handle in first pass */
-    for(; currentPtr; currentPtr = getNextLabelCall(currentPtr)){
+    for(; labelCallPtr; labelCallPtr = getNextLabelCall(labelCallPtr)){
         /* get label call data */
-        currentCallPtr = getLabelCallData(currentPtr);
+        currentCallDataPtr = getLabelCallData(labelCallPtr);
 
-        encounteredError = getLabelAttributes(databasesPtr->labelsDB,
-                                              currentCallPtr->labelId.name, &definedLabelDataPtr);
+        if(currentCallDataPtr){/* data exists */
+            encounteredError = fillMissingAddress(databasesPtr, currentCallDataPtr);
 
-        /* validate legality of labels type with command type */
-        if(!encounteredError){/* found labels attributes */
-            encounteredError = validateExternalUsage(databasesPtr->externUsesDB, currentCallPtr,
-                                                     definedLabelDataPtr->type);
-        }
-
-        /* update code image */
-        if(!encounteredError){/* labels is of legal type for command type */
-            encounteredError = updateCodeImage(databasesPtr->codeImageDB, currentCallPtr,
-                                               definedLabelDataPtr->labelId.address);
-        }
-
-        if(encounteredError){/* mark encounteredError occurred */
-            printFileErrorMessage(encounteredError, &currentCallPtr->lineId, fileStatusPtr);
-            result = FALSE;
+            if(encounteredError){
+                printFileErrorMessage(encounteredError, &currentCallDataPtr->lineId, fileStatusPtr);
+                result = FALSE;
+            }
         }
     }
 
     return result;
+}
+
+
+static errorCodes fillMissingAddress(databaseRouterPtr databasesPtr, labelCall *currentCallDataPtr) {
+    errorCodes encounteredError = NO_ERROR;
+    definedLabel *definedLabelDataPtr;/* pointer to defined label with matching name's data structure */
+
+    encounteredError = getLabelAttributes(databasesPtr->labelsDB, currentCallDataPtr->labelId.name, &definedLabelDataPtr);
+
+    /* validate legality of label type with command type */
+    if(!encounteredError){/* found labels attributes */
+        encounteredError = validateExternalUsage(databasesPtr->externUsesDB, currentCallDataPtr,
+                                                 definedLabelDataPtr->type);
+    }
+
+    /* update code image */
+    if(!encounteredError){/* labels is of legal type for command type */
+        encounteredError = updateCodeImage(databasesPtr->codeImageDB, currentCallDataPtr,
+                                           definedLabelDataPtr->labelId.address);
+    }
+
+
+
+
+    return encounteredError;
 }
 
 
@@ -80,7 +98,7 @@ validateExternalUsage(databasePtr externDatabase, labelCall *currentCallPtr, lab
         if(currentCallPtr->type == I_BRANCHING){/* illegal - I_branching commands cannot use external labels */
             encounteredError = CANNOT_BE_EXTERN;
         }
-        else{/* add extern use to database *//* todo change two parameters to labelID */
+        else{/* add extern use to database */
             encounteredError = addExternUse(externDatabase, currentCallPtr->labelId);
         }
     }

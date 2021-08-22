@@ -114,7 +114,7 @@ void updateDataLabels(databasePtr head, long offset){
 
     for(; currentLabelAddress; currentLabelAddress = getNextUnitAddress(currentLabelAddress)){
         currentDataPtr = getDataPtr(currentLabelAddress);
-        if(currentDataPtr->type == DATA_LABEL){
+        if(currentDataPtr && currentDataPtr->type == DATA_LABEL){
             currentDataPtr->labelId.address += offset;
         }
     }

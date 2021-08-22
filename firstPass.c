@@ -234,6 +234,7 @@ encodeFile(FILE *sourceFile, long *ICPtr, long *DCPtr, databaseRouterPtr databas
     for(currentLineData.lineId.count = 1;
     fgets(currentLineData.lineId.line, MAX_LINE, sourceFile);/* todo check if maxLine + 1 */
     currentLineData.lineId.count++){/* there is another line */
+        encounteredError = NO_ERROR;
 
         if(needToReadLine(currentLineData.lineId.line)){/* line should be analysed */
             encounteredError = readLine(&currentLineData, databasesPtr, fileStatusPtr);
@@ -371,7 +372,7 @@ externOrEntry(char **currentPosPtr, dataOps dataOpType, lineAttributesPtr lineDa
         }
         else{/* must be extern */
             definedLabelData.data.defined.type = EXTERN_LABEL;
-            encounteredError = addLabel(&definedLabelData, 888, *lineDataPtr->DCPtr, databasesPtr->labelsDB);
+            encounteredError = addLabel(&definedLabelData, *lineDataPtr->ICPtr, *lineDataPtr->DCPtr, databasesPtr->labelsDB);
         }
     }
 

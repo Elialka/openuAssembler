@@ -227,8 +227,8 @@ static boolean openFile(char *sourceFileName, FILE **sourceFilePtr, fileErrorSta
     boolean result = TRUE;
     *sourceFilePtr = fopen(sourceFileName, "r");
 
-    if(!*sourceFileName){/* could not open file */
-        printProjectErrorMessage(COULD_NOT_OPEN_FILE);
+    if(!*sourceFilePtr){/* could not open file */
+        printProjectErrorMessage(COULD_NOT_OPEN_FILE);/* todo change per file error */
         result = FALSE;
     }
     else{
