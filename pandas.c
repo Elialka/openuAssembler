@@ -44,22 +44,23 @@ static long calculateMaxValue(dataOps dataOpType);
  */
 static boolean stringToLong(char *token, long *valuePtr, char **endPtrPtr, long maxValue);
 
-/* todo fix docs */
+
 /**
- * When expecting a comma while reading array, check all good
- * @param currentPosPtr
+ * When expecting a comma while reading array, read comma from line, if not present identify if error or
+ * end of line
+ * @param currentPosPtr Pointer to position in line array
  * @param finishedPtr
- * @return
+ * @return errorCodes enum value describing function success/failure
  */
 static errorCodes expectComma(char **currentPosPtr, boolean *finishedPtr);
 
 /**
- *
- * @param currentPosPtr
- * @param numbersArray
- * @param indexInArray
- * @param maxValue
- * @return
+ * When expecting a comma while reading array, read number. If not present, return correct error code
+ * @param currentPosPtr Pointer to position in line array
+ * @param numbersArray where to store numbers
+ * @param indexInArray next unused index in the array
+ * @param maxValue max positive value supported for current command
+ * @return errorCodes enum value describing function success/failure
  */
 static errorCodes expectNumber(char **currentPosPtr, long *numbersArray, int indexInArray, long maxValue);
 
@@ -359,7 +360,12 @@ static errorCodes expectNumber(char **currentPosPtr, long *numbersArray, int ind
         }
     }
     else{/* end of line */
-        encounteredError = MISSING_PARAMETER;
+        if(**currentPosPtr == ','){
+            encounteredError = ILLEGAL_COMMA;
+        }
+        else{
+            encounteredError = MISSING_PARAMETER;
+        }
     }
 
     return encounteredError;

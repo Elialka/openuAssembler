@@ -16,7 +16,6 @@
 
 /* todo possible refactors */
 /* wrong error for .dh number out of range */
-/* error printing: handle file headline + mark end of file  - error printing database */
 
 /**
  * Initialize static databases to be used throughout the program,

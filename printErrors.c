@@ -3,11 +3,13 @@
 #include "global.h"
 #include "printErrors.h"
 
+static void printFileHeader(char *sourceFileName);
 
+static void printLineID(lineID *lineIdPtr);
 
 void printWarningMessage(warningCodes encounteredWarning, lineID *lineIdPtr, fileErrorStatus *fileStatusPtr) {
     if(!fileStatusPtr->errorOccurred){/* first error for current file */
-        printf("Errors occurred during compiling file: \"%s\"\n", fileStatusPtr->sourceFileName);
+        printFileHeader(fileStatusPtr->sourceFileName);
     }
 
     switch(encounteredWarning){
@@ -23,13 +25,14 @@ void printWarningMessage(warningCodes encounteredWarning, lineID *lineIdPtr, fil
                     break;
     }
 
-    printf("Line %ld: %s\n", lineIdPtr->count, lineIdPtr->line);
+    /* all warnings are line specific */
+    printLineID(lineIdPtr);
 }
 
 
 void printFileErrorMessage(errorCodes encounteredError, lineID *lineIdPtr, fileErrorStatus *fileStatusPtr) {
     if(!fileStatusPtr->errorOccurred){/* first error for current file */
-        printf("Errors occurred during compiling file: \"%s\"\n", fileStatusPtr->sourceFileName);
+        printFileHeader(fileStatusPtr->sourceFileName);
         fileStatusPtr->errorOccurred = TRUE;
     }
 
@@ -101,9 +104,9 @@ void printFileErrorMessage(errorCodes encounteredError, lineID *lineIdPtr, fileE
         case EXPECTED_LABEL_FIRST:
             printf("ERROR! First parameter for given command should be a Label!\n");
             break;
-            case ILLEGAL_REGISTER_ID:
+        case ILLEGAL_REGISTER_ID:
             printf("ERROR! Illegal register identifier, should be \'$n\', when n is between %d - %d!\n",
-                   REGISTER_MIN_INDEX, REGISTER_MAX_INDEX);
+                    REGISTER_MIN_INDEX, REGISTER_MAX_INDEX);
             break;
         case MISSING_QUOTE:
             printf("ERROR! asciz string operand should be inside quotes!\n");
@@ -112,7 +115,7 @@ void printFileErrorMessage(errorCodes encounteredError, lineID *lineIdPtr, fileE
             printf("ERROR! Asciz string operand can only contain printable characters!\n");
             break;
         case NOT_NUMBER:
-            printf("ERROR! Mixed digits and other characters in number operand!\n");
+            printf("ERROR! Only digit characters are allowed in number operand!\n");
             break;
         case NOT_INTEGER:
             printf("ERROR! This program only supports integers!\n");
@@ -127,7 +130,7 @@ void printFileErrorMessage(errorCodes encounteredError, lineID *lineIdPtr, fileE
             printf("ERROR! Missing comma between operands!\n");
             break;
         case ILLEGAL_COMMA:
-            printf("ERROR! Extraneous comma after arguments!\n");
+            printf("ERROR! Illegal comma!\n");
             break;
         case EXTRANEOUS_TEXT:
             printf("ERROR! Extraneous text at the end of the line!\n");
@@ -147,7 +150,7 @@ void printFileErrorMessage(errorCodes encounteredError, lineID *lineIdPtr, fileE
     }
 
     if(lineIdPtr){/* error is line specific */
-        printf("Line %ld: %s\n", lineIdPtr->count, lineIdPtr->line);
+        printLineID(lineIdPtr);
     }
 }
 
@@ -174,4 +177,25 @@ void divideFileErrorPrinting(fileErrorStatus *fileStatusPtr){
     if(fileStatusPtr->errorOccurred){
         printf("--------------------------------------------------------------------------------------------------\n");
     }
+}
+
+
+static void printFileHeader(char *sourceFileName){
+    printf("Errors occurred during compiling file: \"%s\"\n\n", sourceFileName);
+}
+
+
+static void printLineID(lineID *lineIdPtr) {
+    char *currentPos = lineIdPtr->line;
+
+    /* print line number */
+    printf("Line %ld: ", lineIdPtr->count);
+
+    /* print line without newline if present to ensure solid look */
+    for(; *currentPos && *currentPos != '\n'; currentPos++){
+        putchar(*currentPos);
+    }
+
+    printf("\n\n");
+
 }
