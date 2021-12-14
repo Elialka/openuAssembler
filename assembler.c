@@ -14,9 +14,6 @@
 #include "printFiles.h"
 #include "secondPass.h"
 
-/* todo possible refactors */
-/* wrong error for .dh number out of range */
-
 /**
  * Initialize static databases to be used throughout the program,
  * set pointers to other databases to NULL
